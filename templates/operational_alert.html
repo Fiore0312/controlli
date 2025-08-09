@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BAIT Service - Alert Operativo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 700px; margin: 0 auto; background-color: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background-color: #ffc107; color: #212529; padding: 15px; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 20px; }
+        .content { padding: 25px; }
+        .info-box { background-color: #cff4fc; border: 1px solid #9eeaf9; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .footer { background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; font-size: 11px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 BAIT Service - Alert Operativo</h1>
+            <p style="margin: 5px 0 0 0;">{{ alert.subject }}</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <p style="margin: 0; line-height: 1.4;">{{ alert.message_friendly | replace('\n', '<br>') | safe }}</p>
+            </div>
+            
+            <h3>🔧 Azioni Consigliate:</h3>
+            <ul>
+                {% for action in alert.correction_steps %}
+                <li style="margin-bottom: 5px;">{{ action }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>BAIT Service - Alert ID: {{ alert.id }} - {{ now.strftime('%d/%m/%Y %H:%M') }}</p>
+        </div>
+    </div>
+</body>
+</html>
+        

@@ -1,0 +1,12 @@
+Dipendente;Cliente;Dove;Data e Ora inizio;Data e Ora fine;Ore Totali;;;;;;;;;
+;Ferie Ragusa Niccolò;;01/08/2025 00:00;02/08/2025 00:00;8;;Somma di Ore Totali;Etichette di colonna;;;;;;
+Davide Cestone;INDITEX - Davide;"Inditex Italia (Largo Corsia Dei Servi 3, 20122 Milano (MI), Ita	lia)";01/08/2025 00:00;02/08/2025 00:00;8;;Etichette di riga;Gabriele De Palma;Matteo Signo;(vuoto);Arlind Hoxha;Davide Cestone;Veronica Totta;Totale complessivo
+Veronica Totta;FRANCO -;BAIT;01/08/2025 09:30;01/08/2025 10:30;1;;(vuoto);;;0;;;;0
+Gabriele De Palma;Ferie De Palma;;04/08/2025 00:00;08/08/2025 00:00;8;;01/08/2025;;;8;;8;;16
+Arlind Hoxha;INDITEX - Arlind;"Inditex Italia (Largo Corsia Dei Servi 3, 20122 Milano (MI), Ita	lia)";04/08/2025 00:00;08/08/2025 00:00;8;;01/08/2025;;;;;;1;1
+;Ferie - Ferrario Alex;;04/08/2025 00:00;08/08/2025 00:00;8;;04/08/2025;8;;8;8;;;24
+Matteo Signo;Comune di Lentate - Matteo Signo;"Comune Di Lentate Sul Seveso (via Giacomo Matteotti 8, 20823  Sev	eso  (MB), Italia";04/08/2025 09:00;04/08/2025 18:00;8;;04/08/2025;;8,5;;;;;8,5
+Matteo Signo;MAX MODA REMOTO - 192.168.1.12 (MAX-SRV12) in Eval;TRUE;04/08/2025 09:00;04/08/2025 09:30;0,5;;05/08/2025;;0,5;;;;;0,5
+Matteo Signo;WITTMANN REMOTO - ticket 41950;TRUE;05/08/2025 18:00;05/08/2025 18:30;0,5;;07/08/2025;;8;;;;;8
+Matteo Signo;Comune di Lentate - Matteo Signo;"Comune Di Lentate Sul Seveso (via Giacomo Matteotti 8, 20823  Sev	eso  (MB), Italia";07/08/2025 09:00;07/08/2025 18:00;8;;07/08/2025;;;;;1,5;;1,5
+Davide Cestone;"STUDIO SPOLIDORO (Liliana passa in sede da noi) - ti	cket 42286 - problemi notebook nuovo Liliana 3517806312";TRUE;07/08/2025 09:30;07/08/2025 11:00;1,5;;Totale complessivo;8;17;16;8;9,5;1;59,5

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+
+# Output files temporanei  
+*_2025*.txt
+*_2025*.json
+*_2025*.csv
+*_2025*.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dati sensibili (mantieni i CSV di esempio)
+# *.csv

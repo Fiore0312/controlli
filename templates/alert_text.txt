@@ -1,0 +1,18 @@
+
+BAIT SERVICE - ALERT {{ alert.priority.name }}
+{{ "=" * 50 }}
+
+{{ alert.subject }}
+
+{{ alert.message_friendly }}
+
+AZIONI RICHIESTE:
+{% for action in alert.correction_steps %}
+- {{ action }}
+{% endfor %}
+
+--
+BAIT Service S.r.l.
+Alert ID: {{ alert.id }}
+Generato: {{ now.strftime('%d/%m/%Y %H:%M:%S') }}
+        

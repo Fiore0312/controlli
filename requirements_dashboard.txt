@@ -1,0 +1,23 @@
+# BAIT Service - Dashboard Requirements
+# Dipendenze per Dashboard Controller Enterprise-Grade
+
+# Core Dashboard
+dash==2.17.1
+dash-bootstrap-components==1.5.0
+plotly==5.17.0
+
+# Data Processing 
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Excel Export
+openpyxl>=3.1.0
+xlsxwriter>=3.1.0
+
+# PDF Generation (optional)
+reportlab>=4.0.0
+weasyprint>=60.0
+
+# Utils
+python-dateutil>=2.8.0
+pytz>=2023.3

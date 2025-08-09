@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAIT Service - Alert Critico</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background-color: #dc3545; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px; }
+        .alert-box { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .details { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 20px 0; }
+        .actions { background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .actions h3 { color: #155724; margin-top: 0; }
+        .actions ul { margin: 10px 0; padding-left: 20px; }
+        .actions li { margin-bottom: 8px; color: #155724; }
+        .footer { background-color: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; color: #666; }
+        .urgent { color: #dc3545; font-weight: bold; }
+        .timestamp { font-size: 11px; color: #888; }
+        .confidence { background-color: #007bff; color: white; padding: 4px 8px; border-radius: 15px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 BAIT Service - Alert Critico</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">{{ alert.subject }}</p>
+        </div>
+        
+        <div class="content">
+            <div class="alert-box">
+                <h2 style="color: #856404; margin-top: 0;">⚠️ ATTENZIONE IMMEDIATA RICHIESTA</h2>
+                <p style="font-size: 16px; line-height: 1.5; margin: 0;">{{ alert.message_friendly | replace('\n', '<br>') | safe }}</p>
+                
+                {% if alert.estimated_loss %}
+                <p class="urgent">💰 PERDITA STIMATA: €{{ "%.2f" | format(alert.estimated_loss) }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="details">
+                <h3>📋 Dettagli Tecnici</h3>
+                <p><strong>ID Alert:</strong> {{ alert.id }}</p>
+                <p><strong>Tecnico:</strong> {{ alert.metadata.tecnico_name }}</p>
+                <p><strong>Categoria:</strong> {{ alert.category }}</p>
+                <p><strong>Confidence:</strong> <span class="confidence">{{ alert.confidence_score }}%</span></p>
+                <p><strong>Timestamp:</strong> <span class="timestamp">{{ alert.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</span></p>
+                
+                {% if alert.category == 'temporal_overlap' %}
+                <h4>Dettagli Sovrapposizione:</h4>
+                <ul>
+                    <li><strong>Cliente 1:</strong> {{ alert.metadata.cliente1 }}</li>
+                    <li><strong>Cliente 2:</strong> {{ alert.metadata.cliente2 }}</li>
+                    <li><strong>Durata sovrapposizione:</strong> {{ alert.metadata.overlap_minutes }} minuti</li>
+                    <li><strong>Data:</strong> {{ alert.metadata.data_attivita }}</li>
+                </ul>
+                {% endif %}
+            </div>
+            
+            <div class="actions">
+                <h3>✅ AZIONI RICHIESTE</h3>
+                <ul>
+                    {% for action in alert.correction_steps %}
+                    <li>{{ action }}</li>
+                    {% endfor %}
+                </ul>
+                
+                <p><strong>⏰ DEADLINE:</strong> Azione richiesta entro <span class="urgent">2 ore</span> dalla ricezione</p>
+                {% if alert.followup_required %}
+                <p><strong>📞 FOLLOW-UP:</strong> Conferma azione entro {{ alert.followup_delay_hours }} ore</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>BAIT Service S.r.l.</strong> - Sistema Automatico Alert<br>
+            Generato il {{ now.strftime('%d/%m/%Y alle %H:%M:%S') }}<br>
+            <em>Questo è un messaggio automatico. Per supporto contattare: support@baitservice.com</em></p>
+        </div>
+    </div>
+</body>
+</html>
+        
