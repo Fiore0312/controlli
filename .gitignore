@@ -29,4 +29,5 @@ logs/
 Thumbs.db
 
 # Dati sensibili (mantieni i CSV di esempio)
-# *.csv
+# *.csvbait_env/
+*.html
