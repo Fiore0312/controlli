@@ -31,7 +31,7 @@ try:
     BAIT_MODULES_AVAILABLE = True
 except ImportError:
     BAIT_MODULES_AVAILABLE = False
-    print("⚠️ Moduli BAIT Service non trovati - modalità demo")
+    print("[WARNING] Moduli BAIT Service non trovati - modalità demo")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -66,18 +66,18 @@ class BAITDashboardUpload:
         self.app.layout = html.Div([
             # Header con status
             html.Div([
-                html.H1("🎯 BAIT Service - Dashboard Upload", className="text-center mb-3"),
+                html.H1("BAIT Service - Dashboard Upload", className="text-center mb-3"),
                 html.P([
-                    html.Span("🟢 Sistema Online", className="badge bg-success me-2"),
+                    html.Span("[ONLINE] Sistema Online", className="badge bg-success me-2"),
                     html.Span(id="system-status", className="badge bg-info me-2"),
-                    html.Span(f"📁 Upload: {self.upload_dir}", className="text-muted")
+                    html.Span(f"[FOLDER] Upload: {self.upload_dir}", className="text-muted")
                 ], className="text-center mb-4"),
                 html.Hr()
             ], style={'background': 'white', 'padding': '20px', 'border-radius': '10px', 'margin-bottom': '20px'}),
             
             # Upload Section
             html.Div([
-                html.H3("📤 Upload Files CSV", className="mb-3"),
+                html.H3("[UPLOAD] Upload Files CSV", className="mb-3"),
                 
                 # File upload status
                 html.Div(id="upload-status", className="mb-3"),
@@ -110,11 +110,11 @@ class BAITDashboardUpload:
                 
                 # Processing controls
                 html.Div([
-                    html.Button("🚀 Processa Files", id="process-btn", 
+                    html.Button("[PROCESS] Processa Files", id="process-btn", 
                                className="btn btn-primary btn-lg me-3", disabled=True),
-                    html.Button("🔄 Ricarica Dashboard", id="refresh-btn", 
+                    html.Button("[REFRESH] Ricarica Dashboard", id="refresh-btn", 
                                className="btn btn-success btn-lg me-3"),
-                    html.Button("📁 Apri Cartella Upload", id="folder-btn", 
+                    html.Button("[FOLDER] Apri Cartella Upload", id="folder-btn", 
                                className="btn btn-info btn-lg")
                 ], className="mt-3 text-center"),
                 
@@ -125,7 +125,7 @@ class BAITDashboardUpload:
             
             # Files Status Table
             html.Div([
-                html.H3("📋 Status Files CSV", className="mb-3"),
+                html.H3("[STATUS] Status Files CSV", className="mb-3"),
                 html.Div(id="files-status-table")
             ], style={'background': 'white', 'padding': '25px', 'border-radius': '10px', 'margin-bottom': '20px'}),
             
@@ -180,24 +180,24 @@ class BAITDashboardUpload:
                         
                         uploaded_files.append(name)
                         upload_results.append(
-                            html.Li(f"✅ {name} - Caricato con successo", className="text-success")
+                            html.Li(f"[OK] {name} - Caricato con successo", className="text-success")
                         )
                         
                         logger.info(f"File uploaded successfully: {name}")
                         
                     except Exception as e:
                         upload_results.append(
-                            html.Li(f"❌ {name} - Errore: {str(e)}", className="text-danger")
+                            html.Li(f"[ERROR] {name} - Errore: {str(e)}", className="text-danger")
                         )
                         logger.error(f"Error uploading {name}: {e}")
                 else:
                     upload_results.append(
-                        html.Li(f"⚠️ {name} - File non richiesto", className="text-warning")
+                        html.Li(f"[WARNING] {name} - File non richiesto", className="text-warning")
                     )
             
             # Update status
             status_msg = html.Div([
-                html.H5("📤 Risultati Upload:", className="text-primary"),
+                html.H5("[UPLOAD] Risultati Upload:", className="text-primary"),
                 html.Ul(upload_results)
             ], className="alert alert-info")
             
@@ -226,22 +226,22 @@ class BAITDashboardUpload:
                     results = controller.run_full_analysis()
                     
                     return html.Div([
-                        html.H5("🎉 Processing Completato!", className="text-success"),
-                        html.P(f"✅ {results.get('total_records', 0)} record processati"),
-                        html.P(f"✅ {results.get('total_alerts', 0)} alert identificati"),
-                        html.P(f"✅ Accuracy: {results.get('accuracy', 0)}%"),
-                        html.P(f"💰 Perdite stimate: €{results.get('estimated_losses', 0):.2f}"),
+                        html.H5("[SUCCESS] Processing Completato!", className="text-success"),
+                        html.P(f"[OK] {results.get('total_records', 0)} record processati"),
+                        html.P(f"[OK] {results.get('total_alerts', 0)} alert identificati"),
+                        html.P(f"[OK] Accuracy: {results.get('accuracy', 0)}%"),
+                        html.P(f"[MONEY] Perdite stimate: €{results.get('estimated_losses', 0):.2f}"),
                         html.Small(f"Processing completato: {datetime.now().strftime('%H:%M:%S')}", 
                                  className="text-muted")
                     ], className="alert alert-success")
                 else:
                     # Demo mode
                     return html.Div([
-                        html.H5("🎉 Processing Demo Completato!", className="text-success"),
-                        html.P("✅ 371 record processati (demo)"),
-                        html.P("✅ 17 alert identificati (demo)"),
-                        html.P("✅ Accuracy: 96.4% (demo)"),
-                        html.P("💰 Perdite stimate: €157.50 (demo)"),
+                        html.H5("[SUCCESS] Processing Demo Completato!", className="text-success"),
+                        html.P("[OK] 371 record processati (demo)"),
+                        html.P("[OK] 17 alert identificati (demo)"),
+                        html.P("[OK] Accuracy: 96.4% (demo)"),
+                        html.P("[MONEY] Perdite stimate: €157.50 (demo)"),
                         html.Small(f"Processing demo: {datetime.now().strftime('%H:%M:%S')}", 
                                  className="text-muted")
                     ], className="alert alert-success")
@@ -249,7 +249,7 @@ class BAITDashboardUpload:
             except Exception as e:
                 logger.error(f"Processing error: {e}")
                 return html.Div([
-                    html.H5("❌ Errore Processing", className="text-danger"),
+                    html.H5("[ERROR] Errore Processing", className="text-danger"),
                     html.P(f"Errore: {str(e)}"),
                     html.Small("Controlla i log per dettagli", className="text-muted")
                 ], className="alert alert-danger")
@@ -293,14 +293,14 @@ class BAITDashboardUpload:
         def update_dashboard_display(data):
             """Aggiorna display dashboard"""
             if not data or 'summary' not in data:
-                return "", "", "⚠️ No Data"
+                return "", "", "[WARNING] No Data"
             
             summary = data['summary']
             alerts = data.get('alerts', [])
             
             # KPI Cards
             kpi_cards = html.Div([
-                html.H3("📊 KPI Real-time", className="mb-3"),
+                html.H3("[KPI] KPI Real-time", className="mb-3"),
                 html.Div([
                     # Total Records
                     html.Div([
@@ -328,7 +328,7 @@ class BAITDashboardUpload:
                     
                     # Status
                     html.Div([
-                        html.H4("🟢", className="text-success"),
+                        html.H4("[ONLINE]", className="text-success"),
                         html.P("Sistema Status", className="text-muted")
                     ], className="col-md-2 text-center p-3 bg-white rounded mx-1")
                 ], className="row")
@@ -337,7 +337,7 @@ class BAITDashboardUpload:
             # Alert Results (preview)
             if alerts:
                 alert_preview = html.Div([
-                    html.H3("🚨 Alert Preview", className="mb-3"),
+                    html.H3("[ALERT] Alert Preview", className="mb-3"),
                     html.Div([
                         html.P(f"• {alert.get('technician', 'N/A')}: {alert.get('description', 'N/A')[:100]}...", 
                                className="mb-1")
@@ -346,7 +346,7 @@ class BAITDashboardUpload:
                 ])
             else:
                 alert_preview = html.Div([
-                    html.H3("✅ Nessun Alert", className="mb-3 text-success"),
+                    html.H3("[OK] Nessun Alert", className="mb-3 text-success"),
                     html.P("Sistema funziona correttamente!", className="p-3 bg-white rounded")
                 ])
             
@@ -361,14 +361,14 @@ class BAITDashboardUpload:
             else:
                 time_str = 'N/A'
             
-            status = f"🔄 Update: {time_str}"
+            status = f"[UPDATE] Update: {time_str}"
             
             return kpi_cards, alert_preview, status
     
     def get_initial_upload_status(self):
         """Status iniziale upload"""
         status_msg = html.Div([
-            html.H5("📤 Pronto per Upload", className="text-info"),
+            html.H5("[READY] Pronto per Upload", className="text-info"),
             html.P("Trascina i 7 file CSV nell'area di upload sopra")
         ], className="alert alert-info")
         
@@ -384,12 +384,12 @@ class BAITDashboardUpload:
                 stat = file_path.stat()
                 size = f"{stat.st_size / 1024:.1f} KB"
                 modified = datetime.fromtimestamp(stat.st_mtime).strftime('%d/%m/%Y %H:%M')
-                status = "✅ Presente"
+                status = "[OK] Presente"
                 status_class = "text-success"
             else:
                 size = "N/A"
                 modified = "N/A"
-                status = "❌ Mancante"
+                status = "[MISSING] Mancante"
                 status_class = "text-danger"
             
             table_rows.append(html.Tr([
@@ -413,17 +413,17 @@ class BAITDashboardUpload:
     
     def run_server(self, debug=False, port=8051):
         """Avvia server dashboard"""
-        print("🎯 BAIT SERVICE - DASHBOARD UPLOAD ENTERPRISE")
+        print("[BAIT] DASHBOARD UPLOAD ENTERPRISE")
         print("=" * 60)
-        print(f"🌐 URL Dashboard: http://localhost:{port}")
-        print("📤 Upload Files: Drag & Drop Ready")
-        print("🔄 Auto-refresh: 10 secondi")
-        print("📁 Upload Directory:", self.upload_dir)
+        print(f"[URL]      Dashboard: http://localhost:{port}")
+        print("[UPLOAD]   Files: Drag & Drop Ready")
+        print("[REFRESH]  Auto-refresh: 10 secondi")
+        print("[FOLDER]   Upload Directory:", self.upload_dir)
         print()
-        print("🛑 Premi CTRL+C per fermare il server")
+        print("[STOP]     Premi CTRL+C per fermare il server")
         print("=" * 60)
         
-        self.app.run_server(debug=debug, port=port, host="0.0.0.0")
+        self.app.run(debug=debug, port=port, host="0.0.0.0")
 
 
 def main():
