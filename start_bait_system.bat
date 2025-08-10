@@ -179,16 +179,16 @@ if %SYSTEM_OK% EQU 0 (
 echo [OK] Files sistema verificati
 echo.
 
-REM Controlla se la porta 8051 è libera
-echo [CHECK] Controllo porta 8051...
-netstat -an | find ":8051" >nul 2>&1
+REM Controlla se la porta 8052 è libera
+echo [CHECK] Controllo porta 8052...
+netstat -an | find ":8052" >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    echo [WARNING] Porta 8051 in uso - fermata processi precedenti...
+    echo [WARNING] Porta 8052 in uso - fermata processi precedenti...
     taskkill /F /IM python.exe >nul 2>&1
     timeout /t 2 /nobreak >nul
     echo [OK] Porta liberata
 ) else (
-    echo [OK] Porta 8051 disponibile
+    echo [OK] Porta 8052 disponibile
 )
 echo.
 
@@ -197,7 +197,7 @@ echo ========================================
 echo   [LAUNCH] AVVIO DASHBOARD BAIT SERVICE
 echo ========================================
 echo.
-echo [URL]      Dashboard: http://localhost:8051
+echo [URL]      Dashboard: http://localhost:8052
 echo [UPLOAD]   Files: Drag ^& Drop Ready
 echo [REFRESH]  Auto-refresh: 10 secondi
 echo [FOLDER]   Upload Directory: upload_csv\
@@ -221,7 +221,7 @@ timeout /t 5 /nobreak >nul
 
 REM Apri browser automaticamente
 echo [BROWSER] Apertura browser...
-start http://localhost:8051
+start http://localhost:8052
 
 REM Loop di monitoraggio
 echo.
