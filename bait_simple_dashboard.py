@@ -33,7 +33,35 @@ class BAITSimpleDashboard:
             if json_files:
                 latest_file = max(json_files, key=os.path.getmtime)
                 with open(latest_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    raw_data = json.load(f)
+                
+                # Adatta struttura JSON reale al formato atteso dal dashboard
+                system_kpis = raw_data.get("kpis_v2", {}).get("system_kpis", {})
+                processed_alerts = raw_data.get("alerts_v2", {}).get("processed_alerts", {}).get("alerts", [])
+                
+                # Calcola perdite stimate
+                estimated_losses = sum(alert.get("dettagli", {}).get("overlap_minutes", 0) * 0.5 for alert in processed_alerts)
+                
+                return {
+                    "summary": {
+                        "total_records": system_kpis.get("total_records_processed", 0),
+                        "accuracy": system_kpis.get("estimated_accuracy", 0),
+                        "total_alerts": system_kpis.get("alerts_generated", 0),
+                        "estimated_losses": estimated_losses
+                    },
+                    "alerts": [
+                        {
+                            "id": alert.get("id", ""),
+                            "technician": alert.get("tecnico", "N/A"),
+                            "type": alert.get("categoria", ""),
+                            "priority": "IMMEDIATE" if alert.get("severity", 0) == 1 else "URGENT" if alert.get("severity", 0) == 2 else "NORMAL",
+                            "confidence": alert.get("confidence_level", "BASSA"),
+                            "description": alert.get("messaggio", ""),
+                            "timestamp": alert.get("timestamp", ""),
+                            "estimated_loss": alert.get("dettagli", {}).get("overlap_minutes", 0) * 0.5
+                        } for alert in processed_alerts
+                    ]
+                }
             else:
                 # Dati demo se non trovati
                 return {

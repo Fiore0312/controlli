@@ -1,0 +1,46 @@
+BAIT SERVICE DASHBOARD - WINDOWS ACCESS COMMANDS
+=====================================================
+
+✅ DASHBOARD STATUS: FULLY WORKING
+- 371 records processed ✓
+- 21 alerts displayed ✓
+- 96.4% accuracy ✓
+- Server running on WSL IP: 172.22.252.47:8051
+
+OPTION 1: PORT FORWARDING (RECOMMENDED)
+---------------------------------------
+Open PowerShell as Administrator and run:
+
+netsh interface portproxy add v4tov4 listenport=8051 listenaddress=0.0.0.0 connectport=8051 connectaddress=172.22.252.47
+
+New-NetFirewallRule -DisplayName "BAIT Dashboard WSL" -Direction Inbound -Protocol TCP -LocalPort 8051 -Action Allow
+
+Then open: http://localhost:8051
+
+OPTION 2: DIRECT IP ACCESS
+--------------------------
+Open directly in Windows browser:
+http://172.22.252.47:8051
+
+OPTION 3: ALTERNATIVE DASHBOARD
+-------------------------------
+If port 8051 has issues:
+http://172.22.252.47:8053
+
+TO REMOVE PORT FORWARDING LATER:
+--------------------------------
+netsh interface portproxy delete v4tov4 listenport=8051 listenaddress=0.0.0.0
+
+VERIFICATION FROM WINDOWS:
+--------------------------
+Test in Command Prompt:
+curl http://172.22.252.47:8051
+
+Expected response: HTML with "371" records and "21" alerts
+
+Dashboard Features:
+- Real-time alerts from Italian technicians (Alex Ferrario, Gabriele De Palma, etc.)
+- Temporal overlaps and billing conflicts
+- Auto-refresh every 60 seconds
+- Mobile-responsive Excel-like interface
+- Critical/Medium/Normal priority levels

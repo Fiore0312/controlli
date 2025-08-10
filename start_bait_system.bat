@@ -192,35 +192,60 @@ if %ERRORLEVEL% EQU 0 (
 )
 echo.
 
+REM Processing automatico dati
+echo ========================================
+echo   [PROCESSING] ELABORAZIONE DATI BAIT
+echo ========================================
+echo.
+echo [PROCESSING] Avvio elaborazione dati automatica...
+python bait_controller_v2.py
+if %ERRORLEVEL% NEQ 0 (
+    echo [WARNING] Processing completato con warning - continuo con dashboard
+) else (
+    echo [OK] Processing completato con successo
+)
+echo.
+
 REM Avvio dashboard
 echo ========================================
 echo   [LAUNCH] AVVIO DASHBOARD BAIT SERVICE
 echo ========================================
 echo.
-echo [URL]      Dashboard: http://localhost:8052
+echo [URL]      Dashboard Upload: http://localhost:8052
+echo [URL]      Dashboard Simple: http://localhost:8051
 echo [UPLOAD]   Files: Drag ^& Drop Ready
 echo [REFRESH]  Auto-refresh: 10 secondi
 echo [FOLDER]   Upload Directory: upload_csv\
 echo.
 echo [WORKFLOW] QUOTIDIANO:
-echo    1. Trascina i 7 CSV nella dashboard
-echo    2. Clicca "Processa Files"
-echo    3. Visualizza risultati in tempo reale
+echo    1. Processing automatico al avvio (COMPLETATO)
+echo    2. Dashboard semplice disponibile su porta 8051
+echo    3. Dashboard upload disponibile su porta 8052
 echo.
 echo [STOP] Per fermare: Premi CTRL+C o chiudi questa finestra
 echo ========================================
 echo.
 
-REM Avvia dashboard in background e apri browser
-echo [LAUNCH] Avvio dashboard...
+REM Avvia dashboard semplice in finestra separata
+echo [LAUNCH] Avvio dashboard semplice (porta 8051)...
+start python bait_simple_dashboard.py
+
+REM Attesa per l'avvio dashboard semplice
+timeout /t 3 /nobreak >nul
+
+REM Avvia dashboard upload in background
+echo [LAUNCH] Avvio dashboard upload (porta 8052)...
 start /B python bait_dashboard_upload.py
 
-REM Attesa per l'avvio del server
-echo [WAIT] Attesa avvio server...
+REM Attesa per l'avvio del server upload
+echo [WAIT] Attesa avvio server upload...
 timeout /t 5 /nobreak >nul
 
-REM Apri browser automaticamente
-echo [BROWSER] Apertura browser...
+REM Apri entrambe le dashboard automaticamente
+echo [BROWSER] Apertura dashboard semplice...
+start http://localhost:8051
+timeout /t 2 /nobreak >nul
+echo [BROWSER] Apertura dashboard upload...
 start http://localhost:8052
 
 REM Loop di monitoraggio

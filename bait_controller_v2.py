@@ -127,13 +127,13 @@ class BaitControllerV2:
     def _get_default_file_paths(self) -> Dict[str, str]:
         """Ottiene i percorsi file di default"""
         return {
-            'attivita': 'attivita.csv',
-            'timbrature': 'timbrature.csv', 
-            'teamviewer_bait': 'teamviewer_bait.csv',
-            'teamviewer_gruppo': 'teamviewer_gruppo.csv',
-            'permessi': 'permessi.csv',
-            'auto': 'auto.csv',
-            'calendario': 'calendario.csv'
+            'attivita': 'upload_csv/attivita.csv',
+            'timbrature': 'upload_csv/timbrature.csv', 
+            'teamviewer_bait': 'upload_csv/teamviewer_bait.csv',
+            'teamviewer_gruppo': 'upload_csv/teamviewer_gruppo.csv',
+            'permessi': 'upload_csv/permessi.csv',
+            'auto': 'upload_csv/auto.csv',
+            'calendario': 'upload_csv/calendario.csv'
         }
     
     def _log_data_ingestion_stats(self, data_frames: Dict[str, pd.DataFrame]):
