@@ -293,16 +293,18 @@ class BAITEnterpriseController:
             total_records = 0
             
             # Try upload directory first, then input directory
-            for source_dir in [self.upload_dir, self.input_dir]:
-                for filename, expected_cols in self.required_files.items():
+            for filename, expected_cols in self.required_files.items():
+                file_loaded = False
+                for source_dir in [self.upload_dir, self.input_dir]:
                     file_path = source_dir / filename
-                    if file_path.exists():
+                    if file_path.exists() and not file_loaded:
                         df = self.load_csv_robust(file_path, expected_cols)
                         if not df.empty:
                             data_frames[filename.replace('.csv', '')] = df
                             total_records += len(df)
-                            logger.info(f"[DATA] Loaded {filename}: {len(df)} records")
-                        break  # Use first found file
+                            logger.info(f"[DATA] Loaded {filename}: {len(df)} records from {source_dir.name}")
+                            file_loaded = True
+                            break  # Use first found file
             
             if not data_frames:
                 logger.warning("[WARNING] No data files found, generating demo data")
