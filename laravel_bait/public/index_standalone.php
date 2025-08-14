@@ -12,6 +12,17 @@ ini_set('display_errors', 1);
 ini_set('memory_limit', '512M');
 date_default_timezone_set('Europe/Rome');
 
+// Set UTF-8 encoding - AGGRESSIVE FIX
+header('Content-Type: text/html; charset=utf-8');
+mb_internal_encoding('UTF-8');
+mb_http_output('UTF-8');
+mb_regex_encoding('UTF-8');
+
+// Force UTF-8 for all output
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=utf-8');
+}
+
 // Database connection - Enterprise MySQL Configuration
 $config = [
     'host' => 'localhost',
@@ -21,6 +32,33 @@ $config = [
     'password' => '',
     'charset' => 'utf8mb4'
 ];
+
+// UTF-8 Text Cleaning Function
+function cleanUTF8Text($text) {
+    if (empty($text)) return $text;
+    
+    // Fix common corrupted UTF-8 sequences
+    $fixes = [
+        '├á' => 'à',
+        '├┤' => 'ì', 
+        '├¿' => 'ì',
+        '├¨' => 'è',
+        '├╣' => 'ù',
+        '├▓' => 'ò',
+        'attivit├á' => 'attività',
+        'attivit├┤' => 'attività'
+    ];
+    
+    $cleaned = $text;
+    foreach ($fixes as $corrupted => $correct) {
+        $cleaned = str_replace($corrupted, $correct, $cleaned);
+    }
+    
+    // Ensure proper UTF-8
+    $cleaned = mb_convert_encoding($cleaned, 'UTF-8', 'UTF-8');
+    
+    return $cleaned;
+}
 
 // Initialize session
 session_start();
@@ -44,7 +82,8 @@ function getDatabase() {
         $dsn = "mysql:host={$config['host']};port={$config['port']};charset={$config['charset']}";
         $pdo = new PDO($dsn, $config['username'], $config['password'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
         ]);
         
         // Check if database exists first
@@ -141,6 +180,7 @@ function loadRealData() {
         }
         
         // Get alerts - try stored procedure first
+        $alertsData = [];
         try {
             $stmt = $pdo->prepare("CALL GetTodayAlerts()");
             $stmt->execute();
@@ -151,18 +191,20 @@ function loadRealData() {
             try {
                 $stmt = $pdo->query("
                     SELECT 
-                        CONCAT('BAIT_', DATE_FORMAT(created_at, '%Y%m%d'), '_', LPAD(id, 4, '0')) as id,
-                        severity,
-                        confidence_score,
-                        technician_name as tecnico,
-                        message,
-                        category,
-                        created_at as timestamp,
-                        estimated_cost
-                    FROM alerts 
-                    WHERE DATE(created_at) = CURDATE()
+                        CONCAT('BAIT_', DATE_FORMAT(a.created_at, '%Y%m%d'), '_', LPAD(a.id, 4, '0')) as id,
+                        a.severity,
+                        a.confidence_score,
+                        COALESCE(t.nome_completo, 'Sistema') as tecnico,
+                        a.message,
+                        a.category,
+                        a.created_at as timestamp,
+                        a.estimated_cost,
+                        a.details
+                    FROM alerts a
+                    LEFT JOIN tecnici t ON a.tecnico_id = t.id 
+                    WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
                     ORDER BY 
-                        CASE severity 
+                        CASE a.severity 
                             WHEN 'CRITICO' THEN 1 
                             WHEN 'ALTO' THEN 2 
                             WHEN 'MEDIO' THEN 3 
@@ -185,11 +227,12 @@ function loadRealData() {
                 'id' => $alert['id'] ?? 'BAIT_' . date('Ymd') . '_' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
                 'severity' => strtoupper($alert['severity'] ?? 'MEDIO'),
                 'confidence_score' => (int)($alert['confidence_score'] ?? rand(70, 95)),
-                'tecnico' => $alert['tecnico'] ?? 'Sistema',
-                'message' => $alert['message'] ?? 'Alert generato automaticamente',
-                'category' => $alert['category'] ?? 'system',
+                'tecnico' => cleanUTF8Text($alert['tecnico'] ?? 'Sistema'),
+                'message' => cleanUTF8Text($alert['message'] ?? 'Alert generato automaticamente'),
+                'category' => cleanUTF8Text($alert['category'] ?? 'system'),
                 'timestamp' => $alert['timestamp'] ?? date('c'),
-                'estimated_cost' => (float)($alert['estimated_cost'] ?? 0)
+                'estimated_cost' => (float)($alert['estimated_cost'] ?? 0),
+                'details' => $alert['details'] ?? null
             ];
         }
         
@@ -659,7 +702,11 @@ if (!$data) {
                         </thead>
                         <tbody>
                             <?php foreach (($data['alerts'] ?? []) as $alert): ?>
-                            <tr class="alert-<?= strtolower($alert['severity']) ?>">
+                            <tr class="alert-<?= strtolower($alert['severity']) ?> alert-clickable" 
+                                data-alert-id="<?= htmlspecialchars($alert['id']) ?>"
+                                data-alert-details="<?= htmlspecialchars(json_encode($alert)) ?>"
+                                style="cursor: pointer;" 
+                                onclick="showAlertDetails('<?= htmlspecialchars($alert['id']) ?>')">
                                 <td><strong><?= htmlspecialchars($alert['id']) ?></strong></td>
                                 <td>
                                     <span class="badge <?= 
@@ -711,6 +758,77 @@ if (!$data) {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Details Modal -->
+    <div class="modal fade" id="alertDetailsModal" tabindex="-1" aria-labelledby="alertDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertDetailsModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Dettagli Anomalia
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-info-circle me-2"></i>Informazioni Generali</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>ID Alert:</strong></td>
+                                    <td><span id="modal-alert-id">-</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Severità:</strong></td>
+                                    <td><span id="modal-severity" class="badge">-</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Categoria:</strong></td>
+                                    <td><span id="modal-category">-</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tecnico:</strong></td>
+                                    <td><span id="modal-technician">-</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Confidence:</strong></td>
+                                    <td><span id="modal-confidence">-</span>%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Costo Stimato:</strong></td>
+                                    <td><strong class="text-danger">€<span id="modal-cost">-</span></strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Timestamp:</strong></td>
+                                    <td><span id="modal-timestamp">-</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-chat-text me-2"></i>Descrizione Completa</h6>
+                            <div class="alert alert-info" id="modal-message">
+                                -
+                            </div>
+                            
+                            <h6><i class="bi bi-code me-2"></i>Dettagli Tecnici</h6>
+                            <div class="bg-light p-3 rounded" style="font-family: monospace; font-size: 0.85em;">
+                                <pre id="modal-details" style="margin: 0; white-space: pre-wrap;">-</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-1"></i>Chiudi
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="resolveAlert()">
+                        <i class="bi bi-check me-1"></i>Segna come Risolto
+                    </button>
                 </div>
             </div>
         </div>
@@ -818,6 +936,115 @@ if (!$data) {
         
         // Global access for debugging
         window.BAIT = BAIT;
+        
+        // Alert Details Functions
+        let currentAlertId = null;
+        
+        function showAlertDetails(alertId) {
+            // Find the alert row
+            const alertRow = document.querySelector(`[data-alert-id="${alertId}"]`);
+            if (!alertRow) {
+                console.error('Alert row not found:', alertId);
+                return;
+            }
+            
+            // Parse alert details from data attribute
+            let alertData;
+            try {
+                alertData = JSON.parse(alertRow.getAttribute('data-alert-details'));
+            } catch (e) {
+                console.error('Error parsing alert data:', e);
+                return;
+            }
+            
+            currentAlertId = alertId;
+            
+            // Populate modal with alert details
+            document.getElementById('modal-alert-id').textContent = alertData.id || alertId;
+            document.getElementById('modal-technician').textContent = alertData.tecnico || 'Sistema';
+            document.getElementById('modal-category').textContent = (alertData.category || 'unknown').replace(/_/g, ' ');
+            document.getElementById('modal-confidence').textContent = alertData.confidence_score || '0';
+            document.getElementById('modal-cost').textContent = alertData.cost || alertData.estimated_cost || '0';
+            document.getElementById('modal-message').textContent = alertData.message || 'Nessun messaggio disponibile';
+            
+            // Set severity badge
+            const severityElement = document.getElementById('modal-severity');
+            const severity = alertData.severity || 'MEDIO';
+            severityElement.textContent = severity;
+            severityElement.className = 'badge ' + (
+                severity === 'CRITICO' ? 'bg-danger' : 
+                severity === 'ALTO' ? 'bg-warning' : 
+                severity === 'MEDIO' ? 'bg-info' : 'bg-secondary'
+            );
+            
+            // Format timestamp
+            let timestamp = alertData.timestamp || alertData.created_at || new Date().toISOString();
+            if (timestamp) {
+                const date = new Date(timestamp);
+                document.getElementById('modal-timestamp').textContent = date.toLocaleString('it-IT');
+            }
+            
+            // Show technical details (JSON formatted)
+            let technicalDetails = '';
+            try {
+                if (alertData.details) {
+                    const details = typeof alertData.details === 'string' ? 
+                        JSON.parse(alertData.details) : alertData.details;
+                    technicalDetails = JSON.stringify(details, null, 2);
+                } else {
+                    technicalDetails = JSON.stringify({
+                        id: alertData.id,
+                        severity: alertData.severity,
+                        category: alertData.category,
+                        confidence_score: alertData.confidence_score,
+                        estimated_cost: alertData.cost || alertData.estimated_cost,
+                        timestamp: alertData.timestamp || alertData.created_at
+                    }, null, 2);
+                }
+            } catch (e) {
+                technicalDetails = 'Dettagli tecnici non disponibili';
+            }
+            
+            document.getElementById('modal-details').textContent = technicalDetails;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
+            modal.show();
+        }
+        
+        function resolveAlert() {
+            if (!currentAlertId) return;
+            
+            if (confirm(`Sei sicuro di voler segnare l'alert ${currentAlertId} come risolto?`)) {
+                // Here you would typically make an AJAX call to mark the alert as resolved
+                alert(`Alert ${currentAlertId} segnato come risolto!`);
+                
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('alertDetailsModal'));
+                modal.hide();
+                
+                // Optionally refresh the dashboard
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+        
+        // Add hover effect to alert rows
+        document.addEventListener('DOMContentLoaded', () => {
+            const style = document.createElement('style');
+            style.textContent = `
+                .alert-clickable:hover {
+                    background-color: #f8f9fa;
+                    transform: scale(1.01);
+                    transition: all 0.2s ease;
+                }
+                .alert-clickable {
+                    transition: all 0.2s ease;
+                }
+            `;
+            document.head.appendChild(style);
+        });
     </script>
 </body>
 </html>
