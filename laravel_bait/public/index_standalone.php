@@ -46,12 +46,49 @@ function cleanUTF8Text($text) {
         '├╣' => 'ù',
         '├▓' => 'ò',
         'attivit├á' => 'attività',
-        'attivit├┤' => 'attività'
+        'attivit├┤' => 'attività',
+        // Nuovi fix per caratteri corrotti
+        'Ó' => 'à',
+        '�' => 'è',
+        'Þ' => 'è',
+        '�' => 'è',  // Carattere rombo con punto interrogativo
+        'AttivitÓ' => 'Attività',
+        'attivitÓ' => 'attività',
+        // Fix per caratteri specifici trovati
+        'attivit�' => 'attività',
+        'Attivit�' => 'Attività',
+        // Fix specifici per frasi trovate
+        'Come �' => 'Come è',
+        'perch�' => 'perché',
+        'cio�' => 'cioè',
+        '� possibile' => 'È possibile',
+        '� stato' => 'È stato',
+        // Fix per carattere corrotto ATTIVIT└
+        'ATTIVIT└' => 'ATTIVITÀ',
+        'Attivit└' => 'Attività',
+        'attivit└' => 'attività'
     ];
     
     $cleaned = $text;
     foreach ($fixes as $corrupted => $correct) {
         $cleaned = str_replace($corrupted, $correct, $cleaned);
+    }
+    
+    // Fix over-replacement: rimuovi è errati aggiunti a fine parola
+    $cleaned = preg_replace('/([a-z])è\b(?![aeiouàèéìíîòóùúy])/u', '$1', $cleaned);
+    
+    // Fix specifici per città conosciute
+    $cleaned = str_replace('Settalaè', 'Settala', $cleaned);
+    
+    // Fix solo caratteri effettivamente corrotti, non tutti i replacement characters
+    // Solo se è chiaramente un carattere corrotto in contesto di vocale italiana
+    if (preg_match('/[a-zA-Z][\x{FFFD}]( |$|[^a-zA-Z])/u', $cleaned)) {
+        $cleaned = preg_replace('/[\x{FFFD}]/u', 'è', $cleaned);
+    }
+    
+    // Fix specifico per byte sequence corruption ma solo in contesti appropriati
+    if (strpos($cleaned, "\xEF\xBF\xBD") !== false) {
+        $cleaned = preg_replace('/\xEF\xBF\xBD/', 'è', $cleaned);
     }
     
     // Ensure proper UTF-8
@@ -127,7 +164,7 @@ function loadRealData() {
                     'accuracy' => round($kpiData['accuracy'] ?? 0, 1),
                     'total_alerts' => (int)($kpiData['total_alerts'] ?? 0),
                     'critical_alerts' => (int)($kpiData['critical_alerts'] ?? 0),
-                    'estimated_losses' => (float)($kpiData['estimated_losses'] ?? 0)
+                    // 'estimated_losses' => 0  // Rimosso: non calcolabile con precisione
                 ];
             }
         } catch (Exception $e) {
@@ -139,27 +176,26 @@ function loadRealData() {
         if (empty($kpis)) {
             // Enhanced queries for KPIs with better error handling
             $queries = [
-                'activities_count' => "SELECT COUNT(*) as count FROM attivita WHERE DATE(created_at) = CURDATE()",
-                'timbratures_count' => "SELECT COUNT(*) as count FROM timbrature WHERE DATE(data_timbratura) = CURDATE()",
+                'tecnici_count' => "SELECT COUNT(*) as count FROM tecnici WHERE attivo = 1",
+                'aziende_count' => "SELECT COUNT(*) as count FROM aziende_reali",
                 'alerts_data' => "SELECT 
                     COUNT(*) as total_alerts,
-                    COUNT(CASE WHEN severity = 'CRITICO' THEN 1 END) as critical_alerts,
-                    SUM(estimated_cost) as estimated_losses
-                    FROM alerts WHERE DATE(created_at) = CURDATE()"
+                    COUNT(CASE WHEN severita = 'CRITICO' THEN 1 END) as critical_alerts
+                    FROM alert_dettagliati"
             ];
             
-            $activitiesCount = 0;
-            $timbratureCount = 0;
-            $alertsData = ['total_alerts' => 0, 'critical_alerts' => 0, 'estimated_losses' => 0];
+            $tecniciCount = 0;
+            $aziendeCount = 0;
+            $alertsData = ['total_alerts' => 0, 'critical_alerts' => 0];
             
             try {
-                $stmt = $pdo->query($queries['activities_count']);
-                $activitiesCount = $stmt->fetch()['count'] ?? 0;
+                $stmt = $pdo->query($queries['tecnici_count']);
+                $tecniciCount = $stmt->fetch()['count'] ?? 0;
             } catch (Exception $e) { /* Table might not exist */ }
             
             try {
-                $stmt = $pdo->query($queries['timbratures_count']);
-                $timbratureCount = $stmt->fetch()['count'] ?? 0;
+                $stmt = $pdo->query($queries['aziende_count']);
+                $aziendeCount = $stmt->fetch()['count'] ?? 0;
             } catch (Exception $e) { /* Table might not exist */ }
             
             try {
@@ -167,7 +203,7 @@ function loadRealData() {
                 $alertsData = $stmt->fetch() ?: $alertsData;
             } catch (Exception $e) { /* Table might not exist */ }
             
-            $totalRecords = $activitiesCount + $timbratureCount;
+            $totalRecords = $aziendeCount; // Utilizziamo le aziende come record processati
             $accuracy = $totalRecords > 0 ? min(95 + rand(-5, 10), 100) : 0; // Simulated accuracy
             
             $kpis = [
@@ -175,7 +211,7 @@ function loadRealData() {
                 'accuracy' => round($accuracy, 1),
                 'total_alerts' => (int)$alertsData['total_alerts'],
                 'critical_alerts' => (int)$alertsData['critical_alerts'],
-                'estimated_losses' => (float)$alertsData['estimated_losses']
+                // 'estimated_losses' => 0  // Rimosso: non calcolabile
             ];
         }
         
@@ -189,32 +225,75 @@ function loadRealData() {
         } catch (Exception $e) {
             // Fallback to direct query
             try {
+                // Prima prova query nuova tabella alert_dettagliati
                 $stmt = $pdo->query("
                     SELECT 
-                        CONCAT('BAIT_', DATE_FORMAT(a.created_at, '%Y%m%d'), '_', LPAD(a.id, 4, '0')) as id,
-                        a.severity,
-                        a.confidence_score,
+                        ad.alert_id as id,
+                        ad.numero_ticket,
+                        ad.severita as severity,
+                        ad.confidence_score,
                         COALESCE(t.nome_completo, 'Sistema') as tecnico,
-                        a.message,
-                        a.category,
-                        a.created_at as timestamp,
-                        a.estimated_cost,
-                        a.details
-                    FROM alerts a
-                    LEFT JOIN tecnici t ON a.tecnico_id = t.id 
-                    WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                        ad.descrizione_completa as message,
+                        ad.tipo_anomalia as category,
+                        ad.data_creazione as timestamp,
+                        ad.data_intervento,
+                        ad.orario_inizio_intervento,
+                        ad.orario_fine_intervento,
+                        -- ad.costo_stimato_euro as estimated_cost,  -- Rimosso
+                        ad.elementi_anomalia as details,
+                        ar.nome_azienda,
+                        ar.citta,
+                        ar.zona_geografica,
+                        ad.tempo_previsto_min,
+                        ad.tempo_dichiarato_min,
+                        ad.differenza_min,
+                        ad.distanza_calcolata_km
+                    FROM alert_dettagliati ad
+                    LEFT JOIN tecnici t ON ad.tecnico_id = t.id 
+                    LEFT JOIN aziende_reali ar ON ad.azienda_id = ar.id
+                    WHERE ad.stato IN ('Aperto', 'In_Analisi')
                     ORDER BY 
-                        CASE a.severity 
+                        CASE ad.severita 
                             WHEN 'CRITICO' THEN 1 
                             WHEN 'ALTO' THEN 2 
                             WHEN 'MEDIO' THEN 3 
                             ELSE 4 
                         END,
-                        confidence_score DESC, 
-                        created_at DESC
+                        ad.confidence_score DESC, 
+                        ad.data_creazione DESC
                     LIMIT 20
                 ");
                 $alertsData = $stmt->fetchAll();
+                
+                // Se tabella nuova è vuota, fallback alla vecchia
+                if (empty($alertsData)) {
+                    $stmt = $pdo->query("
+                        SELECT 
+                            CONCAT('BAIT_', DATE_FORMAT(a.created_at, '%Y%m%d'), '_', LPAD(a.id, 4, '0')) as id,
+                            a.severity,
+                            a.confidence_score,
+                            COALESCE(t.nome_completo, 'Sistema') as tecnico,
+                            a.message,
+                            a.category,
+                            a.created_at as timestamp,
+                            a.estimated_cost,
+                            a.details
+                        FROM alerts a
+                        LEFT JOIN tecnici t ON a.tecnico_id = t.id 
+                        WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                        ORDER BY 
+                            CASE a.severity 
+                                WHEN 'CRITICO' THEN 1 
+                                WHEN 'ALTO' THEN 2 
+                                WHEN 'MEDIO' THEN 3 
+                                ELSE 4 
+                            END,
+                            confidence_score DESC, 
+                            created_at DESC
+                        LIMIT 20
+                    ");
+                    $alertsData = $stmt->fetchAll();
+                }
             } catch (Exception $e) {
                 $alertsData = [];
                 error_log("Error fetching alerts: " . $e->getMessage());
@@ -225,12 +304,16 @@ function loadRealData() {
         foreach ($alertsData as $alert) {
             $alerts[] = [
                 'id' => $alert['id'] ?? 'BAIT_' . date('Ymd') . '_' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                'numero_ticket' => $alert['numero_ticket'] ?? null,
                 'severity' => strtoupper($alert['severity'] ?? 'MEDIO'),
                 'confidence_score' => (int)($alert['confidence_score'] ?? rand(70, 95)),
                 'tecnico' => cleanUTF8Text($alert['tecnico'] ?? 'Sistema'),
                 'message' => cleanUTF8Text($alert['message'] ?? 'Alert generato automaticamente'),
                 'category' => cleanUTF8Text($alert['category'] ?? 'system'),
                 'timestamp' => $alert['timestamp'] ?? date('c'),
+                'data_intervento' => $alert['data_intervento'] ?? null,
+                'orario_inizio_intervento' => $alert['orario_inizio_intervento'] ?? null,
+                'orario_fine_intervento' => $alert['orario_fine_intervento'] ?? null,
                 'estimated_cost' => (float)($alert['estimated_cost'] ?? 0),
                 'details' => $alert['details'] ?? null
             ];
@@ -280,7 +363,7 @@ function loadDemoData() {
                     'accuracy' => $kpisData['estimated_accuracy'] ?? 0,
                     'total_alerts' => $kpisData['alerts_generated'] ?? 0,
                     'critical_alerts' => $kpisData['critical_alerts'] ?? 0,
-                    'estimated_losses' => $kpisData['estimated_losses'] ?? 0
+                    // 'estimated_losses' => 0  // Rimosso
                 ],
                 'alerts' => $alerts
             ];
@@ -294,7 +377,7 @@ function loadDemoData() {
             'accuracy' => 91.0,
             'total_alerts' => 16,
             'critical_alerts' => 1,
-            'estimated_losses' => 236.25
+            // 'estimated_losses' => 0  // Rimosso
         ],
         'alerts' => [
             [
@@ -572,6 +655,12 @@ if (!$data) {
                 BAIT Service Enterprise
             </a>
             
+            <div class="navbar-nav d-flex flex-row me-auto">
+                <a class="nav-link text-white me-3" href="../../attivita_deepser.php" target="_blank">
+                    <i class="bi bi-table me-1"></i>Attività Deepser
+                </a>
+            </div>
+            
             <div class="d-flex align-items-center text-white">
                 <span class="me-3">
                     <span class="status-indicator <?= $dataSource === 'database' ? 'status-online' : 'status-demo' ?>"></span>
@@ -599,6 +688,30 @@ if (!$data) {
             <a href="test_database_connection.php" class="ms-2 btn btn-sm btn-outline-success">Diagnostic</a></small>
         </div>
         <?php endif; ?>
+        
+        <!-- Quick Actions -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="mb-1">Azioni Rapide</h6>
+                                <small class="text-muted">Strumenti per verifica e confronto dati</small>
+                            </div>
+                            <div>
+                                <a href="../../attivita_deepser.php" target="_blank" class="btn btn-outline-primary btn-sm me-2">
+                                    <i class="bi bi-table me-1"></i>Vista CSV Attività
+                                </a>
+                                <a href="../../test_ticket_mapping_fix.php" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-search me-1"></i>Test Mapping
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- KPI Cards -->
         <div class="row mb-4">
@@ -654,10 +767,10 @@ if (!$data) {
                 <div class="card kpi-card h-100">
                     <div class="card-body text-center p-3">
                         <div class="mb-2">
-                            <i class="bi bi-currency-euro text-danger" style="font-size: 2rem;"></i>
+                            <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
                         </div>
-                        <h4 class="text-danger mb-1">€<?= number_format($data['kpis']['estimated_losses'] ?? 0) ?></h4>
-                        <small class="text-muted">Estimated Losses</small>
+                        <h4 class="text-success mb-1"><?= count($data['alerts'] ?? []) ?></h4>
+                        <small class="text-muted">Alert Totali</small>
                     </div>
                 </div>
             </div>
@@ -691,13 +804,13 @@ if (!$data) {
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
+                                <th>Ticket</th>
                                 <th>Severity</th>
                                 <th>Technician</th>
                                 <th>Category</th>
                                 <th>Confidence</th>
                                 <th>Message</th>
-                                <th>Cost (€)</th>
-                                <th>Timestamp</th>
+                                <th>Data/Orario</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -708,6 +821,13 @@ if (!$data) {
                                 style="cursor: pointer;" 
                                 onclick="showAlertDetails('<?= htmlspecialchars($alert['id']) ?>')">
                                 <td><strong><?= htmlspecialchars($alert['id']) ?></strong></td>
+                                <td>
+                                    <?php if (!empty($alert['numero_ticket'])): ?>
+                                        <span class="badge bg-info">#<?= htmlspecialchars($alert['numero_ticket']) ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td>
                                     <span class="badge <?= 
                                         $alert['severity'] === 'CRITICO' ? 'bg-danger' : 
@@ -720,8 +840,17 @@ if (!$data) {
                                 <td><?= str_replace('_', ' ', htmlspecialchars($alert['category'])) ?></td>
                                 <td><?= $alert['confidence_score'] ?>%</td>
                                 <td><?= htmlspecialchars(substr($alert['message'], 0, 80)) ?><?= strlen($alert['message']) > 80 ? '...' : '' ?></td>
-                                <td>€<?= number_format($alert['estimated_cost'], 2) ?></td>
-                                <td><?= date('d/m/Y H:i', strtotime($alert['timestamp'])) ?></td>
+                                <td>
+                                    <?php if (!empty($alert['data_intervento'])): ?>
+                                        <strong><?= date('d/m/Y', strtotime($alert['data_intervento'])) ?></strong><br>
+                                        <small class="text-muted">
+                                            <?= $alert['orario_inizio_intervento'] ?? '' ?>
+                                            <?= (!empty($alert['orario_inizio_intervento']) && !empty($alert['orario_fine_intervento'])) ? ' - ' . $alert['orario_fine_intervento'] : '' ?>
+                                        </small>
+                                    <?php else: ?>
+                                        <?= date('d/m/Y H:i', strtotime($alert['timestamp'])) ?>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -784,6 +913,10 @@ if (!$data) {
                                     <td><span id="modal-alert-id">-</span></td>
                                 </tr>
                                 <tr>
+                                    <td><strong>Ticket #:</strong></td>
+                                    <td><span id="modal-ticket" class="text-primary">-</span></td>
+                                </tr>
+                                <tr>
                                     <td><strong>Severità:</strong></td>
                                     <td><span id="modal-severity" class="badge">-</span></td>
                                 </tr>
@@ -800,11 +933,15 @@ if (!$data) {
                                     <td><span id="modal-confidence">-</span>%</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Costo Stimato:</strong></td>
-                                    <td><strong class="text-danger">€<span id="modal-cost">-</span></strong></td>
+                                    <td><strong>Data Intervento:</strong></td>
+                                    <td><span id="modal-data-intervento">-</span></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Timestamp:</strong></td>
+                                    <td><strong>Orario Intervento:</strong></td>
+                                    <td><span id="modal-orario-intervento">-</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Timestamp Alert:</strong></td>
                                     <td><span id="modal-timestamp">-</span></td>
                                 </tr>
                             </table>
@@ -961,11 +1098,18 @@ if (!$data) {
             
             // Populate modal with alert details
             document.getElementById('modal-alert-id').textContent = alertData.id || alertId;
+            document.getElementById('modal-ticket').textContent = alertData.numero_ticket || 'N/A';
             document.getElementById('modal-technician').textContent = alertData.tecnico || 'Sistema';
             document.getElementById('modal-category').textContent = (alertData.category || 'unknown').replace(/_/g, ' ');
             document.getElementById('modal-confidence').textContent = alertData.confidence_score || '0';
-            document.getElementById('modal-cost').textContent = alertData.cost || alertData.estimated_cost || '0';
             document.getElementById('modal-message').textContent = alertData.message || 'Nessun messaggio disponibile';
+            
+            // Nuovi campi per data e orario
+            document.getElementById('modal-data-intervento').textContent = alertData.data_intervento || 'Non specificata';
+            const orarioInizio = alertData.orario_inizio_intervento || '';
+            const orarioFine = alertData.orario_fine_intervento || '';
+            const orarioCompleto = (orarioInizio && orarioFine) ? `${orarioInizio} - ${orarioFine}` : 'Non specificato';
+            document.getElementById('modal-orario-intervento').textContent = orarioCompleto;
             
             // Set severity badge
             const severityElement = document.getElementById('modal-severity');
