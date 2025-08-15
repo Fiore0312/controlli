@@ -656,9 +656,32 @@ if (!$data) {
             </a>
             
             <div class="navbar-nav d-flex flex-row me-auto">
-                <a class="nav-link text-white me-3" href="../../attivita_deepser.php" target="_blank">
-                    <i class="bi bi-table me-1"></i>Attività Deepser
-                </a>
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle text-white me-3" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Gestione CSV
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../../attivita_deepser.php" target="_blank">
+                            <i class="bi bi-table me-2"></i>Attività Deepser
+                        </a></li>
+                        <li><a class="dropdown-item" href="../../utilizzo_auto.php" target="_blank">
+                            <i class="bi bi-car-front me-2"></i>Utilizzo Auto
+                        </a></li>
+                        <li><a class="dropdown-item" href="../../richieste_permessi.php" target="_blank">
+                            <i class="bi bi-calendar-check me-2"></i>Richieste Permessi
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="../../timbrature.php" target="_blank">
+                            <i class="bi bi-clock me-2"></i>Timbrature
+                        </a></li>
+                        <li><a class="dropdown-item" href="../../sessioni_teamviewer.php" target="_blank">
+                            <i class="bi bi-display me-2"></i>Sessioni TeamViewer
+                        </a></li>
+                        <li><a class="dropdown-item" href="../../calendario.php" target="_blank">
+                            <i class="bi bi-calendar-event me-2"></i>Calendario
+                        </a></li>
+                    </ul>
+                </div>
             </div>
             
             <div class="d-flex align-items-center text-white">
@@ -699,9 +722,24 @@ if (!$data) {
                                 <h6 class="mb-1">Azioni Rapide</h6>
                                 <small class="text-muted">Strumenti per verifica e confronto dati</small>
                             </div>
-                            <div>
-                                <a href="../../attivita_deepser.php" target="_blank" class="btn btn-outline-primary btn-sm me-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="../../attivita_deepser.php" target="_blank" class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-table me-1"></i>Vista CSV Attività
+                                </a>
+                                <a href="../../utilizzo_auto.php" target="_blank" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-car-front me-1"></i>Utilizzo Auto
+                                </a>
+                                <a href="../../richieste_permessi.php" target="_blank" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-calendar-check me-1"></i>Richieste Permessi
+                                </a>
+                                <a href="../../timbrature.php" target="_blank" class="btn btn-outline-info btn-sm">
+                                    <i class="bi bi-clock me-1"></i>Timbrature
+                                </a>
+                                <a href="../../sessioni_teamviewer.php" target="_blank" class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-display me-1"></i>Sessioni TeamViewer
+                                </a>
+                                <a href="../../calendario.php" target="_blank" class="btn btn-outline-dark btn-sm">
+                                    <i class="bi bi-calendar-event me-1"></i>Calendario
                                 </a>
                                 <a href="../../test_ticket_mapping_fix.php" target="_blank" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-search me-1"></i>Test Mapping
