@@ -991,8 +991,8 @@ if (!$data) {
                             </div>
                             
                             <h6><i class="bi bi-code me-2"></i>Dettagli Tecnici</h6>
-                            <div class="bg-light p-3 rounded" style="font-family: monospace; font-size: 0.85em;">
-                                <pre id="modal-details" style="margin: 0; white-space: pre-wrap;">-</pre>
+                            <div id="modal-details" class="bg-light p-3 rounded" style="font-size: 0.9em;">
+                                <div class="text-muted">Caricamento dettagli...</div>
                             </div>
                         </div>
                     </div>
@@ -1056,6 +1056,14 @@ if (!$data) {
             // Auto-refresh functionality
             startAutoRefresh() {
                 setInterval(async () => {
+                    // Skip refresh if modal is open
+                    const modalElement = document.getElementById('alertDetailsModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance && modalElement.classList.contains('show')) {
+                        console.log('⏸️ Auto-refresh paused - modal is open');
+                        return;
+                    }
+                    
                     const health = await this.checkHealth();
                     if (health && health.database.status === 'connected') {
                         // Soft refresh - only update data, don't reload page
@@ -1069,9 +1077,11 @@ if (!$data) {
                             });
                         }
                     } else {
-                        // Full page refresh if database issues
-                        console.log('🔄 Full page refresh due to database issues');
-                        location.reload();
+                        // Full page refresh if database issues (only if no modal is open)
+                        if (!modalInstance || !modalElement.classList.contains('show')) {
+                            console.log('🔄 Full page refresh due to database issues');
+                            location.reload();
+                        }
                     }
                 }, this.config.refreshInterval);
             },
@@ -1114,6 +1124,120 @@ if (!$data) {
         
         // Alert Details Functions
         let currentAlertId = null;
+        
+        // Format technical details in user-friendly HTML
+        function formatTechnicalDetails(details) {
+            if (!details || typeof details !== 'object') {
+                return '<div class="alert alert-info">📋 Nessun dettaglio tecnico disponibile</div>';
+            }
+            
+            let html = '';
+            
+            // Handle specific data structures
+            if (details.tecnico || details.planning_anomalo) {
+                // Planning anomaly format
+                html += '<div class="row g-3">';
+                
+                if (details.tecnico) {
+                    html += `
+                        <div class="col-md-6">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <i class="bi bi-person-badge me-2"></i>Tecnico Coinvolto
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="text-primary">${details.tecnico}</h6>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+                
+                if (details.planning_anomalo) {
+                    html += '<div class="col-12">';
+                    html += '<div class="card border-warning">';
+                    html += '<div class="card-header bg-warning text-dark"><i class="bi bi-exclamation-triangle me-2"></i>Planning Anomalo</div>';
+                    html += '<div class="card-body">';
+                    
+                    Object.entries(details.planning_anomalo).forEach(([key, value]) => {
+                        if (typeof value === 'object') {
+                            html += `<div class="mb-3">`;
+                            html += `<h6 class="text-warning">${key.replace(/_/g, ' ').toUpperCase()}</h6>`;
+                            html += `<ul class="list-unstyled ms-3">`;
+                            Object.entries(value).forEach(([subKey, subValue]) => {
+                                html += `<li><strong>${subKey.replace(/_/g, ' ')}:</strong> ${subValue}</li>`;
+                            });
+                            html += `</ul></div>`;
+                        }
+                    });
+                    
+                    html += '</div></div></div>';
+                }
+                
+                if (details.calcoli_fisici) {
+                    html += '<div class="col-md-6">';
+                    html += '<div class="card border-danger">';
+                    html += '<div class="card-header bg-danger text-white"><i class="bi bi-calculator me-2"></i>Calcoli Fisici</div>';
+                    html += '<div class="card-body">';
+                    Object.entries(details.calcoli_fisici).forEach(([key, value]) => {
+                        const label = key.replace(/_/g, ' ').replace(/km|min/g, (match) => match.toUpperCase());
+                        html += `<p class="mb-2"><strong>${label}:</strong> <span class="text-danger">${value}</span></p>`;
+                    });
+                    html += '</div></div></div>';
+                }
+                
+                if (details.impatto) {
+                    html += '<div class="col-md-6">';
+                    html += '<div class="card border-dark">';
+                    html += '<div class="card-header bg-dark text-white"><i class="bi bi-graph-down me-2"></i>Impatto Business</div>';
+                    html += '<div class="card-body">';
+                    Object.entries(details.impatto).forEach(([key, value]) => {
+                        const label = key.replace(/_/g, ' ');
+                        const valueDisplay = typeof value === 'boolean' ? 
+                            (value ? '<span class="badge bg-danger">SÌ</span>' : '<span class="badge bg-success">NO</span>') :
+                            `<span class="text-warning fw-bold">${value}€</span>`;
+                        html += `<p class="mb-2"><strong>${label}:</strong> ${valueDisplay}</p>`;
+                    });
+                    html += '</div></div></div>';
+                }
+                
+                if (details.soluzioni && Array.isArray(details.soluzioni)) {
+                    html += '<div class="col-12">';
+                    html += '<div class="card border-success">';
+                    html += '<div class="card-header bg-success text-white"><i class="bi bi-lightbulb me-2"></i>Soluzioni Consigliate</div>';
+                    html += '<div class="card-body">';
+                    html += '<ul class="list-group list-group-flush">';
+                    details.soluzioni.forEach((soluzione, index) => {
+                        html += `<li class="list-group-item d-flex align-items-center">
+                            <span class="badge bg-primary rounded-pill me-3">${index + 1}</span>
+                            ${soluzione}
+                        </li>`;
+                    });
+                    html += '</ul></div></div></div>';
+                }
+                
+                html += '</div>';
+            } else {
+                // Generic format for other data structures
+                html += '<div class="card">';
+                html += '<div class="card-body">';
+                html += '<dl class="row">';
+                
+                Object.entries(details).forEach(([key, value]) => {
+                    const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    html += `<dt class="col-sm-4">${label}:</dt>`;
+                    
+                    if (typeof value === 'object' && value !== null) {
+                        html += `<dd class="col-sm-8"><pre class="small text-muted">${JSON.stringify(value, null, 2)}</pre></dd>`;
+                    } else {
+                        html += `<dd class="col-sm-8">${value || 'N/A'}</dd>`;
+                    }
+                });
+                
+                html += '</dl></div></div>';
+            }
+            
+            return html;
+        }
         
         function showAlertDetails(alertId) {
             // Find the alert row
@@ -1166,28 +1290,32 @@ if (!$data) {
                 document.getElementById('modal-timestamp').textContent = date.toLocaleString('it-IT');
             }
             
-            // Show technical details (JSON formatted)
-            let technicalDetails = '';
+            // Show technical details (user-friendly formatted)
+            let technicalDetailsHtml = '';
             try {
+                let details;
                 if (alertData.details) {
-                    const details = typeof alertData.details === 'string' ? 
+                    details = typeof alertData.details === 'string' ? 
                         JSON.parse(alertData.details) : alertData.details;
-                    technicalDetails = JSON.stringify(details, null, 2);
                 } else {
-                    technicalDetails = JSON.stringify({
+                    details = {
                         id: alertData.id,
                         severity: alertData.severity,
                         category: alertData.category,
                         confidence_score: alertData.confidence_score,
                         estimated_cost: alertData.cost || alertData.estimated_cost,
                         timestamp: alertData.timestamp || alertData.created_at
-                    }, null, 2);
+                    };
                 }
+                
+                // Format as user-friendly HTML
+                technicalDetailsHtml = formatTechnicalDetails(details);
+                
             } catch (e) {
-                technicalDetails = 'Dettagli tecnici non disponibili';
+                technicalDetailsHtml = '<div class="alert alert-warning">⚠️ Dettagli tecnici non disponibili o malformati</div>';
             }
             
-            document.getElementById('modal-details').textContent = technicalDetails;
+            document.getElementById('modal-details').innerHTML = technicalDetailsHtml;
             
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));

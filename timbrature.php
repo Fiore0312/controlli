@@ -6,6 +6,54 @@
 
 header('Content-Type: text/html; charset=utf-8');
 
+// Helper functions for column type detection
+class TimbratureParser {
+    
+    // Real timestamp columns (actual date/time values)
+    public static function isTimestampColumn($header) {
+        $timestampColumns = [
+            'ora inizio',
+            'ora fine', 
+            'ora inizio arrotondata',
+            'ora fine arrotondata'
+        ];
+        
+        $header = strtolower(trim($header));
+        foreach ($timestampColumns as $col) {
+            if (strpos($header, $col) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    // Duration/calculation columns (Excel time calculations)
+    public static function isDurationColumn($header) {
+        $durationColumns = [
+            'ore',
+            'ore arrotondate',
+            'ore in centesimi',
+            'ore arrotondate in centesimi',
+            'sessantesimi al netto delle pause',
+            'sessantesimi arrotondati al netto delle pause',
+            'centesimi al netto delle pause',
+            'centesimi arrotondati al netto delle pause',
+            'pausa sessantesimi',
+            'pausa centesimi'
+        ];
+        
+        $header = strtolower(trim($header));
+        foreach ($durationColumns as $col) {
+            if (strpos($header, $col) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+}
+
 // Funzione per leggere CSV con gestione encoding
 function readCSVFile($filepath) {
     if (!file_exists($filepath)) {
@@ -563,21 +611,27 @@ $uniqueClients = count($clients);
                                     } else {
                                         $cellData = '<span class="text-muted">-</span>';
                                     }
-                                } elseif (strpos(strtolower($header), 'ora') !== false || strpos(strtolower($header), 'time') !== false || 
-                                         strpos(strtolower($header), 'inizio') !== false || strpos(strtolower($header), 'fine') !== false ||
-                                         preg_match('/(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/', $cell)) {
-                                    // Time/Date columns
+                                } elseif (TimbratureParser::isTimestampColumn($header)) {
+                                    // Real timestamp columns (ora inizio, ora fine, etc.)
                                     $cellClass = 'text-center';
                                     if (!empty($cell)) {
-                                        // Try to parse as datetime first
+                                        // Try to parse as datetime
                                         try {
-                                            if (preg_match('/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(:\d{2})?)/', $cell)) {
-                                                $dateObj = DateTime::createFromFormat('Y-m-d H:i:s', $cell);
-                                                if (!$dateObj) $dateObj = DateTime::createFromFormat('Y-m-d H:i', $cell);
-                                                if ($dateObj) {
+                                            // Handle d/m/Y H:i format (Italian format)
+                                            if (preg_match('/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/', $cell, $matches)) {
+                                                $dateObj = DateTime::createFromFormat('d/m/Y H:i', $cell);
+                                                if ($dateObj && $dateObj->format('Y') > 1900) {
                                                     $cellData = '<span class="text-primary fw-medium">' . $dateObj->format('d/m/Y') . '</span><br><small class="text-muted">' . $dateObj->format('H:i') . '</small>';
                                                 } else {
-                                                    $cellData = htmlspecialchars($cell);
+                                                    $cellData = '<span class="badge bg-warning">⚠️ Data invalida</span>';
+                                                }
+                                            } elseif (preg_match('/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(:\d{2})?)/', $cell)) {
+                                                $dateObj = DateTime::createFromFormat('Y-m-d H:i:s', $cell);
+                                                if (!$dateObj) $dateObj = DateTime::createFromFormat('Y-m-d H:i', $cell);
+                                                if ($dateObj && $dateObj->format('Y') > 1900) {
+                                                    $cellData = '<span class="text-primary fw-medium">' . $dateObj->format('d/m/Y') . '</span><br><small class="text-muted">' . $dateObj->format('H:i') . '</small>';
+                                                } else {
+                                                    $cellData = '<span class="badge bg-warning">⚠️ Data invalida</span>';
                                                 }
                                             } elseif (preg_match('/(\d{2}:\d{2}(:\d{2})?)/', $cell)) {
                                                 $cellData = '<span class="text-info fw-medium">' . htmlspecialchars($cell) . '</span>';
@@ -585,24 +639,59 @@ $uniqueClients = count($clients);
                                                 $cellData = htmlspecialchars($cell);
                                             }
                                         } catch (Exception $e) {
-                                            $cellData = htmlspecialchars($cell);
+                                            $cellData = '<span class="badge bg-danger">❌ Errore parsing</span>';
                                         }
                                     } else {
                                         $cellData = '<span class="text-muted">-</span>';
                                     }
-                                } elseif (strpos(strtolower($header), 'ore') !== false || strpos(strtolower($header), 'hour') !== false ||
-                                         preg_match('/(\d+)h\s*(\d+)?m?/', $cell) || preg_match('/(\d+):(\d+):(\d+)/', $cell)) {
-                                    // Hours/Duration columns
+                                } elseif (TimbratureParser::isDurationColumn($header)) {
+                                    // Duration/Hours calculation columns
                                     $cellClass = 'text-center';
                                     if (!empty($cell)) {
-                                        if (preg_match('/(\d+):(\d+):(\d+)/', $cell, $matches)) {
-                                            $cellData = '<span class="hours-display">' . $matches[1] . 'h ' . $matches[2] . 'm</span>';
+                                        // Handle Excel duration format "12/31/1899 X:XX:XX AM/PM"
+                                        if (preg_match('/12\/31\/1899\s+(\d{1,2}):(\d{2}):(\d{2})\s+(AM|PM)/i', $cell, $matches)) {
+                                            $hours = intval($matches[1]);
+                                            $minutes = intval($matches[2]);
+                                            $seconds = intval($matches[3]);
+                                            $ampm = strtoupper($matches[4]);
+                                            
+                                            // Convert to 24h format
+                                            if ($ampm === 'PM' && $hours !== 12) {
+                                                $hours += 12;
+                                            } elseif ($ampm === 'AM' && $hours === 12) {
+                                                $hours = 0;
+                                            }
+                                            
+                                            // Convert seconds to additional minutes
+                                            $totalMinutes = $minutes + round($seconds / 60);
+                                            if ($totalMinutes >= 60) {
+                                                $hours += floor($totalMinutes / 60);
+                                                $totalMinutes = $totalMinutes % 60;
+                                            }
+                                            
+                                            $cellData = '<span class="hours-display">' . $hours . 'h ' . $totalMinutes . 'm</span>';
+                                            
+                                        } elseif (preg_match('/(\d+)h\s*(\d+)?m?/', $cell, $matches)) {
+                                            // Format like "8h 30m"
+                                            $hours = intval($matches[1]);
+                                            $minutes = isset($matches[2]) ? intval($matches[2]) : 0;
+                                            $cellData = '<span class="hours-display">' . $hours . 'h ' . $minutes . 'm</span>';
+                                            
+                                        } elseif (preg_match('/(\d+):(\d+):(\d+)/', $cell, $matches)) {
+                                            // Format like "8:30:00"
+                                            $hours = intval($matches[1]);
+                                            $minutes = intval($matches[2]);
+                                            $cellData = '<span class="hours-display">' . $hours . 'h ' . $minutes . 'm</span>';
+                                            
                                         } elseif (preg_match('/(\d+(?:\.\d+)?)/', $cell, $matches)) {
-                                            $hours = floatval($matches[1]);
-                                            $h = floor($hours);
-                                            $m = round(($hours - $h) * 60);
+                                            // Decimal hours like "8.5"
+                                            $totalHours = floatval($matches[1]);
+                                            $h = floor($totalHours);
+                                            $m = round(($totalHours - $h) * 60);
                                             $cellData = '<span class="hours-display">' . $h . 'h ' . $m . 'm</span>';
+                                            
                                         } else {
+                                            // Fallback for other formats
                                             $cellData = '<span class="hours-display">' . htmlspecialchars($cell) . '</span>';
                                         }
                                     } else {

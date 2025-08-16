@@ -371,7 +371,35 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                             </td>
                             <td>
                                 <?php if (!empty($row[8])): ?>
-                                    <span class="badge-duration"><?= htmlspecialchars($row[8]) ?></span>
+                                    <?php
+                                    $duration = trim($row[8]);
+                                    
+                                    // Uniforma la formattazione della durata
+                                    if (preg_match('/^\d+$/', $duration)) {
+                                        // Solo numero senza "m" - aggiungi "m"
+                                        $formattedDuration = $duration . 'm';
+                                    } elseif (preg_match('/^\d+m$/', $duration)) {
+                                        // Già ha "m" - mantieni così
+                                        $formattedDuration = $duration;
+                                    } elseif (preg_match('/(\d+)h?\s*(\d*)m?/', $duration, $matches)) {
+                                        // Formato complesso con ore - converti tutto in minuti
+                                        $hours = intval($matches[1]);
+                                        $minutes = isset($matches[2]) && !empty($matches[2]) ? intval($matches[2]) : 0;
+                                        $totalMinutes = ($hours * 60) + $minutes;
+                                        
+                                        if ($totalMinutes >= 60) {
+                                            $h = floor($totalMinutes / 60);
+                                            $m = $totalMinutes % 60;
+                                            $formattedDuration = $m > 0 ? $h . 'h ' . $m . 'm' : $h . 'h';
+                                        } else {
+                                            $formattedDuration = $totalMinutes . 'm';
+                                        }
+                                    } else {
+                                        // Fallback - usa valore originale
+                                        $formattedDuration = $duration;
+                                    }
+                                    ?>
+                                    <span class="badge-duration"><?= htmlspecialchars($formattedDuration) ?></span>
                                 <?php endif; ?>
                             </td>
                             <td><?= htmlspecialchars($row[9] ?? '') ?></td>
