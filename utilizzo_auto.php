@@ -208,7 +208,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚗 Utilizzo Auto - BAIT Service</title>
+    <title>🚗 Utilizzo Auto - Vista Excel</title>
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -216,6 +216,7 @@ try {
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -254,6 +255,19 @@ try {
         .stats-card.ongoing { border-left-color: #ffc107; }
         .stats-card.hours { border-left-color: #6f42c1; }
         
+        .stats-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .stats-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
         .form-container {
             background: white;
             border-radius: 12px;
@@ -273,17 +287,193 @@ try {
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             overflow: hidden;
+            margin-top: 2rem;
         }
         
-        .badge-status {
+        .table-header {
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        #utilizziTable {
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #d0d7de;
+        }
+        
+        #utilizziTable thead th {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%);
+            border: 1px solid #d0d7de;
+            border-bottom: 2px solid #8c959f;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            padding: 0.6rem 0.4rem;
+            vertical-align: middle;
+            white-space: nowrap;
+            position: relative;
+            color: #24292f;
+            text-align: left;
+        }
+        
+        #utilizziTable thead th:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%);
+        }
+        
+        #utilizziTable thead th.sorting:after,
+        #utilizziTable thead th.sorting_asc:after,
+        #utilizziTable thead th.sorting_desc:after {
+            opacity: 0.8;
+            font-size: 0.8em;
+        }
+        
+        #utilizziTable tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        
+        #utilizziTable tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        #utilizziTable tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        
+        #utilizziTable tbody tr:hover {
+            background-color: #dbeafe !important;
+            border-color: #3b82f6;
+        }
+        
+        #utilizziTable tbody tr:hover td {
+            border-color: #3b82f6;
+        }
+        
+        #utilizziTable tbody td {
+            padding: 0.4rem 0.4rem;
+            font-size: 0.8rem;
+            vertical-align: middle;
+            border: 1px solid #e1e8ed;
+            border-top: none;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.4;
+            position: relative;
+        }
+        
+        #utilizziTable tbody td:hover {
+            background-color: #f0f9ff;
+            cursor: pointer;
+        }
+        
+        .row-number {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%) !important;
+            font-weight: 600;
+            text-align: center;
+            color: #656d76;
+            width: 45px;
+            min-width: 45px;
+            max-width: 45px;
+            border-right: 2px solid #8c959f !important;
             font-size: 0.75rem;
-            padding: 0.4rem 0.6rem;
+            position: sticky;
+            left: 0;
+            z-index: 10;
         }
         
-        .btn-action {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-            margin: 0 0.1rem;
+        .row-number:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%) !important;
+        }
+        
+        .badge-technician {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #495057;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+            min-width: 35px;
+        }
+        
+        .badge-vehicle {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #138496;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-client {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #dc2626;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-status-completed {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #15803d;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-status-ongoing {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #d97706;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-status-cancelled {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #b91c1c;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .hours-display {
+            font-weight: bold;
+            color: #16a34a;
+            font-size: 0.85rem;
         }
         
         .breadcrumb-nav {
@@ -292,6 +482,77 @@ try {
             padding: 0.5rem 1rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
+        }
+        
+        .dt-buttons {
+            margin-bottom: 1rem;
+        }
+        
+        .dt-button {
+            margin-right: 0.5rem;
+        }
+        
+        .cell-selected {
+            background-color: #dbeafe !important;
+            border: 2px solid #3b82f6 !important;
+            outline: none;
+        }
+        
+        .cell-tooltip {
+            position: relative;
+            overflow: visible;
+        }
+        
+        .cell-tooltip .tooltip-content {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #374151;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            max-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .cell-tooltip:hover .tooltip-content {
+            visibility: visible;
+        }
+        
+        .cell-tooltip .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #374151 transparent transparent transparent;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-row .col-md-3 {
+                margin-bottom: 1rem;
+            }
+            
+            #utilizziTable tbody td {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.2rem;
+            }
+            
+            .row-number {
+                width: 35px;
+                min-width: 35px;
+                max-width: 35px;
+                font-size: 0.65rem;
+            }
         }
     </style>
 </head>
@@ -328,29 +589,29 @@ try {
         </nav>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
+        <div class="row stats-row mb-4">
             <div class="col-md-3">
                 <div class="stats-card total">
-                    <h3 class="text-success"><?= $stats['total_utilizzi'] ?? 0 ?></h3>
-                    <p class="text-muted mb-0">Utilizzi Totali</p>
+                    <h3 class="stats-number text-success"><?= number_format($stats['total_utilizzi'] ?? 0) ?></h3>
+                    <p class="stats-label">Utilizzi Totali</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card completed">
-                    <h3 class="text-info"><?= $stats['utilizzi_completati'] ?? 0 ?></h3>
-                    <p class="text-muted mb-0">Completati</p>
+                    <h3 class="stats-number text-info"><?= number_format($stats['utilizzi_completati'] ?? 0) ?></h3>
+                    <p class="stats-label">Completati</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card ongoing">
-                    <h3 class="text-warning"><?= $stats['utilizzi_in_corso'] ?? 0 ?></h3>
-                    <p class="text-muted mb-0">In Corso</p>
+                    <h3 class="stats-number text-warning"><?= number_format($stats['utilizzi_in_corso'] ?? 0) ?></h3>
+                    <p class="stats-label">In Corso</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card hours">
-                    <h3 class="text-primary"><?= number_format($stats['ore_totali'] ?? 0, 1) ?>h</h3>
-                    <p class="text-muted mb-0">Ore Totali</p>
+                    <h3 class="stats-number text-primary"><?= number_format($stats['ore_totali'] ?? 0, 1) ?>h</h3>
+                    <p class="stats-label">Ore Totali</p>
                 </div>
             </div>
         </div>
@@ -424,16 +685,26 @@ try {
 
         <!-- Table Container -->
         <div class="table-container">
-            <div class="table-header" style="background: linear-gradient(135deg, #495057 0%, #343a40 100%); color: white; padding: 1rem 1.5rem;">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>Utilizzi Auto Registrati
-                </h5>
+            <div class="table-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-0">
+                            <i class="fas fa-car me-2"></i>Utilizzi Auto Registrati
+                        </h4>
+                        <small>Gestione utilizzo vetture aziendali</small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i><?= count($utilizzi) ?> Record
+                        </span>
+                    </div>
+                </div>
             </div>
             <div class="table-responsive p-3">
-                <table id="utilizziTable" class="table table-hover" style="width:100%">
-                    <thead class="table-light">
+                <table id="utilizziTable" class="table table-striped table-hover" style="width:100%">
+                    <thead>
                         <tr>
-                            <th>ID</th>
+                            <th class="row-number">#</th>
                             <th>Tecnico</th>
                             <th>Auto</th>
                             <th>Data</th>
@@ -446,33 +717,92 @@ try {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($utilizzi as $u): ?>
+                        <?php foreach ($utilizzi as $index => $u): ?>
+                        <?php
+                            // Generate technician initials
+                            $technicoInitials = '';
+                            if ($u['tecnico_nome']) {
+                                $words = explode(' ', $u['tecnico_nome']);
+                                foreach ($words as $word) {
+                                    if (!empty($word)) {
+                                        $technicoInitials .= mb_strtoupper(mb_substr($word, 0, 1));
+                                    }
+                                }
+                            }
+                            
+                            // Format dates
+                            $oraPresaFormatted = '';
+                            $oraRiconsegnaFormatted = '';
+                            
+                            if ($u['ora_presa']) {
+                                $presaObj = DateTime::createFromFormat('Y-m-d H:i:s', $u['ora_presa']);
+                                if ($presaObj) {
+                                    $oraPresaFormatted = '<span class="text-primary fw-medium">' . $presaObj->format('d/m/Y') . '</span><br><small class="text-muted">' . $presaObj->format('H:i') . '</small>';
+                                }
+                            }
+                            
+                            if ($u['ora_riconsegna']) {
+                                $riconsegnaObj = DateTime::createFromFormat('Y-m-d H:i:s', $u['ora_riconsegna']);
+                                if ($riconsegnaObj) {
+                                    $oraRiconsegnaFormatted = '<span class="text-primary fw-medium">' . $riconsegnaObj->format('d/m/Y') . '</span><br><small class="text-muted">' . $riconsegnaObj->format('H:i') . '</small>';
+                                }
+                            }
+                        ?>
                         <tr>
-                            <td><?= $u['id'] ?></td>
-                            <td>
-                                <span class="badge bg-primary"><?= htmlspecialchars($u['tecnico_nome'] ?? 'N/A') ?></span>
+                            <td class="row-number"><?= $index + 1 ?></td>
+                            <td class="text-center">
+                                <?php if ($u['tecnico_nome']): ?>
+                                <span class="badge-technician cell-tooltip" title="<?= htmlspecialchars($u['tecnico_nome']) ?>">
+                                    <?= $technicoInitials ?>
+                                    <div class="tooltip-content"><?= htmlspecialchars($u['tecnico_nome']) ?></div>
+                                </span>
+                                <?php else: ?>
+                                <span class="text-muted">-</span>
+                                <?php endif; ?>
                             </td>
-                            <td>
-                                <span class="badge bg-info"><?= htmlspecialchars($u['auto_modello'] ?? 'N/A') ?></span>
+                            <td class="text-center">
+                                <?php if ($u['auto_modello']): ?>
+                                <span class="badge-vehicle"><?= htmlspecialchars(mb_substr($u['auto_modello'], 0, 15)) ?></span>
+                                <?php else: ?>
+                                <span class="text-muted">-</span>
+                                <?php endif; ?>
                             </td>
-                            <td><?= date('d/m/Y', strtotime($u['data_utilizzo'])) ?></td>
-                            <td><?= $u['ora_presa'] ? date('d/m H:i', strtotime($u['ora_presa'])) : '-' ?></td>
-                            <td><?= $u['ora_riconsegna'] ? date('d/m H:i', strtotime($u['ora_riconsegna'])) : '-' ?></td>
-                            <td><?= htmlspecialchars($u['cliente']) ?></td>
-                            <td><?= $u['ore_utilizzo'] ? number_format($u['ore_utilizzo'], 2) . 'h' : '-' ?></td>
-                            <td>
-                                <span class="badge badge-status <?= 
-                                    $u['stato'] === 'Completato' ? 'bg-success' : 
-                                    ($u['stato'] === 'In_Corso' ? 'bg-warning' : 'bg-danger') 
+                            <td class="text-center">
+                                <span class="text-primary fw-medium"><?= date('d/m/Y', strtotime($u['data_utilizzo'])) ?></span>
+                            </td>
+                            <td class="text-center">
+                                <?= $oraPresaFormatted ?: '<span class="text-muted">-</span>' ?>
+                            </td>
+                            <td class="text-center">
+                                <?= $oraRiconsegnaFormatted ?: '<span class="text-muted">-</span>' ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if (!empty($u['cliente'])): ?>
+                                <span class="badge-client"><?= htmlspecialchars(mb_substr($u['cliente'], 0, 20)) ?></span>
+                                <?php else: ?>
+                                <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if ($u['ore_utilizzo']): ?>
+                                <span class="hours-display"><?= number_format($u['ore_utilizzo'], 2) ?>h</span>
+                                <?php else: ?>
+                                <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <span class="<?= 
+                                    $u['stato'] === 'Completato' ? 'badge-status-completed' : 
+                                    ($u['stato'] === 'In_Corso' ? 'badge-status-ongoing' : 'badge-status-cancelled')
                                 ?>">
                                     <?= $u['stato'] ?>
                                 </span>
                             </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary btn-action" onclick="editUtilizzo(<?= htmlspecialchars(json_encode($u)) ?>)">
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary btn-action" onclick="editUtilizzo(<?= htmlspecialchars(json_encode($u)) ?>)" title="Modifica">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteUtilizzo(<?= $u['id'] ?>)">
+                                <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteUtilizzo(<?= $u['id'] ?>)" title="Elimina">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -491,14 +821,19 @@ try {
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
 
     <script>
         let editMode = false;
 
         $(document).ready(function() {
-            // Initialize DataTable
-            $('#utilizziTable').DataTable({
+            // Initialize DataTable with Excel-style features
+            var table = $('#utilizziTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: [
                     {
@@ -507,17 +842,130 @@ try {
                         className: 'btn btn-success btn-sm'
                     },
                     {
-                        extend: 'pdf', 
+                        extend: 'pdf',
                         text: '<i class="fas fa-file-pdf me-1"></i>PDF',
                         className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print me-1"></i>Stampa',
+                        className: 'btn btn-secondary btn-sm'
                     }
                 ],
                 pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tutti"]],
                 language: {
                     url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/it-IT.json'
                 },
-                order: [[3, 'desc']] // Order by date
+                fixedHeader: true,
+                responsive: true,
+                order: [[3, 'desc']], // Order by date
+                columnDefs: [
+                    { 
+                        orderable: false, 
+                        targets: 0,
+                        className: 'row-number'
+                    }, // Disable ordering on row number column
+                    {
+                        targets: '_all',
+                        className: 'cell-content'
+                    }
+                ],
+                scrollX: true,
+                scrollY: '60vh',
+                scrollCollapse: true,
+                fixedColumns: {
+                    leftColumns: 1
+                }
             });
+            
+            // Excel-like cell interactions
+            var selectedCell = null;
+            $('#utilizziTable tbody td').on('click', function(e) {
+                if ($(this).hasClass('row-number')) return;
+                
+                // Remove previous selection
+                $('.cell-selected').removeClass('cell-selected');
+                
+                // Add selection to current cell
+                $(this).addClass('cell-selected');
+                selectedCell = $(this);
+                
+                e.stopPropagation();
+            });
+            
+            // Clear selection when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#utilizziTable').length) {
+                    $('.cell-selected').removeClass('cell-selected');
+                    selectedCell = null;
+                }
+            });
+            
+            // Double-click to copy cell content
+            $('#utilizziTable tbody td').on('dblclick', function() {
+                if ($(this).hasClass('row-number')) return;
+                
+                var textContent = $(this).text().trim();
+                if (textContent && textContent !== '-') {
+                    navigator.clipboard.writeText(textContent).then(function() {
+                        showToast('Contenuto copiato!', 'success');
+                    }.bind(this)).catch(function() {
+                        showToast('Errore nella copia', 'error');
+                    });
+                }
+            });
+            
+            // Row highlighting on hover
+            $('#utilizziTable tbody tr').on('mouseenter', function() {
+                $(this).find('.row-number').css('background', 'linear-gradient(180deg, #e8f0fe 0%, #c8d6e5 100%)');
+            }).on('mouseleave', function() {
+                $(this).find('.row-number').css('background', '');
+            });
+            
+            // Column highlighting on header hover
+            $('#utilizziTable thead th').on('mouseenter', function() {
+                var columnIndex = $(this).index();
+                $('#utilizziTable tbody tr').each(function() {
+                    $(this).find('td').eq(columnIndex).addClass('column-highlight');
+                });
+            }).on('mouseleave', function() {
+                $('#utilizziTable tbody td').removeClass('column-highlight');
+            });
+            
+            // Add column highlight CSS
+            $('<style>').text(`
+                .column-highlight {
+                    background-color: #f0f9ff !important;
+                    border-left: 2px solid #3b82f6 !important;
+                    border-right: 2px solid #3b82f6 !important;
+                }
+            `).appendTo('head');
+            
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                var toastClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+                var toast = $(`
+                    <div class="toast align-items-center text-white ${toastClass} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('body').append(toast);
+                var bsToast = new bootstrap.Toast(toast[0]);
+                bsToast.show();
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
 
             // Form submission
             $('#autoForm').on('submit', function(e) {

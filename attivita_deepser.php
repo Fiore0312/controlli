@@ -160,82 +160,162 @@ $uniqueTechnicians = count($technicians);
         
         #activitiesTable {
             margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #d0d7de;
         }
         
         #activitiesTable thead th {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%);
+            border: 1px solid #d0d7de;
+            border-bottom: 2px solid #8c959f;
             font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            padding: 0.6rem 0.4rem;
             vertical-align: middle;
             white-space: nowrap;
+            position: relative;
+            color: #24292f;
+            text-align: left;
+        }
+        
+        #activitiesTable thead th:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%);
+        }
+        
+        #activitiesTable thead th.sorting:after,
+        #activitiesTable thead th.sorting_asc:after,
+        #activitiesTable thead th.sorting_desc:after {
+            opacity: 0.8;
+            font-size: 0.8em;
         }
         
         #activitiesTable tbody tr {
-            transition: background-color 0.2s;
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #e1e8ed;
         }
         
         #activitiesTable tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #f9fafb;
+        }
+        
+        #activitiesTable tbody tr:nth-child(odd) {
+            background-color: #ffffff;
         }
         
         #activitiesTable tbody tr:hover {
-            background-color: #e3f2fd !important;
+            background-color: #dbeafe !important;
+            border-color: #3b82f6;
+        }
+        
+        #activitiesTable tbody tr:hover td {
+            border-color: #3b82f6;
         }
         
         #activitiesTable tbody td {
-            padding: 0.5rem;
-            font-size: 0.85rem;
+            padding: 0.4rem 0.4rem;
+            font-size: 0.8rem;
             vertical-align: middle;
-            max-width: 200px;
+            border: 1px solid #e1e8ed;
+            border-top: none;
+            max-width: 180px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            line-height: 1.4;
+            position: relative;
+        }
+        
+        #activitiesTable tbody td:hover {
+            background-color: #f0f9ff;
+            cursor: pointer;
         }
         
         .row-number {
-            background-color: #e9ecef;
-            font-weight: bold;
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%) !important;
+            font-weight: 600;
             text-align: center;
-            color: #495057;
-            width: 50px;
-            min-width: 50px;
+            color: #656d76;
+            width: 45px;
+            min-width: 45px;
+            max-width: 45px;
+            border-right: 2px solid #8c959f !important;
+            font-size: 0.75rem;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .row-number:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%) !important;
         }
         
         .badge-ticket {
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #1e40af;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+            min-width: 40px;
         }
         
         .badge-company {
-            background-color: #fd7e14;
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
             color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #dc2626;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
         }
         
         .badge-activity {
-            background-color: #198754;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
             color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #15803d;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
         }
         
         .description-cell {
             max-width: 300px;
             cursor: pointer;
+            position: relative;
         }
         
         .description-cell:hover {
-            background-color: #fff3cd;
+            background-color: #fef3c7 !important;
+            border-color: #f59e0b !important;
+        }
+        
+        .description-cell:hover:after {
+            content: '👁️ Clicca per dettagli';
+            position: absolute;
+            top: -25px;
+            right: 0;
+            background: #374151;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .no-data {
@@ -273,6 +353,68 @@ $uniqueTechnicians = count($technicians);
             margin-right: 0.5rem;
         }
         
+        /* Excel-like column resize handle */
+        #activitiesTable thead th {
+            resize: horizontal;
+            overflow: auto;
+        }
+        
+        /* Enhanced cell selection */
+        .cell-selected {
+            background-color: #dbeafe !important;
+            border: 2px solid #3b82f6 !important;
+            outline: none;
+        }
+        
+        /* Column header sorting indicators */
+        #activitiesTable thead th.sorting {
+            cursor: pointer;
+        }
+        
+        #activitiesTable thead th.sorting:hover {
+            background: linear-gradient(180deg, #e8f0fe 0%, #c8d6e5 100%);
+        }
+        
+        /* Better tooltips */
+        .cell-tooltip {
+            position: relative;
+            overflow: visible;
+        }
+        
+        .cell-tooltip .tooltip-content {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #374151;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            max-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .cell-tooltip:hover .tooltip-content {
+            visibility: visible;
+        }
+        
+        .cell-tooltip .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #374151 transparent transparent transparent;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .stats-row .col-md-3 {
@@ -280,8 +422,19 @@ $uniqueTechnicians = count($technicians);
             }
             
             #activitiesTable tbody td {
-                font-size: 0.75rem;
-                padding: 0.25rem;
+                font-size: 0.7rem;
+                padding: 0.3rem 0.2rem;
+            }
+            
+            .row-number {
+                width: 35px;
+                min-width: 35px;
+                max-width: 35px;
+                font-size: 0.65rem;
+            }
+            
+            .description-cell:hover:after {
+                display: none;
             }
         }
     </style>
@@ -395,32 +548,96 @@ $uniqueTechnicians = count($technicians);
                         <tr>
                             <td class="row-number"><?= $index + 1 ?></td>
                             <?php foreach ($row as $colIndex => $cell): ?>
-                            <td <?= (isset($csvData['headers'][$colIndex]) && $csvData['headers'][$colIndex] === 'Descrizione') ? 'class="description-cell"' : '' ?>
-                                <?= (isset($csvData['headers'][$colIndex]) && $csvData['headers'][$colIndex] === 'Descrizione') ? 'title="'.htmlspecialchars($cell).'"' : '' ?>>
-                                <?php
-                                // Format special columns
-                                if (isset($csvData['headers'][$colIndex])) {
-                                    $header = $csvData['headers'][$colIndex];
-                                    switch ($header) {
-                                        case 'Id Ticket':
-                                            echo !empty($cell) ? '<span class="badge-ticket">#' . htmlspecialchars($cell) . '</span>' : '';
-                                            break;
-                                        case 'Azienda':
-                                            echo !empty($cell) ? '<span class="badge-company">' . htmlspecialchars($cell) . '</span>' : '';
-                                            break;
-                                        case 'Tipologia Attività':
-                                            echo !empty($cell) ? '<span class="badge-activity">' . htmlspecialchars($cell) . '</span>' : '';
-                                            break;
-                                        case 'Descrizione':
-                                            echo htmlspecialchars(mb_substr($cell, 0, 50) . (mb_strlen($cell) > 50 ? '...' : ''));
-                                            break;
-                                        default:
-                                            echo htmlspecialchars($cell);
-                                    }
-                                } else {
-                                    echo htmlspecialchars($cell);
+                            <?php
+                                $header = isset($csvData['headers'][$colIndex]) ? $csvData['headers'][$colIndex] : '';
+                                $cellClass = '';
+                                $cellData = '';
+                                $hasTooltip = false;
+                                $tooltipContent = '';
+                                
+                                // Determine cell styling and content
+                                switch ($header) {
+                                    case 'Id Ticket':
+                                        $cellClass = 'text-center';
+                                        $cellData = !empty($cell) ? '<span class="badge-ticket">#' . htmlspecialchars($cell) . '</span>' : '<span class="text-muted">-</span>';
+                                        break;
+                                    case 'Azienda':
+                                        $cellClass = 'text-center';
+                                        $cellData = !empty($cell) ? '<span class="badge-company">' . htmlspecialchars(mb_substr($cell, 0, 20)) . '</span>' : '<span class="text-muted">-</span>';
+                                        if (mb_strlen($cell) > 20) {
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
+                                        break;
+                                    case 'Tipologia Attività':
+                                        $cellClass = 'text-center';
+                                        $cellData = !empty($cell) ? '<span class="badge-activity">' . htmlspecialchars(mb_substr($cell, 0, 15)) . '</span>' : '<span class="text-muted">-</span>';
+                                        if (mb_strlen($cell) > 15) {
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
+                                        break;
+                                    case 'Descrizione':
+                                        $cellClass = 'description-cell';
+                                        $cellData = htmlspecialchars(mb_substr($cell, 0, 45) . (mb_strlen($cell) > 45 ? '...' : ''));
+                                        if (mb_strlen($cell) > 45) {
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
+                                        break;
+                                    case 'Iniziata il':
+                                    case 'Conclusa il':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell)) {
+                                            $dateObj = DateTime::createFromFormat('d/m/Y H:i', $cell);
+                                            if ($dateObj) {
+                                                $cellData = '<span class="text-primary fw-medium">' . $dateObj->format('d/m/Y') . '</span><br><small class="text-muted">' . $dateObj->format('H:i') . '</small>';
+                                            } else {
+                                                $cellData = htmlspecialchars($cell);
+                                            }
+                                        } else {
+                                            $cellData = '<span class="text-muted">-</span>';
+                                        }
+                                        break;
+                                    case 'Durata':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell)) {
+                                            $cellData = '<span class="fw-bold text-success">' . htmlspecialchars($cell) . '</span>';
+                                        } else {
+                                            $cellData = '<span class="text-muted">-</span>';
+                                        }
+                                        break;
+                                    case 'Creato da':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell)) {
+                                            $initials = '';
+                                            $words = explode(' ', $cell);
+                                            foreach ($words as $word) {
+                                                if (!empty($word)) {
+                                                    $initials .= mb_strtoupper(mb_substr($word, 0, 1));
+                                                }
+                                            }
+                                            $cellData = '<span class="badge bg-secondary" title="' . htmlspecialchars($cell) . '">' . $initials . '</span>';
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        } else {
+                                            $cellData = '<span class="text-muted">-</span>';
+                                        }
+                                        break;
+                                    default:
+                                        $cellData = !empty($cell) ? htmlspecialchars($cell) : '<span class="text-muted">-</span>';
+                                        if (mb_strlen($cell) > 30) {
+                                            $cellData = htmlspecialchars(mb_substr($cell, 0, 30) . '...');
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
                                 }
-                                ?>
+                            ?>
+                            <td class="<?= $cellClass ?> <?= $hasTooltip ? 'cell-tooltip' : '' ?>" data-header="<?= htmlspecialchars($header) ?>">
+                                <?= $cellData ?>
+                                <?php if ($hasTooltip): ?>
+                                <div class="tooltip-content"><?= $tooltipContent ?></div>
+                                <?php endif; ?>
                             </td>
                             <?php endforeach; ?>
                         </tr>
@@ -490,23 +707,199 @@ $uniqueTechnicians = count($technicians);
                 responsive: true,
                 order: [[1, 'desc']], // Order by first data column (ID Ticket)
                 columnDefs: [
-                    { orderable: false, targets: 0 } // Disable ordering on row number column
-                ]
+                    { 
+                        orderable: false, 
+                        targets: 0,
+                        className: 'row-number'
+                    }, // Disable ordering on row number column
+                    {
+                        targets: '_all',
+                        className: 'cell-content'
+                    }
+                ],
+                scrollX: true,
+                scrollY: '60vh',
+                scrollCollapse: true,
+                fixedColumns: {
+                    leftColumns: 1
+                }
             });
             
-            // Click on description cell to show full text
+            // Enhanced cell interactions
             $('#activitiesTable').on('click', '.description-cell', function() {
-                var fullText = $(this).attr('title');
-                if (fullText && fullText.length > 50) {
-                    alert('Descrizione completa:\n\n' + fullText);
+                var tooltipContent = $(this).find('.tooltip-content').text();
+                if (tooltipContent && tooltipContent.length > 45) {
+                    // Create a professional modal-style popup
+                    var modalContent = `
+                        <div class="modal fade" id="descriptionModal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title"><i class="fas fa-file-text me-2"></i>Descrizione Completa</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="bg-light p-3 rounded">
+                                            <p class="mb-0" style="line-height: 1.6; font-size: 0.95rem;">${tooltipContent}</p>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-1"></i>Chiudi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Remove existing modal if any
+                    $('#descriptionModal').remove();
+                    
+                    // Add and show modal
+                    $('body').append(modalContent);
+                    $('#descriptionModal').modal('show');
+                }
+            });
+            
+            // Cell selection functionality (Excel-like)
+            var selectedCell = null;
+            $('#activitiesTable tbody td').on('click', function(e) {
+                if ($(this).hasClass('description-cell')) return; // Skip description cells
+                
+                // Remove previous selection
+                $('.cell-selected').removeClass('cell-selected');
+                
+                // Add selection to current cell
+                $(this).addClass('cell-selected');
+                selectedCell = $(this);
+                
+                e.stopPropagation();
+            });
+            
+            // Clear selection when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#activitiesTable').length) {
+                    $('.cell-selected').removeClass('cell-selected');
+                    selectedCell = null;
+                }
+            });
+            
+            // Keyboard navigation (Excel-like)
+            $(document).on('keydown', function(e) {
+                if (selectedCell && selectedCell.length) {
+                    var currentRow = selectedCell.parent();
+                    var currentCellIndex = selectedCell.index();
+                    var newCell = null;
+                    
+                    switch(e.keyCode) {
+                        case 37: // Left arrow
+                            newCell = selectedCell.prev();
+                            break;
+                        case 38: // Up arrow
+                            newCell = currentRow.prev().find('td').eq(currentCellIndex);
+                            break;
+                        case 39: // Right arrow
+                            newCell = selectedCell.next();
+                            break;
+                        case 40: // Down arrow
+                            newCell = currentRow.next().find('td').eq(currentCellIndex);
+                            break;
+                    }
+                    
+                    if (newCell && newCell.length && !newCell.hasClass('row-number')) {
+                        $('.cell-selected').removeClass('cell-selected');
+                        newCell.addClass('cell-selected');
+                        selectedCell = newCell;
+                        
+                        // Scroll into view if needed
+                        newCell[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                        
+                        e.preventDefault();
+                    }
                 }
             });
             <?php endif; ?>
+            
+            // Enhanced table features
+            
+            // Double-click to copy cell content
+            $('#activitiesTable tbody td').on('dblclick', function() {
+                if ($(this).hasClass('row-number')) return;
+                
+                var textContent = $(this).text().trim();
+                if (textContent && textContent !== '-') {
+                    navigator.clipboard.writeText(textContent).then(function() {
+                        // Show copy feedback
+                        var originalBg = $(this).css('background-color');
+                        $(this).css('background-color', '#d4edda');
+                        setTimeout(() => {
+                            $(this).css('background-color', originalBg);
+                        }, 200);
+                        
+                        // Show toast notification
+                        showToast('Contenuto copiato!', 'success');
+                    }.bind(this)).catch(function() {
+                        showToast('Errore nella copia', 'error');
+                    });
+                }
+            });
+            
+            // Row highlighting on hover
+            $('#activitiesTable tbody tr').on('mouseenter', function() {
+                $(this).find('.row-number').css('background', 'linear-gradient(180deg, #e8f0fe 0%, #c8d6e5 100%)');
+            }).on('mouseleave', function() {
+                $(this).find('.row-number').css('background', '');
+            });
+            
+            // Column highlighting on header hover
+            $('#activitiesTable thead th').on('mouseenter', function() {
+                var columnIndex = $(this).index();
+                $('#activitiesTable tbody tr').each(function() {
+                    $(this).find('td').eq(columnIndex).addClass('column-highlight');
+                });
+            }).on('mouseleave', function() {
+                $('#activitiesTable tbody td').removeClass('column-highlight');
+            });
+            
+            // Add column highlight CSS
+            $('<style>').text(`
+                .column-highlight {
+                    background-color: #f0f9ff !important;
+                    border-left: 2px solid #3b82f6 !important;
+                    border-right: 2px solid #3b82f6 !important;
+                }
+            `).appendTo('head');
             
             // Hide loading
             setTimeout(function() {
                 $('.loading').hide();
             }, 500);
+            
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                var toastClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+                var toast = $(`
+                    <div class="toast align-items-center text-white ${toastClass} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('body').append(toast);
+                var bsToast = new bootstrap.Toast(toast[0]);
+                bsToast.show();
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
         });
     </script>
 </body>

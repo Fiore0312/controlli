@@ -88,7 +88,7 @@ $uniqueClients = count($clients);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⏰ Timbrature - BAIT Service</title>
+    <title>⏰ Timbrature - Vista Excel</title>
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -96,6 +96,7 @@ $uniqueClients = count($clients);
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -134,6 +135,19 @@ $uniqueClients = count($clients);
         .stats-card.employees { border-left-color: #17a2b8; }
         .stats-card.clients { border-left-color: #fd7e14; }
         
+        .stats-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .stats-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
         .table-container {
             background: white;
             border-radius: 12px;
@@ -149,6 +163,146 @@ $uniqueClients = count($clients);
             border-bottom: 1px solid #dee2e6;
         }
         
+        #timbratureTable {
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #d0d7de;
+        }
+        
+        #timbratureTable thead th {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%);
+            border: 1px solid #d0d7de;
+            border-bottom: 2px solid #8c959f;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            padding: 0.6rem 0.4rem;
+            vertical-align: middle;
+            white-space: nowrap;
+            position: relative;
+            color: #24292f;
+            text-align: left;
+        }
+        
+        #timbratureTable thead th:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%);
+        }
+        
+        #timbratureTable thead th.sorting:after,
+        #timbratureTable thead th.sorting_asc:after,
+        #timbratureTable thead th.sorting_desc:after {
+            opacity: 0.8;
+            font-size: 0.8em;
+        }
+        
+        #timbratureTable tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        
+        #timbratureTable tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        #timbratureTable tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        
+        #timbratureTable tbody tr:hover {
+            background-color: #dbeafe !important;
+            border-color: #3b82f6;
+        }
+        
+        #timbratureTable tbody tr:hover td {
+            border-color: #3b82f6;
+        }
+        
+        #timbratureTable tbody td {
+            padding: 0.4rem 0.4rem;
+            font-size: 0.8rem;
+            vertical-align: middle;
+            border: 1px solid #e1e8ed;
+            border-top: none;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.4;
+            position: relative;
+        }
+        
+        #timbratureTable tbody td:hover {
+            background-color: #f0f9ff;
+            cursor: pointer;
+        }
+        
+        .row-number {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%) !important;
+            font-weight: 600;
+            text-align: center;
+            color: #656d76;
+            width: 45px;
+            min-width: 45px;
+            max-width: 45px;
+            border-right: 2px solid #8c959f !important;
+            font-size: 0.75rem;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .row-number:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%) !important;
+        }
+        
+        .badge-employee {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #495057;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+            min-width: 35px;
+        }
+        
+        .badge-client {
+            background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #dc2626;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-activity {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #15803d;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .hours-display {
+            font-weight: bold;
+            color: #16a34a;
+            font-size: 0.85rem;
+        }
+        
         .breadcrumb-nav {
             background: white;
             border-radius: 8px;
@@ -157,35 +311,105 @@ $uniqueClients = count($clients);
             margin-bottom: 1rem;
         }
         
-        .badge-employee {
-            background-color: #6f42c1;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+        .dt-buttons {
+            margin-bottom: 1rem;
         }
         
-        .badge-client {
-            background-color: #fd7e14;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+        .dt-button {
+            margin-right: 0.5rem;
         }
         
-        #timbratureTable td {
-            font-size: 0.8rem;
-            padding: 0.5rem 0.25rem;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .cell-selected {
+            background-color: #dbeafe !important;
+            border: 2px solid #3b82f6 !important;
+            outline: none;
+        }
+        
+        .cell-tooltip {
+            position: relative;
+            overflow: visible;
+        }
+        
+        .cell-tooltip .tooltip-content {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #374151;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
             white-space: nowrap;
+            max-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
-        #timbratureTable th {
-            font-size: 0.75rem;
-            padding: 0.75rem 0.25rem;
-            background-color: #f8f9fa !important;
+        .cell-tooltip:hover .tooltip-content {
+            visibility: visible;
+        }
+        
+        .cell-tooltip .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #374151 transparent transparent transparent;
+        }
+        
+        .description-cell {
+            max-width: 300px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .description-cell:hover {
+            background-color: #fef3c7 !important;
+            border-color: #f59e0b !important;
+        }
+        
+        .description-cell:hover:after {
+            content: '👁️ Clicca per dettagli';
+            position: absolute;
+            top: -25px;
+            right: 0;
+            background: #374151;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .stats-row .col-md-3 {
+                margin-bottom: 1rem;
+            }
+            
+            #timbratureTable tbody td {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.2rem;
+            }
+            
+            .row-number {
+                width: 35px;
+                min-width: 35px;
+                max-width: 35px;
+                font-size: 0.65rem;
+            }
+            
+            .description-cell:hover:after {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -222,29 +446,29 @@ $uniqueClients = count($clients);
         </nav>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
+        <div class="row stats-row mb-4">
             <div class="col-md-3">
                 <div class="stats-card records">
-                    <h3 class="text-primary"><?= number_format($totalRecords) ?></h3>
-                    <p class="text-muted mb-0">Timbrature Totali</p>
+                    <h3 class="stats-number text-primary"><?= number_format($totalRecords) ?></h3>
+                    <p class="stats-label">Timbrature Totali</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card hours">
-                    <h3 class="text-success"><?= number_format($totalHours, 1) ?>h</h3>
-                    <p class="text-muted mb-0">Ore Lavorate</p>
+                    <h3 class="stats-number text-success"><?= number_format($totalHours, 1) ?>h</h3>
+                    <p class="stats-label">Ore Lavorate</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card employees">
-                    <h3 class="text-info"><?= $uniqueEmployees ?></h3>
-                    <p class="text-muted mb-0">Dipendenti</p>
+                    <h3 class="stats-number text-info"><?= number_format($uniqueEmployees) ?></h3>
+                    <p class="stats-label">Dipendenti</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card clients">
-                    <h3 class="text-warning"><?= $uniqueClients ?></h3>
-                    <p class="text-muted mb-0">Clienti</p>
+                    <h3 class="stats-number text-warning"><?= number_format($uniqueClients) ?></h3>
+                    <p class="stats-label">Clienti</p>
                 </div>
             </div>
         </div>
@@ -278,69 +502,141 @@ $uniqueClients = count($clients);
                 <table id="timbratureTable" class="table table-striped table-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Dipendente</th>
-                            <th>Cliente</th>
-                            <th>Attività</th>
-                            <th>Ora Inizio</th>
-                            <th>Ora Fine</th>
-                            <th>Ore</th>
-                            <th>Città</th>
-                            <th>Descrizione</th>
+                            <th class="row-number">#</th>
+                            <?php foreach ($csvData['headers'] as $header): ?>
+                            <th><?= htmlspecialchars($header) ?></th>
+                            <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($csvData['data'] as $index => $row): ?>
                         <tr>
-                            <td><?= $index + 1 ?></td>
-                            <td>
-                                <?php if (!empty($row[0]) && !empty($row[1])): ?>
-                                    <span class="badge-employee"><?= htmlspecialchars(trim($row[0] . ' ' . $row[1])) ?></span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if (!empty($row[3])): ?>
-                                    <span class="badge-client"><?= htmlspecialchars($row[3]) ?></span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= htmlspecialchars($row[7] ?? '') ?></td>
-                            <td>
-                                <?php 
-                                if (!empty($row[8])) {
-                                    try {
-                                        echo date('d/m H:i', strtotime($row[8]));
-                                    } catch (Exception $e) {
-                                        echo htmlspecialchars($row[8]);
-                                    }
-                                }
-                                ?>
-                            </td>
-                            <td>
-                                <?php 
-                                if (!empty($row[9])) {
-                                    try {
-                                        echo date('d/m H:i', strtotime($row[9]));
-                                    } catch (Exception $e) {
-                                        echo htmlspecialchars($row[9]);
-                                    }
-                                }
-                                ?>
-                            </td>
-                            <td>
-                                <?php 
-                                if (!empty($row[10])) {
-                                    if (preg_match('/(\d+):(\d+):(\d+)/', $row[10], $matches)) {
-                                        echo $matches[1] . 'h ' . $matches[2] . 'm';
+                            <td class="row-number"><?= $index + 1 ?></td>
+                            <?php foreach ($row as $colIndex => $cell): ?>
+                            <?php
+                                $header = isset($csvData['headers'][$colIndex]) ? $csvData['headers'][$colIndex] : '';
+                                $cellClass = '';
+                                $cellData = '';
+                                $hasTooltip = false;
+                                $tooltipContent = '';
+                                
+                                // Determine cell styling and content based on common column patterns
+                                if (strpos(strtolower($header), 'nome') !== false || strpos(strtolower($header), 'dipendente') !== false || 
+                                    ($colIndex <= 1 && !empty($row[0]) && !empty($row[1]))) {
+                                    // Employee name columns
+                                    $cellClass = 'text-center';
+                                    if (!empty($cell)) {
+                                        $employeeName = $colIndex == 0 && !empty($row[1]) ? trim($cell . ' ' . $row[1]) : $cell;
+                                        $initials = '';
+                                        $words = explode(' ', $employeeName);
+                                        foreach ($words as $word) {
+                                            if (!empty($word)) {
+                                                $initials .= mb_strtoupper(mb_substr($word, 0, 1));
+                                            }
+                                        }
+                                        $cellData = '<span class="badge-employee cell-tooltip" title="' . htmlspecialchars($employeeName) . '">' . $initials . '<div class="tooltip-content">' . htmlspecialchars($employeeName) . '</div></span>';
+                                        $hasTooltip = true;
                                     } else {
-                                        echo htmlspecialchars($row[10]);
+                                        $cellData = '<span class="text-muted">-</span>';
+                                    }
+                                } elseif (strpos(strtolower($header), 'cliente') !== false || strpos(strtolower($header), 'azienda') !== false) {
+                                    // Client/Company columns
+                                    $cellClass = 'text-center';
+                                    if (!empty($cell)) {
+                                        $cellData = '<span class="badge-client">' . htmlspecialchars(mb_substr($cell, 0, 20)) . '</span>';
+                                        if (mb_strlen($cell) > 20) {
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
+                                    } else {
+                                        $cellData = '<span class="text-muted">-</span>';
+                                    }
+                                } elseif (strpos(strtolower($header), 'attivit') !== false || strpos(strtolower($header), 'tipologia') !== false) {
+                                    // Activity columns
+                                    $cellClass = 'text-center';
+                                    if (!empty($cell)) {
+                                        $cellData = '<span class="badge-activity">' . htmlspecialchars(mb_substr($cell, 0, 15)) . '</span>';
+                                        if (mb_strlen($cell) > 15) {
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
+                                    } else {
+                                        $cellData = '<span class="text-muted">-</span>';
+                                    }
+                                } elseif (strpos(strtolower($header), 'ora') !== false || strpos(strtolower($header), 'time') !== false || 
+                                         strpos(strtolower($header), 'inizio') !== false || strpos(strtolower($header), 'fine') !== false ||
+                                         preg_match('/(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/', $cell)) {
+                                    // Time/Date columns
+                                    $cellClass = 'text-center';
+                                    if (!empty($cell)) {
+                                        // Try to parse as datetime first
+                                        try {
+                                            if (preg_match('/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(:\d{2})?)/', $cell)) {
+                                                $dateObj = DateTime::createFromFormat('Y-m-d H:i:s', $cell);
+                                                if (!$dateObj) $dateObj = DateTime::createFromFormat('Y-m-d H:i', $cell);
+                                                if ($dateObj) {
+                                                    $cellData = '<span class="text-primary fw-medium">' . $dateObj->format('d/m/Y') . '</span><br><small class="text-muted">' . $dateObj->format('H:i') . '</small>';
+                                                } else {
+                                                    $cellData = htmlspecialchars($cell);
+                                                }
+                                            } elseif (preg_match('/(\d{2}:\d{2}(:\d{2})?)/', $cell)) {
+                                                $cellData = '<span class="text-info fw-medium">' . htmlspecialchars($cell) . '</span>';
+                                            } else {
+                                                $cellData = htmlspecialchars($cell);
+                                            }
+                                        } catch (Exception $e) {
+                                            $cellData = htmlspecialchars($cell);
+                                        }
+                                    } else {
+                                        $cellData = '<span class="text-muted">-</span>';
+                                    }
+                                } elseif (strpos(strtolower($header), 'ore') !== false || strpos(strtolower($header), 'hour') !== false ||
+                                         preg_match('/(\d+)h\s*(\d+)?m?/', $cell) || preg_match('/(\d+):(\d+):(\d+)/', $cell)) {
+                                    // Hours/Duration columns
+                                    $cellClass = 'text-center';
+                                    if (!empty($cell)) {
+                                        if (preg_match('/(\d+):(\d+):(\d+)/', $cell, $matches)) {
+                                            $cellData = '<span class="hours-display">' . $matches[1] . 'h ' . $matches[2] . 'm</span>';
+                                        } elseif (preg_match('/(\d+(?:\.\d+)?)/', $cell, $matches)) {
+                                            $hours = floatval($matches[1]);
+                                            $h = floor($hours);
+                                            $m = round(($hours - $h) * 60);
+                                            $cellData = '<span class="hours-display">' . $h . 'h ' . $m . 'm</span>';
+                                        } else {
+                                            $cellData = '<span class="hours-display">' . htmlspecialchars($cell) . '</span>';
+                                        }
+                                    } else {
+                                        $cellData = '<span class="text-muted">-</span>';
+                                    }
+                                } elseif (strpos(strtolower($header), 'descri') !== false || strpos(strtolower($header), 'note') !== false) {
+                                    // Description columns
+                                    $cellClass = 'description-cell';
+                                    if (!empty($cell)) {
+                                        $cellData = htmlspecialchars(mb_substr($cell, 0, 45) . (mb_strlen($cell) > 45 ? '...' : ''));
+                                        if (mb_strlen($cell) > 45) {
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
+                                    } else {
+                                        $cellData = '<span class="text-muted">-</span>';
+                                    }
+                                } else {
+                                    // Default cell formatting
+                                    $cellData = !empty($cell) ? htmlspecialchars($cell) : '<span class="text-muted">-</span>';
+                                    if (mb_strlen($cell) > 30) {
+                                        $cellData = htmlspecialchars(mb_substr($cell, 0, 30) . '...');
+                                        $hasTooltip = true;
+                                        $tooltipContent = htmlspecialchars($cell);
                                     }
                                 }
-                                ?>
+                            ?>
+                            <td class="<?= $cellClass ?> <?= $hasTooltip ? 'cell-tooltip' : '' ?>" data-header="<?= htmlspecialchars($header) ?>">
+                                <?= $cellData ?>
+                                <?php if ($hasTooltip && !empty($tooltipContent)): ?>
+                                <div class="tooltip-content"><?= $tooltipContent ?></div>
+                                <?php endif; ?>
                             </td>
-                            <td><?= htmlspecialchars($row[5] ?? '') ?></td>
-                            <td title="<?= htmlspecialchars($row[20] ?? '') ?>">
-                                <?= htmlspecialchars(mb_substr($row[20] ?? '', 0, 30)) ?><?= mb_strlen($row[20] ?? '') > 30 ? '...' : '' ?>
-                            </td>
+                            <?php endforeach; ?>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

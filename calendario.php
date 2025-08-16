@@ -238,29 +238,29 @@ $uniqueLocations = count($locations);
         </nav>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
+        <div class="row stats-row mb-4">
             <div class="col-md-3">
                 <div class="stats-card events">
-                    <h3 class="text-warning"><?= number_format($totalRecords) ?></h3>
-                    <p class="text-muted mb-0">Eventi Totali</p>
+                    <h3 class="stats-number text-warning"><?= number_format($totalRecords) ?></h3>
+                    <p class="stats-label">Eventi Totali</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card hours">
-                    <h3 class="text-success"><?= number_format($totalHours, 1) ?>h</h3>
-                    <p class="text-muted mb-0">Ore Pianificate</p>
+                    <h3 class="stats-number text-success"><?= number_format($totalHours, 1) ?>h</h3>
+                    <p class="stats-label">Ore Pianificate</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card employees">
-                    <h3 class="text-primary"><?= $uniqueEmployees ?></h3>
-                    <p class="text-muted mb-0">Dipendenti</p>
+                    <h3 class="stats-number text-primary"><?= $uniqueEmployees ?></h3>
+                    <p class="stats-label">Dipendenti</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card clients">
-                    <h3 class="text-info"><?= $uniqueClients ?></h3>
-                    <p class="text-muted mb-0">Clienti/Eventi</p>
+                    <h3 class="stats-number text-info"><?= $uniqueClients ?></h3>
+                    <p class="stats-label">Clienti/Eventi</p>
                 </div>
             </div>
         </div>

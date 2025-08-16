@@ -117,6 +117,19 @@ foreach ($csvData['data'] as $row) {
         .stats-card.vacation { border-left-color: #17a2b8; }
         .stats-card.permits { border-left-color: #ffc107; }
         
+        .stats-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .stats-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
         .table-container {
             background: white;
             border-radius: 12px;
@@ -132,6 +145,100 @@ foreach ($csvData['data'] as $row) {
             border-bottom: 1px solid #dee2e6;
         }
         
+        #permessiTable {
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #d0d7de;
+        }
+        
+        #permessiTable thead th {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%);
+            border: 1px solid #d0d7de;
+            border-bottom: 2px solid #8c959f;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            padding: 0.6rem 0.4rem;
+            vertical-align: middle;
+            white-space: nowrap;
+            position: relative;
+            color: #24292f;
+            text-align: left;
+        }
+        
+        #permessiTable thead th:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%);
+        }
+        
+        #permessiTable thead th.sorting:after,
+        #permessiTable thead th.sorting_asc:after,
+        #permessiTable thead th.sorting_desc:after {
+            opacity: 0.8;
+            font-size: 0.8em;
+        }
+        
+        #permessiTable tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        
+        #permessiTable tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        #permessiTable tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        
+        #permessiTable tbody tr:hover {
+            background-color: #dbeafe !important;
+            border-color: #3b82f6;
+        }
+        
+        #permessiTable tbody tr:hover td {
+            border-color: #3b82f6;
+        }
+        
+        #permessiTable tbody td {
+            padding: 0.4rem 0.4rem;
+            font-size: 0.8rem;
+            vertical-align: middle;
+            border: 1px solid #e1e8ed;
+            border-top: none;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.4;
+            position: relative;
+        }
+        
+        #permessiTable tbody td:hover {
+            background-color: #f0f9ff;
+            cursor: pointer;
+        }
+        
+        .row-number {
+            background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%) !important;
+            font-weight: 600;
+            text-align: center;
+            color: #656d76;
+            width: 45px;
+            min-width: 45px;
+            max-width: 45px;
+            border-right: 2px solid #8c959f !important;
+            font-size: 0.75rem;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .row-number:hover {
+            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%) !important;
+        }
+        
         .breadcrumb-nav {
             background: white;
             border-radius: 8px;
@@ -140,14 +247,154 @@ foreach ($csvData['data'] as $row) {
             margin-bottom: 1rem;
         }
         
-        .badge-status {
-            font-size: 0.75rem;
-            padding: 0.4rem 0.6rem;
+        .badge-employee {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #495057;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+            min-width: 35px;
         }
         
-        .badge-type {
+        .badge-status-approved {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #15803d;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-status-rejected {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #b91c1c;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-status-pending {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #d97706;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-type-vacation {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #138496;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .badge-type-permission {
+            background: linear-gradient(135deg, #6f42c1 0%, #5a379a 100%);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 1px solid #5a379a;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .dt-buttons {
+            margin-bottom: 1rem;
+        }
+        
+        .dt-button {
+            margin-right: 0.5rem;
+        }
+        
+        .cell-selected {
+            background-color: #dbeafe !important;
+            border: 2px solid #3b82f6 !important;
+            outline: none;
+        }
+        
+        .cell-tooltip {
+            position: relative;
+            overflow: visible;
+        }
+        
+        .cell-tooltip .tooltip-content {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #374151;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
             font-size: 0.75rem;
-            padding: 0.4rem 0.6rem;
+            white-space: nowrap;
+            max-width: 300px;
+            word-wrap: break-word;
+            white-space: normal;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .cell-tooltip:hover .tooltip-content {
+            visibility: visible;
+        }
+        
+        .cell-tooltip .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #374151 transparent transparent transparent;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-row .col-md-3 {
+                margin-bottom: 1rem;
+            }
+            
+            #permessiTable tbody td {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.2rem;
+            }
+            
+            .row-number {
+                width: 35px;
+                min-width: 35px;
+                max-width: 35px;
+                font-size: 0.65rem;
+            }
         }
     </style>
 </head>
@@ -184,29 +431,29 @@ foreach ($csvData['data'] as $row) {
         </nav>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
+        <div class="row stats-row mb-4">
             <div class="col-md-3">
                 <div class="stats-card total">
-                    <h3 class="text-danger"><?= number_format($totalRecords) ?></h3>
-                    <p class="text-muted mb-0">Richieste Totali</p>
+                    <h3 class="stats-number text-danger"><?= number_format($totalRecords) ?></h3>
+                    <p class="stats-label">Richieste Totali</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card approved">
-                    <h3 class="text-success"><?= $approvate ?></h3>
-                    <p class="text-muted mb-0">Approvate</p>
+                    <h3 class="stats-number text-success"><?= $approvate ?></h3>
+                    <p class="stats-label">Approvate</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card vacation">
-                    <h3 class="text-info"><?= $ferie ?></h3>
-                    <p class="text-muted mb-0">Ferie</p>
+                    <h3 class="stats-number text-info"><?= $ferie ?></h3>
+                    <p class="stats-label">Ferie</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card permits">
-                    <h3 class="text-warning"><?= $permessi ?></h3>
-                    <p class="text-muted mb-0">Permessi</p>
+                    <h3 class="stats-number text-warning"><?= $permessi ?></h3>
+                    <p class="stats-label">Permessi</p>
                 </div>
             </div>
         </div>
@@ -240,7 +487,7 @@ foreach ($csvData['data'] as $row) {
                 <table id="permessiTable" class="table table-striped table-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th class="row-number">#</th>
                             <?php foreach ($csvData['headers'] as $header): ?>
                             <th><?= htmlspecialchars($header) ?></th>
                             <?php endforeach; ?>
@@ -249,45 +496,98 @@ foreach ($csvData['data'] as $row) {
                     <tbody>
                         <?php foreach ($csvData['data'] as $index => $row): ?>
                         <tr>
-                            <td><?= $index + 1 ?></td>
+                            <td class="row-number"><?= $index + 1 ?></td>
                             <?php foreach ($row as $colIndex => $cell): ?>
-                            <td>
-                                <?php
-                                if (isset($csvData['headers'][$colIndex])) {
-                                    $header = $csvData['headers'][$colIndex];
-                                    switch ($header) {
-                                        case 'Dipendente':
-                                            echo !empty($cell) ? '<span class="badge bg-primary">' . htmlspecialchars($cell) . '</span>' : '';
-                                            break;
-                                        case 'Tipo':
-                                            $badgeClass = strpos(strtolower($cell), 'ferie') !== false ? 'bg-info' : 'bg-secondary';
-                                            echo !empty($cell) ? '<span class="badge badge-type ' . $badgeClass . '">' . htmlspecialchars($cell) . '</span>' : '';
-                                            break;
-                                        case 'Stato':
-                                            $badgeClass = strpos(strtolower($cell), 'approv') !== false ? 'bg-success' : 
-                                                         (strpos(strtolower($cell), 'respint') !== false ? 'bg-danger' : 'bg-warning');
-                                            echo !empty($cell) ? '<span class="badge badge-status ' . $badgeClass . '">' . htmlspecialchars($cell) . '</span>' : 
-                                                 '<span class="badge badge-status bg-warning">Pending</span>';
-                                            break;
-                                        case 'Data della richiesta':
-                                        case 'Data inizio':
-                                        case 'Data fine':
-                                            if (!empty($cell) && $cell !== '0') {
-                                                try {
-                                                    $date = date('d/m/Y', strtotime(str_replace('/', '-', $cell)));
-                                                    echo $date !== '01/01/1970' ? $date : htmlspecialchars($cell);
-                                                } catch (Exception $e) {
-                                                    echo htmlspecialchars($cell);
+                            <?php
+                                $header = isset($csvData['headers'][$colIndex]) ? $csvData['headers'][$colIndex] : '';
+                                $cellClass = '';
+                                $cellData = '';
+                                $hasTooltip = false;
+                                $tooltipContent = '';
+                                
+                                // Determine cell styling and content
+                                switch ($header) {
+                                    case 'Dipendente':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell)) {
+                                            $initials = '';
+                                            $words = explode(' ', $cell);
+                                            foreach ($words as $word) {
+                                                if (!empty($word)) {
+                                                    $initials .= mb_strtoupper(mb_substr($word, 0, 1));
                                                 }
                                             }
-                                            break;
-                                        default:
-                                            echo htmlspecialchars($cell);
-                                    }
-                                } else {
-                                    echo htmlspecialchars($cell);
+                                            $cellData = '<span class="badge-employee cell-tooltip" title="' . htmlspecialchars($cell) . '">' . $initials . '<div class="tooltip-content">' . htmlspecialchars($cell) . '</div></span>';
+                                            $hasTooltip = true;
+                                        } else {
+                                            $cellData = '<span class="text-muted">-</span>';
+                                        }
+                                        break;
+                                    case 'Tipo':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell)) {
+                                            $badgeClass = strpos(strtolower($cell), 'ferie') !== false ? 'badge-type-vacation' : 'badge-type-permission';
+                                            $cellData = '<span class="' . $badgeClass . '">' . htmlspecialchars(mb_substr($cell, 0, 15)) . '</span>';
+                                            if (mb_strlen($cell) > 15) {
+                                                $hasTooltip = true;
+                                                $tooltipContent = htmlspecialchars($cell);
+                                            }
+                                        } else {
+                                            $cellData = '<span class="text-muted">-</span>';
+                                        }
+                                        break;
+                                    case 'Stato':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell)) {
+                                            $stato = strtolower($cell);
+                                            if (strpos($stato, 'approv') !== false) {
+                                                $badgeClass = 'badge-status-approved';
+                                            } elseif (strpos($stato, 'respint') !== false || strpos($stato, 'rifiut') !== false) {
+                                                $badgeClass = 'badge-status-rejected';
+                                            } else {
+                                                $badgeClass = 'badge-status-pending';
+                                            }
+                                            $cellData = '<span class="' . $badgeClass . '">' . htmlspecialchars($cell) . '</span>';
+                                        } else {
+                                            $cellData = '<span class="badge-status-pending">Pending</span>';
+                                        }
+                                        break;
+                                    case 'Data della richiesta':
+                                    case 'Data inizio':
+                                    case 'Data fine':
+                                        $cellClass = 'text-center';
+                                        if (!empty($cell) && $cell !== '0') {
+                                            try {
+                                                $dateObj = DateTime::createFromFormat('d/m/Y', $cell);
+                                                if (!$dateObj) {
+                                                    $dateObj = DateTime::createFromFormat('Y-m-d', $cell);
+                                                }
+                                                if ($dateObj) {
+                                                    $cellData = '<span class="text-primary fw-medium">' . $dateObj->format('d/m/Y') . '</span>';
+                                                } else {
+                                                    $cellData = htmlspecialchars($cell);
+                                                }
+                                            } catch (Exception $e) {
+                                                $cellData = htmlspecialchars($cell);
+                                            }
+                                        } else {
+                                            $cellData = '<span class="text-muted">-</span>';
+                                        }
+                                        break;
+                                    default:
+                                        $cellData = !empty($cell) ? htmlspecialchars($cell) : '<span class="text-muted">-</span>';
+                                        if (mb_strlen($cell) > 30) {
+                                            $cellData = htmlspecialchars(mb_substr($cell, 0, 30) . '...');
+                                            $hasTooltip = true;
+                                            $tooltipContent = htmlspecialchars($cell);
+                                        }
                                 }
-                                ?>
+                            ?>
+                            <td class="<?= $cellClass ?> <?= $hasTooltip ? 'cell-tooltip' : '' ?>" data-header="<?= htmlspecialchars($header) ?>">
+                                <?= $cellData ?>
+                                <?php if ($hasTooltip && !empty($tooltipContent)): ?>
+                                <div class="tooltip-content"><?= $tooltipContent ?></div>
+                                <?php endif; ?>
                             </td>
                             <?php endforeach; ?>
                         </tr>
@@ -295,7 +595,7 @@ foreach ($csvData['data'] as $row) {
                     </tbody>
                 </table>
                 <?php else: ?>
-                <div class="text-center p-5">
+                <div class="text-center p-5 no-data">
                     <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                     <h4>Nessun dato disponibile</h4>
                     <p class="text-muted">Il file permessi.csv non è stato trovato o è vuoto.</p>
@@ -320,7 +620,8 @@ foreach ($csvData['data'] as $row) {
     <script>
         $(document).ready(function() {
             <?php if ($hasCSV && !empty($csvData['data'])): ?>
-            $('#permessiTable').DataTable({
+            // Initialize DataTable with Excel-style features
+            var table = $('#permessiTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: [
                     {
@@ -332,6 +633,11 @@ foreach ($csvData['data'] as $row) {
                         extend: 'pdf',
                         text: '<i class="fas fa-file-pdf me-1"></i>PDF',
                         className: 'btn btn-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print me-1"></i>Stampa',
+                        className: 'btn btn-secondary btn-sm'
                     }
                 ],
                 pageLength: 25,
@@ -339,11 +645,115 @@ foreach ($csvData['data'] as $row) {
                 language: {
                     url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/it-IT.json'
                 },
+                fixedHeader: true,
+                responsive: true,
                 order: [[1, 'desc']], // Order by request date
                 columnDefs: [
-                    { orderable: false, targets: 0 } // Disable ordering on row number column
-                ]
+                    { 
+                        orderable: false, 
+                        targets: 0,
+                        className: 'row-number'
+                    }, // Disable ordering on row number column
+                    {
+                        targets: '_all',
+                        className: 'cell-content'
+                    }
+                ],
+                scrollX: true,
+                scrollY: '60vh',
+                scrollCollapse: true,
+                fixedColumns: {
+                    leftColumns: 1
+                }
             });
+            
+            // Excel-like cell interactions
+            var selectedCell = null;
+            $('#permessiTable tbody td').on('click', function(e) {
+                if ($(this).hasClass('row-number')) return;
+                
+                // Remove previous selection
+                $('.cell-selected').removeClass('cell-selected');
+                
+                // Add selection to current cell
+                $(this).addClass('cell-selected');
+                selectedCell = $(this);
+                
+                e.stopPropagation();
+            });
+            
+            // Clear selection when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#permessiTable').length) {
+                    $('.cell-selected').removeClass('cell-selected');
+                    selectedCell = null;
+                }
+            });
+            
+            // Double-click to copy cell content
+            $('#permessiTable tbody td').on('dblclick', function() {
+                if ($(this).hasClass('row-number')) return;
+                
+                var textContent = $(this).text().trim();
+                if (textContent && textContent !== '-') {
+                    navigator.clipboard.writeText(textContent).then(function() {
+                        showToast('Contenuto copiato!', 'success');
+                    }.bind(this)).catch(function() {
+                        showToast('Errore nella copia', 'error');
+                    });
+                }
+            });
+            
+            // Row highlighting on hover
+            $('#permessiTable tbody tr').on('mouseenter', function() {
+                $(this).find('.row-number').css('background', 'linear-gradient(180deg, #e8f0fe 0%, #c8d6e5 100%)');
+            }).on('mouseleave', function() {
+                $(this).find('.row-number').css('background', '');
+            });
+            
+            // Column highlighting on header hover
+            $('#permessiTable thead th').on('mouseenter', function() {
+                var columnIndex = $(this).index();
+                $('#permessiTable tbody tr').each(function() {
+                    $(this).find('td').eq(columnIndex).addClass('column-highlight');
+                });
+            }).on('mouseleave', function() {
+                $('#permessiTable tbody td').removeClass('column-highlight');
+            });
+            
+            // Add column highlight CSS
+            $('<style>').text(`
+                .column-highlight {
+                    background-color: #f0f9ff !important;
+                    border-left: 2px solid #3b82f6 !important;
+                    border-right: 2px solid #3b82f6 !important;
+                }
+            `).appendTo('head');
+            
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                var toastClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+                var toast = $(`
+                    <div class="toast align-items-center text-white ${toastClass} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('body').append(toast);
+                var bsToast = new bootstrap.Toast(toast[0]);
+                bsToast.show();
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
             <?php endif; ?>
         });
     </script>

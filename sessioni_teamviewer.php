@@ -243,29 +243,29 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
         </nav>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
+        <div class="row stats-row mb-4">
             <div class="col-md-3">
                 <div class="stats-card sessions">
-                    <h3 class="text-info"><?= number_format($totalSessions) ?></h3>
-                    <p class="text-muted mb-0">Sessioni Totali</p>
+                    <h3 class="stats-number text-info"><?= number_format($totalSessions) ?></h3>
+                    <p class="stats-label">Sessioni Totali</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card duration">
-                    <h3 class="text-success"><?= number_format($totalDuration) ?>min</h3>
-                    <p class="text-muted mb-0">Durata Totale</p>
+                    <h3 class="stats-number text-success"><?= round($totalDuration / 60, 1) ?>h</h3>
+                    <p class="stats-label">Durata Totale</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card users">
-                    <h3 class="text-primary"><?= $uniqueUsers ?></h3>
-                    <p class="text-muted mb-0">Utenti Unici</p>
+                    <h3 class="stats-number text-primary"><?= $uniqueUsers ?></h3>
+                    <p class="stats-label">Utenti Unici</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stats-card average">
-                    <h3 class="text-warning"><?= $averageDuration ?>min</h3>
-                    <p class="text-muted mb-0">Durata Media</p>
+                    <h3 class="stats-number text-warning"><?= $averageDuration ?>min</h3>
+                    <p class="stats-label">Durata Media</p>
                 </div>
             </div>
         </div>
