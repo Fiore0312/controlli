@@ -152,6 +152,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
+// Initialize variables
+$utilizzi = [];
+$tecnici = [];
+$auto = [];
+$stats = ['total_utilizzi' => 0, 'utilizzi_completati' => 0, 'utilizzi_in_corso' => 0, 'ore_totali' => 0];
+$csvData = [];
+
 // Load data
 try {
     // Get utilizzi from database

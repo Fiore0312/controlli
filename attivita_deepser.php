@@ -19,26 +19,54 @@ function readCSVFile($filepath) {
     
     $csvContent = file_get_contents($filepath);
     
+    // Remove BOM if present
+    $csvContent = preg_replace('/^\xEF\xBB\xBF/', '', $csvContent);
+    
     // Detect encoding and convert to UTF-8
     $encoding = mb_detect_encoding($csvContent, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
     if ($encoding && $encoding !== 'UTF-8') {
         $csvContent = mb_convert_encoding($csvContent, 'UTF-8', $encoding);
     }
     
-    $lines = str_getcsv($csvContent, "\n");
+    // Parse CSV using proper delimiter detection
+    $lines = array_map('trim', explode("\n", $csvContent));
+    $lines = array_filter($lines, function($line) { return !empty($line); });
+    
     if (empty($lines)) return ['headers' => [], 'data' => []];
     
-    $headers = str_getcsv(array_shift($lines), ';');
-    $data = [];
+    // Parse header line - try comma first, then semicolon
+    $headerLine = array_shift($lines);
+    $delimiter = ',';
+    if (substr_count($headerLine, ',') < substr_count($headerLine, ';')) {
+        $delimiter = ';';
+    }
     
+    $headers = str_getcsv($headerLine, $delimiter);
+    
+    // Clean headers
+    $headers = array_map(function($h) {
+        return trim(str_replace(['"', "'"], '', $h));
+    }, $headers);
+    
+    $data = [];
     foreach ($lines as $line) {
-        if (trim($line)) {
-            $row = str_getcsv($line, ';');
+        if (trim($line) && !empty($line)) {
+            $row = str_getcsv($line, $delimiter);
+            
+            // Clean row data
+            $row = array_map(function($cell) {
+                return trim(str_replace(['"', "'"], '', $cell));
+            }, $row);
+            
             // Pad array to match headers count
             while (count($row) < count($headers)) {
                 $row[] = '';
             }
-            $data[] = array_slice($row, 0, count($headers));
+            
+            // Trim to match headers count
+            $row = array_slice($row, 0, count($headers));
+            
+            $data[] = $row;
         }
     }
     
