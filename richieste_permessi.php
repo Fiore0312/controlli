@@ -56,13 +56,23 @@ $permessi = 0;
 
 foreach ($csvData['data'] as $row) {
     if (count($row) > 5) {
-        $stato = strtolower($row[5]);
-        if (strpos($stato, 'approv') !== false) $approvate++;
-        if (empty($stato) || $stato === 'pending') $pending++;
+        // Analisi stato (colonna 5)
+        $stato = strtolower(trim($row[5] ?? ''));
+        if (strpos($stato, 'da approvare') !== false || empty($stato) || $stato === 'pending') {
+            $pending++;
+        } elseif (strpos($stato, 'approvata') !== false) {
+            $approvate++;
+        }
         
-        $tipo = strtolower($row[2] ?? '');
-        if (strpos($tipo, 'ferie') !== false) $ferie++;
-        if (strpos($tipo, 'permesso') !== false) $permessi++;
+        // Analisi tipo (colonna 2) - correzione logica
+        $tipo = strtolower(trim($row[2] ?? ''));
+        if (strpos($tipo, 'ferie') !== false) {
+            $ferie++;
+        } else {
+            // Tutto quello che non è ferie è considerato permesso
+            // (Permessi ex festività, Donazione sangue, etc.)
+            $permessi++;
+        }
     }
 }
 ?>

@@ -97,10 +97,21 @@ foreach ($csvData['data'] as $row) {
         $companies[$row[4]] = true;
     }
     
-    // Conta tecnici (colonna Creato da)
-    if (count($row) > 10 && !empty($row[10])) {
-        $technicians[$row[10]] = true;
+    // Conta tecnici (colonna Creato da - indice 11)
+    if (count($row) > 11 && !empty($row[11])) {
+        $technicians[$row[11]] = true;
     }
+}
+
+// Aggiungi tecnici previsti per il futuro (anche se non presenti nei CSV attuali)
+$futureTechnicians = [
+    'Franco Fiorellino',
+    'Mariangela Zizzamia', 
+    'Nicole Caiola'
+];
+
+foreach ($futureTechnicians as $tech) {
+    $technicians[$tech] = true;
 }
 
 $uniqueCompanies = count($companies);

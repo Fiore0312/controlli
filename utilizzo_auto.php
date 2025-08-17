@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'add':
                 $stmt = $pdo->prepare("
-                    INSERT INTO utilizzi_auto (tecnico_id, auto_id, data_utilizzo, ora_presa, ora_riconsegna, cliente, ore_utilizzo, stato) 
+                    INSERT INTO utilizzi_auto (tecnico_id, auto_id, cliente_id, data_utilizzo, ora_presa, ora_riconsegna, ore_utilizzo, stato) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 
@@ -96,10 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt->execute([
                     $_POST['tecnico_id'],
                     $_POST['auto_id'],
+                    $_POST['cliente_id'],
                     $_POST['data_utilizzo'],
                     $_POST['ora_presa'],
                     !empty($_POST['ora_riconsegna']) ? $_POST['ora_riconsegna'] : null,
-                    $_POST['cliente'],
                     $ore_utilizzo,
                     $stato
                 ]);
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             case 'update':
                 $stmt = $pdo->prepare("
                     UPDATE utilizzi_auto 
-                    SET tecnico_id=?, auto_id=?, data_utilizzo=?, ora_presa=?, ora_riconsegna=?, cliente=?, ore_utilizzo=?, stato=?
+                    SET tecnico_id=?, auto_id=?, cliente_id=?, data_utilizzo=?, ora_presa=?, ora_riconsegna=?, ore_utilizzo=?, stato=?
                     WHERE id=?
                 ");
                 
@@ -134,10 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt->execute([
                     $_POST['tecnico_id'],
                     $_POST['auto_id'],
+                    $_POST['cliente_id'],
                     $_POST['data_utilizzo'],
                     $_POST['ora_presa'],
                     !empty($_POST['ora_riconsegna']) ? $_POST['ora_riconsegna'] : null,
-                    $_POST['cliente'],
                     $ore_utilizzo,
                     $stato,
                     $_POST['id']
@@ -163,10 +163,11 @@ $csvData = [];
 try {
     // Get utilizzi from database
     $utilizzi = $pdo->query("
-        SELECT u.*, t.nome_completo as tecnico_nome, a.modello as auto_modello
+        SELECT u.*, t.nome_completo as tecnico_nome, a.modello as auto_modello, c.ragione_sociale as cliente_nome
         FROM utilizzi_auto u
         LEFT JOIN tecnici t ON u.tecnico_id = t.id
         LEFT JOIN auto_aziendali a ON u.auto_id = a.id
+        LEFT JOIN clienti c ON u.cliente_id = c.id
         ORDER BY u.data_utilizzo DESC, u.ora_presa DESC
     ")->fetchAll();
 
@@ -196,7 +197,8 @@ try {
 
     // Get dropdown data
     $tecnici = $pdo->query("SELECT id, nome_completo FROM tecnici WHERE attivo = 1 ORDER BY nome_completo")->fetchAll();
-    $auto = $pdo->query("SELECT id, modello, targa FROM auto_aziendali ORDER BY modello")->fetchAll();
+    $auto = $pdo->query("SELECT id, modello FROM auto_aziendali WHERE attiva = 1 ORDER BY modello")->fetchAll();
+    $clienti = $pdo->query("SELECT id, ragione_sociale FROM clienti WHERE attivo = 1 ORDER BY ragione_sociale")->fetchAll();
 
     // Calculate statistics
     $stats = [
@@ -651,7 +653,7 @@ try {
                                 <select class="form-select" name="auto_id" required>
                                     <option value="">Seleziona auto...</option>
                                     <?php foreach ($auto as $a): ?>
-                                        <option value="<?= $a['id'] ?>"><?= htmlspecialchars($a['modello']) ?> (<?= htmlspecialchars($a['targa']) ?>)</option>
+                                        <option value="<?= $a['id'] ?>"><?= htmlspecialchars($a['modello']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -661,7 +663,12 @@ try {
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Cliente</label>
-                                <input type="text" class="form-control" name="cliente" placeholder="Nome cliente">
+                                <select class="form-select" name="cliente_id" required>
+                                    <option value="">Seleziona cliente...</option>
+                                    <?php foreach ($clienti as $cliente): ?>
+                                        <option value="<?= $cliente['id'] ?>"><?= htmlspecialchars($cliente['ragione_sociale']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -784,8 +791,8 @@ try {
                                 <?= $oraRiconsegnaFormatted ?: '<span class="text-muted">-</span>' ?>
                             </td>
                             <td class="text-center">
-                                <?php if (!empty($u['cliente'])): ?>
-                                <span class="badge-client"><?= htmlspecialchars(mb_substr($u['cliente'], 0, 20)) ?></span>
+                                <?php if (!empty($u['cliente_nome'])): ?>
+                                <span class="badge-client"><?= htmlspecialchars(mb_substr($u['cliente_nome'], 0, 20)) ?></span>
                                 <?php else: ?>
                                 <span class="text-muted">-</span>
                                 <?php endif; ?>
@@ -1009,7 +1016,7 @@ try {
             $('[name="tecnico_id"]').val(utilizzo.tecnico_id);
             $('[name="auto_id"]').val(utilizzo.auto_id);
             $('[name="data_utilizzo"]').val(utilizzo.data_utilizzo);
-            $('[name="cliente"]').val(utilizzo.cliente);
+            $('[name="cliente_id"]').val(utilizzo.cliente_id);
             $('[name="id"]').val(utilizzo.id);
             $('[name="action"]').val('update');
             
