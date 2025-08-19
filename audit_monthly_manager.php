@@ -68,8 +68,8 @@ function handleCSVUpload($pdo) {
         mkdir($uploadDir, 0755, true);
     }
 
-    // Lista dei file CSV attesi
-    $expectedFiles = ['attivita.csv', 'timbrature.csv', 'teamviewer_bait.csv', 'teamviewer_gruppo.csv', 'permessi.csv', 'auto.csv'];
+    // Lista dei file CSV attesi (7 COMPLETI)
+    $expectedFiles = ['attivita.csv', 'timbrature.csv', 'teamviewer_bait.csv', 'teamviewer_gruppo.csv', 'permessi.csv', 'auto.csv', 'calendario.csv'];
     
     foreach ($expectedFiles as $fileName) {
         $fileKey = str_replace('.csv', '', $fileName);
@@ -284,7 +284,7 @@ function updateAuditSession($pdo) {
     $stmt->execute([$currentDay, $currentMonth]);
     
     // Se non esiste, creala
-    if ($pdo->rowCount() === 0) {
+    if ($stmt->rowCount() === 0) {
         $stmt = $pdo->prepare("
             INSERT INTO audit_sessions (month_year, current_day, session_status)
             VALUES (?, ?, 'active')
@@ -818,6 +818,18 @@ $currentSession = getCurrentAuditSession($pdo);
                                     Registro auto aziendale
                                 </div>
                             </div>
+                            
+                            <div class="bait-form-group">
+                                <label class="bait-form-label" for="calendario">
+                                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                                    Calendario Appuntamenti
+                                </label>
+                                <input type="file" name="calendario" id="calendario" class="bait-form-control" 
+                                       accept=".csv" aria-describedby="calendario-help">
+                                <div class="bait-form-help" id="calendario-help">
+                                    Appuntamenti pianificati Outlook
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Upload Progress Bar (Hidden by default) -->
@@ -936,7 +948,8 @@ $currentSession = getCurrentAuditSession($pdo);
                                 'teamviewer_bait.csv' => ['icon' => 'fas fa-desktop', 'label' => 'TeamViewer BAIT', 'critical' => false],
                                 'auto.csv' => ['icon' => 'fas fa-car', 'label' => 'Utilizzo Auto', 'critical' => false],
                                 'permessi.csv' => ['icon' => 'fas fa-calendar-times', 'label' => 'Permessi', 'critical' => false],
-                                'teamviewer_gruppo.csv' => ['icon' => 'fas fa-users', 'label' => 'TeamViewer Gruppo', 'critical' => false]
+                                'teamviewer_gruppo.csv' => ['icon' => 'fas fa-users', 'label' => 'TeamViewer Gruppo', 'critical' => false],
+                            'calendario.csv' => ['icon' => 'fas fa-calendar-alt', 'label' => 'Calendario Appuntamenti', 'critical' => false]
                             ];
                             
                             foreach ($requiredFiles as $file => $config) {
