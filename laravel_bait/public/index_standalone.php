@@ -167,6 +167,9 @@ function fixKnownAlertInconsistencies($alert) {
 // Initialize session
 session_start();
 
+// Include unified navigation system
+require_once __DIR__ . '/../../includes/bait_navigation.php';
+
 // Router functions
 function getCurrentRoute() {
     return $_GET['page'] ?? 'dashboard';
@@ -678,10 +681,7 @@ if (!$data) {
             background: #f8fafc;
         }
         
-        .navbar-enterprise {
-            background: var(--bait-gradient);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        /* Navigation styles now handled by bait_navigation.php */
         
         .kpi-card {
             background: white;
@@ -707,88 +707,15 @@ if (!$data) {
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-online { background-color: #10b981; }
-        .status-demo { background-color: #f59e0b; }
+        /* Status indicator styles now handled by bait_navigation.php */
     </style>
 </head>
 
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-enterprise">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="?page=dashboard">
-                <i class="bi bi-shield-check me-2"></i>
-                BAIT Service Enterprise
-            </a>
-            
-            <div class="navbar-nav d-flex flex-row me-auto">
-                <div class="dropdown">
-                    <a class="nav-link dropdown-toggle text-white me-3" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-grid-3x3-gap me-1"></i>Gestione CSV
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../../attivita_deepser.php" target="_blank">
-                            <i class="bi bi-table me-2"></i>Attività Deepser
-                        </a></li>
-                        <li><a class="dropdown-item" href="../../utilizzo_auto.php" target="_blank">
-                            <i class="bi bi-car-front me-2"></i>Utilizzo Auto
-                        </a></li>
-                        <li><a class="dropdown-item" href="../../richieste_permessi.php" target="_blank">
-                            <i class="bi bi-calendar-check me-2"></i>Richieste Permessi
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="../../timbrature.php" target="_blank">
-                            <i class="bi bi-clock me-2"></i>Timbrature
-                        </a></li>
-                        <li><a class="dropdown-item" href="../../sessioni_teamviewer.php" target="_blank">
-                            <i class="bi bi-display me-2"></i>Sessioni TeamViewer
-                        </a></li>
-                        <li><a class="dropdown-item" href="../../calendario.php" target="_blank">
-                            <i class="bi bi-calendar-event me-2"></i>Calendario
-                        </a></li>
-                    </ul>
-                </div>
-                
-                <!-- NUOVO: Sistema Audit AI -->
-                <div class="dropdown">
-                    <a class="nav-link dropdown-toggle text-white me-3" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-robot me-1"></i>Sistema Audit AI
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../../audit_monthly_manager.php">
-                            <i class="bi bi-calendar3 me-2"></i>Audit Mensile Enterprise
-                        </a></li>
-                        <li><a class="dropdown-item" href="../../audit_tecnico_dashboard.php">
-                            <i class="bi bi-person-check me-2"></i>Audit Tecnico Individuale
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="../../demo_audit_system.php">
-                            <i class="bi bi-info-circle me-2"></i>Demo Sistema
-                        </a></li>
-                        <li><a class="dropdown-item text-success" href="../../test_sistema_finale.php">
-                            <i class="bi bi-check-circle me-2"></i>Test Funzionamento
-                        </a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="d-flex align-items-center text-white">
-                <span class="me-3">
-                    <span class="status-indicator <?= $dataSource === 'database' ? 'status-online' : 'status-demo' ?>"></span>
-                    <?= $dataSource === 'database' ? 'Live Data (MySQL)' : ($dbConnected ? 'Connected (Demo Data)' : 'Demo Mode') ?>
-                </span>
-                <small><?= date('H:i:s') ?></small>
-            </div>
-        </div>
-    </nav>
+    <?php 
+    // Render unified navigation
+    renderBaitNavigation('index_standalone', $dataSource); 
+    ?>
 
     <div class="container-fluid py-4">
         
@@ -819,25 +746,25 @@ if (!$data) {
                                 <small class="text-muted">Strumenti per verifica e confronto dati</small>
                             </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <a href="../../attivita_deepser.php" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <a href="/controlli/attivita_deepser.php" target="_blank" class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-table me-1"></i>Vista CSV Attività
                                 </a>
-                                <a href="../../utilizzo_auto.php" target="_blank" class="btn btn-outline-success btn-sm">
+                                <a href="/controlli/utilizzo_auto.php" target="_blank" class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-car-front me-1"></i>Utilizzo Auto
                                 </a>
-                                <a href="../../richieste_permessi.php" target="_blank" class="btn btn-outline-danger btn-sm">
+                                <a href="/controlli/richieste_permessi.php" target="_blank" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-calendar-check me-1"></i>Richieste Permessi
                                 </a>
-                                <a href="../../timbrature.php" target="_blank" class="btn btn-outline-info btn-sm">
+                                <a href="/controlli/timbrature.php" target="_blank" class="btn btn-outline-info btn-sm">
                                     <i class="bi bi-clock me-1"></i>Timbrature
                                 </a>
-                                <a href="../../sessioni_teamviewer.php" target="_blank" class="btn btn-outline-warning btn-sm">
+                                <a href="/controlli/sessioni_teamviewer.php" target="_blank" class="btn btn-outline-warning btn-sm">
                                     <i class="bi bi-display me-1"></i>Sessioni TeamViewer
                                 </a>
-                                <a href="../../calendario.php" target="_blank" class="btn btn-outline-dark btn-sm">
+                                <a href="/controlli/calendario.php" target="_blank" class="btn btn-outline-dark btn-sm">
                                     <i class="bi bi-calendar-event me-1"></i>Calendario
                                 </a>
-                                <a href="../../test_ticket_mapping_fix.php" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <a href="/controlli/test_ticket_mapping_fix.php" target="_blank" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-search me-1"></i>Test Mapping
                                 </a>
                             </div>

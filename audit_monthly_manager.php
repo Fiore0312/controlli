@@ -5,6 +5,7 @@
  */
 
 require_once 'TechnicianAnalyzer.php';
+require_once 'includes/bait_navigation.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -503,30 +504,10 @@ $currentSession = getCurrentAuditSession($pdo);
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="main-header py-3">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-0">📊 Audit Mensile - <?= date('F Y') ?></h1>
-                    <p class="text-muted mb-0">
-                        Gestione CSV progressiva • Giorno <?= $currentDay ?> di <?= date('t') ?>
-                        <?php if ($currentSession): ?>
-                        • Sessione: <?= $currentSession['month_year'] ?>
-                        <?php endif; ?>
-                    </p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <a href="audit_tecnico_dashboard.php" class="btn btn-outline-primary me-2">
-                        <i class="fas fa-user-check me-2"></i>Audit Tecnico
-                    </a>
-                    <a href="laravel_bait/public/index_standalone.php" class="bait-btn bait-btn-primary">
-                        <i class="fas fa-home me-2"></i>Dashboard Principale
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php 
+    // Render unified navigation
+    renderBaitNavigation('audit_monthly_manager', 'database'); 
+    ?>
 
     <div class="container">
         <!-- Error Display -->
@@ -898,7 +879,7 @@ $currentSession = getCurrentAuditSession($pdo);
                                 </div>
                             </button>
                             
-                            <a href="audit_tecnico_dashboard.php" class="bait-btn bait-btn-secondary bait-btn-lg" 
+                            <a href="/controlli/audit_tecnico_dashboard.php" class="bait-btn bait-btn-secondary bait-btn-lg" 
                                aria-describedby="audit-help">
                                 <i class="fas fa-user-check"></i>
                                 <div>
