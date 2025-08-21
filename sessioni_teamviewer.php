@@ -23,7 +23,7 @@ function readCSVFile($filepath) {
     $lines = str_getcsv($csvContent, "\n");
     if (empty($lines)) return ['headers' => [], 'data' => []];
     
-    $headers = str_getcsv(array_shift($lines), ';');
+    $headers = str_getcsv(array_shift($lines), ',');
     // Clean BOM if present
     if (!empty($headers[0])) {
         $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
@@ -32,7 +32,7 @@ function readCSVFile($filepath) {
     $data = [];
     foreach ($lines as $line) {
         if (trim($line)) {
-            $row = str_getcsv($line, ';');
+            $row = str_getcsv($line, ',');
             while (count($row) < count($headers)) {
                 $row[] = '';
             }
@@ -50,20 +50,73 @@ $csvGruppoPath = __DIR__ . '/data/input/teamviewer_gruppo.csv';
 $hasBaitCSV = file_exists($csvBaitPath);
 $hasGruppoCSV = file_exists($csvGruppoPath);
 
+// Debug info per troubleshooting
+$debugInfo = [
+    'bait_path' => $csvBaitPath,
+    'gruppo_path' => $csvGruppoPath,
+    'bait_exists' => $hasBaitCSV,
+    'gruppo_exists' => $hasGruppoCSV,
+    'input_dir_exists' => is_dir(__DIR__ . '/data/input/'),
+    'input_dir_readable' => is_readable(__DIR__ . '/data/input/')
+];
+
 $baitData = $hasBaitCSV ? readCSVFile($csvBaitPath) : ['headers' => [], 'data' => []];
 $gruppoData = $hasGruppoCSV ? readCSVFile($csvGruppoPath) : ['headers' => [], 'data' => []];
 
-// Combine data with source indication
+// Analizza dati TeamViewer con parsing corretto
 $combinedData = [];
+$combinedHeaders = ['Fonte', 'Utente/Assegnatario', 'Nome/Computer', 'Codice/ID', 'Tipo Sessione', 'Inizio', 'Fine', 'Durata', 'Note'];
 
-// Add BAIT data
-foreach ($baitData['data'] as $row) {
-    $combinedData[] = array_merge(['BAIT'], $row);
+// Funzione per parsare correttamente le righe TeamViewer con mapping diverso per BAIT vs GRUPPO
+function parseTeamViewerRow($rawRow, $source) {
+    if (empty($rawRow) || count($rawRow) < 8) {
+        return null; // Skip righe incomplete
+    }
+    
+    // Mapping diverso per BAIT vs GRUPPO in base alla struttura reale
+    if ($source === 'BAIT') {
+        // teamviewer_bait.csv: Assegnatario,Utente,Nome,E-mail,Codice,Tipo di sessione,Gruppo,Inizio,Fine,Durata,Tariffa,Calcolo,Descrizione,Note,Classificazione,Commenti del cliente
+        return [
+            $source,                    // Fonte (aggiunta)
+            $rawRow[0] ?? '',          // Assegnatario (colonna 0)
+            $rawRow[2] ?? '',          // Nome cliente (colonna 2)
+            $rawRow[4] ?? '',          // Codice sessione (colonna 4)  
+            $rawRow[5] ?? '',          // Tipo di sessione (colonna 5)
+            $rawRow[7] ?? '',          // Inizio (colonna 7)
+            $rawRow[8] ?? '',          // Fine (colonna 8)
+            $rawRow[9] ?? '',          // Durata (colonna 9)
+            $rawRow[11] ?? ''          // Calcolo (colonna 11)
+        ];
+    } else {
+        // teamviewer_gruppo.csv: Utente,Computer,ID,Tipo di sessione,Gruppo,Inizio,Fine,Durata,Valuta,Tariffa,Calcolo,Note
+        return [
+            $source,                    // Fonte (aggiunta)
+            $rawRow[0] ?? '',          // Utente (colonna 0)
+            $rawRow[1] ?? '',          // Computer (colonna 1)
+            $rawRow[2] ?? '',          // ID sessione (colonna 2)
+            $rawRow[3] ?? '',          // Tipo di sessione (colonna 3)
+            $rawRow[5] ?? '',          // Inizio (colonna 5)
+            $rawRow[6] ?? '',          // Fine (colonna 6)
+            $rawRow[7] ?? '',          // Durata (colonna 7)
+            $rawRow[10] ?? ''          // Calcolo (colonna 10)
+        ];
+    }
 }
 
-// Add Gruppo data
+// Add BAIT data with correct parsing
+foreach ($baitData['data'] as $row) {
+    $parsedRow = parseTeamViewerRow($row, 'BAIT');
+    if ($parsedRow) {
+        $combinedData[] = $parsedRow;
+    }
+}
+
+// Add Gruppo data with correct parsing
 foreach ($gruppoData['data'] as $row) {
-    $combinedData[] = array_merge(['GRUPPO'], $row);
+    $parsedRow = parseTeamViewerRow($row, 'GRUPPO');
+    if ($parsedRow) {
+        $combinedData[] = $parsedRow;
+    }
 }
 
 $totalSessions = count($combinedData);
@@ -74,25 +127,31 @@ $users = [];
 $sessionTypes = [];
 
 foreach ($combinedData as $row) {
-    if (count($row) > 7) {
-        // User/Assignee
+    if (count($row) >= 8) {
+        // User/Assignee (colonna 1)
         if (!empty($row[1])) {
             $users[$row[1]] = true;
         }
         
-        // Session duration parsing
-        if (!empty($row[8])) {
-            $duration = $row[8];
-            if (preg_match('/(\d+)m/', $duration, $matches)) {
-                $totalDuration += intval($matches[1]);
-            } elseif (preg_match('/(\d+)h?\s*(\d*)m?/', $duration, $matches)) {
+        // Session duration parsing (colonna 7 - Durata)
+        if (!empty($row[7])) {
+            $duration = trim($row[7]);
+            // Parsing migliorato durata TeamViewer
+            if (preg_match('/(\d+)h\s*(\d+)m/', $duration, $matches)) {
+                // Formato "1h 23m"
                 $hours = intval($matches[1]);
-                $minutes = isset($matches[2]) && !empty($matches[2]) ? intval($matches[2]) : 0;
+                $minutes = intval($matches[2]);
                 $totalDuration += ($hours * 60) + $minutes;
+            } elseif (preg_match('/(\d+)m/', $duration, $matches)) {
+                // Formato "12m"
+                $totalDuration += intval($matches[1]);
+            } elseif (preg_match('/^(\d+)$/', $duration, $matches)) {
+                // Formato numerico (minuti)
+                $totalDuration += intval($matches[1]);
             }
         }
         
-        // Session types
+        // Session types (colonna 4 - Tipo Sessione)
         if (!empty($row[4])) {
             $sessionTypes[$row[4]] = true;
         }
@@ -349,6 +408,17 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                             </td>
                             <td>
                                 <?php 
+                                if (!empty($row[5])) {
+                                    try {
+                                        echo date('d/m/Y H:i', strtotime(str_replace('/', '-', $row[5])));
+                                    } catch (Exception $e) {
+                                        echo htmlspecialchars($row[5]);
+                                    }
+                                }
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
                                 if (!empty($row[6])) {
                                     try {
                                         echo date('d/m/Y H:i', strtotime(str_replace('/', '-', $row[6])));
@@ -359,20 +429,9 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                                 ?>
                             </td>
                             <td>
-                                <?php 
-                                if (!empty($row[7])) {
-                                    try {
-                                        echo date('d/m/Y H:i', strtotime(str_replace('/', '-', $row[7])));
-                                    } catch (Exception $e) {
-                                        echo htmlspecialchars($row[7]);
-                                    }
-                                }
-                                ?>
-                            </td>
-                            <td>
-                                <?php if (!empty($row[8])): ?>
+                                <?php if (!empty($row[7])): ?>
                                     <?php
-                                    $duration = trim($row[8]);
+                                    $duration = trim($row[7]);
                                     
                                     // Uniforma la formattazione della durata
                                     if (preg_match('/^\d+$/', $duration)) {
@@ -412,9 +471,26 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                     <i class="fas fa-desktop fa-3x text-muted mb-3"></i>
                     <h4>Nessun dato disponibile</h4>
                     <p class="text-muted">I file teamviewer_bait.csv e teamviewer_gruppo.csv non sono stati trovati o sono vuoti.</p>
-                    <a href="laravel_bait/public/index_standalone.php" class="btn btn-primary">
-                        <i class="fas fa-arrow-left me-2"></i>Torna alla Dashboard
-                    </a>
+                    
+                    <!-- Debug Panel -->
+                    <div class="alert alert-info text-start mt-4">
+                        <h6><i class="fas fa-info-circle me-2"></i>Informazioni Debug:</h6>
+                        <ul class="mb-0">
+                            <li><strong>BAIT File:</strong> <?= $debugInfo['bait_exists'] ? '✅ Trovato' : '❌ Mancante' ?> (<?= basename($debugInfo['bait_path']) ?>)</li>
+                            <li><strong>Gruppo File:</strong> <?= $debugInfo['gruppo_exists'] ? '✅ Trovato' : '❌ Mancante' ?> (<?= basename($debugInfo['gruppo_path']) ?>)</li>
+                            <li><strong>Directory Input:</strong> <?= $debugInfo['input_dir_exists'] ? '✅ Esiste' : '❌ Mancante' ?></li>
+                            <li><strong>Directory Leggibile:</strong> <?= $debugInfo['input_dir_readable'] ? '✅ Sì' : '❌ No' ?></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="laravel_bait/public/index_standalone.php" class="btn btn-primary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Torna alla Dashboard
+                        </a>
+                        <a href="audit_monthly_manager.php" class="btn btn-success">
+                            <i class="fas fa-upload me-2"></i>Carica File CSV
+                        </a>
+                    </div>
                 </div>
                 <?php endif; ?>
             </div>

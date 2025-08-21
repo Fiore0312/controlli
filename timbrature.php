@@ -1,7 +1,7 @@
 <?php
 /**
- * TIMBRATURE - Visualizzazione timbrature.csv
- * Gestione timbrature e controllo orari
+ * TIMBRATURE - Visualizzazione timbrature.csv SEMPLIFICATA
+ * Gestione timbrature e controllo orari con filtro colonne automatico
  */
 
 header('Content-Type: text/html; charset=utf-8');
@@ -28,19 +28,14 @@ class TimbratureParser {
         return false;
     }
     
-    // Duration/calculation columns (Excel time calculations)
+    // Duration/calculation columns (Excel time calculations) - RIDOTTE
     public static function isDurationColumn($header) {
         $durationColumns = [
             'ore',
-            'ore arrotondate',
-            'ore in centesimi',
-            'ore arrotondate in centesimi',
+            'ore arrotondate', 
             'sessantesimi al netto delle pause',
             'sessantesimi arrotondati al netto delle pause',
-            'centesimi al netto delle pause',
-            'centesimi arrotondati al netto delle pause',
-            'pausa sessantesimi',
-            'pausa centesimi'
+            'pausa sessantesimi'
         ];
         
         $header = strtolower(trim($header));
@@ -54,10 +49,37 @@ class TimbratureParser {
     }
 }
 
-// Funzione per leggere CSV con gestione encoding
+// Lista colonne da escludere dalla visualizzazione
+function getExcludedColumns() {
+    return [
+        'attività',
+        'descrizione attività', 
+        'attività descrizione',
+        'ore in centesimi',
+        'ore arrotondate in centesimi', 
+        'pausa centesimi',
+        'centesimi al netto delle pause',
+        'centesimi arrotondati al netto delle pause'
+    ];
+}
+
+// Controlla se una colonna deve essere esclusa
+function shouldExcludeColumn($header) {
+    $excludedColumns = getExcludedColumns();
+    $headerLower = strtolower(trim($header));
+    
+    foreach ($excludedColumns as $excluded) {
+        if (strpos($headerLower, strtolower($excluded)) !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Funzione per leggere CSV con gestione encoding e filtro colonne
 function readCSVFile($filepath) {
     if (!file_exists($filepath)) {
-        return ['headers' => [], 'data' => []];
+        return ['headers' => [], 'data' => [], 'excluded_columns' => []];
     }
     
     $csvContent = file_get_contents($filepath);
@@ -69,12 +91,26 @@ function readCSVFile($filepath) {
     }
     
     $lines = str_getcsv($csvContent, "\n");
-    if (empty($lines)) return ['headers' => [], 'data' => []];
+    if (empty($lines)) return ['headers' => [], 'data' => [], 'excluded_columns' => []];
     
-    $headers = str_getcsv(array_shift($lines), ';');
+    $originalHeaders = str_getcsv(array_shift($lines), ';');
     // Clean BOM if present
-    if (!empty($headers[0])) {
-        $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
+    if (!empty($originalHeaders[0])) {
+        $originalHeaders[0] = preg_replace('/^\xEF\xBB\xBF/', '', $originalHeaders[0]);
+    }
+    
+    // Filtro headers e identifica indici colonne da mantenere
+    $filteredHeaders = [];
+    $validColumnIndices = [];
+    $excludedColumns = [];
+    
+    foreach ($originalHeaders as $index => $header) {
+        if (!shouldExcludeColumn($header)) {
+            $filteredHeaders[] = $header;
+            $validColumnIndices[] = $index;
+        } else {
+            $excludedColumns[] = $header;
+        }
     }
     
     $data = [];
@@ -83,20 +119,28 @@ function readCSVFile($filepath) {
             $row = str_getcsv($line, ';');
             // Skip invalid rows
             if (count($row) >= 5 && !empty($row[0]) && !strpos($row[0], '---')) {
-                while (count($row) < count($headers)) {
-                    $row[] = '';
+                // Filtra solo le colonne valide
+                $filteredRow = [];
+                foreach ($validColumnIndices as $validIndex) {
+                    $filteredRow[] = isset($row[$validIndex]) ? $row[$validIndex] : '';
                 }
-                $data[] = array_slice($row, 0, count($headers));
+                $data[] = $filteredRow;
             }
         }
     }
     
-    return ['headers' => $headers, 'data' => $data];
+    return [
+        'headers' => $filteredHeaders, 
+        'data' => $data, 
+        'excluded_columns' => $excludedColumns,
+        'original_column_count' => count($originalHeaders),
+        'filtered_column_count' => count($filteredHeaders)
+    ];
 }
 
 $csvPath = __DIR__ . '/data/input/timbrature.csv';
 $hasCSV = file_exists($csvPath);
-$csvData = $hasCSV ? readCSVFile($csvPath) : ['headers' => [], 'data' => []];
+$csvData = $hasCSV ? readCSVFile($csvPath) : ['headers' => [], 'data' => [], 'excluded_columns' => []];
 $totalRecords = count($csvData['data']);
 
 // Calcola statistiche
@@ -105,24 +149,41 @@ $employees = [];
 $clients = [];
 
 foreach ($csvData['data'] as $row) {
-    if (count($row) > 10) {
+    if (count($row) > 5) {
         // Employee
         if (!empty($row[0]) && !empty($row[1])) {
             $employee = trim($row[0] . ' ' . $row[1]);
             $employees[$employee] = true;
         }
         
-        // Client
-        if (!empty($row[3])) {
-            $clients[$row[3]] = true;
+        // Client - cerca in diverse colonne possibili
+        $clientFound = false;
+        for ($i = 3; $i <= 6 && $i < count($row); $i++) {
+            if (!empty($row[$i]) && !$clientFound) {
+                $clients[$row[$i]] = true;
+                $clientFound = true;
+            }
         }
         
-        // Hours - try different columns that might contain hours
-        if (!empty($row[10])) {
-            // Try to parse time format
-            if (preg_match('/(\d+):(\d+):(\d+)/', $row[10], $matches)) {
-                $hours = intval($matches[1]) + (intval($matches[2]) / 60) + (intval($matches[3]) / 3600);
-                $totalHours += $hours;
+        // Hours - cerca in diverse colonne per ore valide
+        for ($i = 6; $i < count($row) && $i < 12; $i++) {
+            if (!empty($row[$i])) {
+                // Parse time format H:i:s
+                if (preg_match('/(\d+):(\d+):(\d+)/', $row[$i], $matches)) {
+                    $hours = intval($matches[1]) + (intval($matches[2]) / 60) + (intval($matches[3]) / 3600);
+                    if ($hours > 0 && $hours <= 24) { // Ore realistiche
+                        $totalHours += $hours;
+                        break; // Una volta trovata, non cercare altre colonne
+                    }
+                }
+                // Parse decimal format ma esclude valori corrotti
+                elseif (preg_match('/^(\d{1,2}(?:\.\d{1,2})?)$/', $row[$i], $matches)) {
+                    $hours = floatval($matches[1]);
+                    if ($hours > 0 && $hours <= 24) {
+                        $totalHours += $hours;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -136,7 +197,7 @@ $uniqueClients = count($clients);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⏰ Timbrature - Vista Excel</title>
+    <title>⏰ Timbrature - Vista Semplificata</title>
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -182,6 +243,7 @@ $uniqueClients = count($clients);
         .stats-card.hours { border-left-color: #28a745; }
         .stats-card.employees { border-left-color: #17a2b8; }
         .stats-card.clients { border-left-color: #fd7e14; }
+        .stats-card.filtered { border-left-color: #6c757d; }
         
         .stats-number {
             font-size: 2.2rem;
@@ -223,10 +285,10 @@ $uniqueClients = count($clients);
             border: 1px solid #d0d7de;
             border-bottom: 2px solid #8c959f;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-transform: none;
             letter-spacing: 0.3px;
-            padding: 0.6rem 0.4rem;
+            padding: 0.8rem 0.6rem;
             vertical-align: middle;
             white-space: nowrap;
             position: relative;
@@ -236,18 +298,6 @@ $uniqueClients = count($clients);
         
         #timbratureTable thead th:hover {
             background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%);
-        }
-        
-        #timbratureTable thead th.sorting:after,
-        #timbratureTable thead th.sorting_asc:after,
-        #timbratureTable thead th.sorting_desc:after {
-            opacity: 0.8;
-            font-size: 0.8em;
-        }
-        
-        #timbratureTable tbody tr {
-            transition: background-color 0.15s ease;
-            border-bottom: 1px solid #e1e8ed;
         }
         
         #timbratureTable tbody tr:nth-child(even) {
@@ -263,17 +313,13 @@ $uniqueClients = count($clients);
             border-color: #3b82f6;
         }
         
-        #timbratureTable tbody tr:hover td {
-            border-color: #3b82f6;
-        }
-        
         #timbratureTable tbody td {
-            padding: 0.4rem 0.4rem;
-            font-size: 0.8rem;
+            padding: 0.6rem 0.6rem;
+            font-size: 0.85rem;
             vertical-align: middle;
             border: 1px solid #e1e8ed;
             border-top: none;
-            max-width: 180px;
+            max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -281,65 +327,43 @@ $uniqueClients = count($clients);
             position: relative;
         }
         
-        #timbratureTable tbody td:hover {
-            background-color: #f0f9ff;
-            cursor: pointer;
-        }
-        
         .row-number {
             background: linear-gradient(180deg, #f6f8fa 0%, #e1e8ed 100%) !important;
             font-weight: 600;
             text-align: center;
             color: #656d76;
-            width: 45px;
-            min-width: 45px;
-            max-width: 45px;
+            width: 50px;
+            min-width: 50px;
+            max-width: 50px;
             border-right: 2px solid #8c959f !important;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             position: sticky;
             left: 0;
             z-index: 10;
         }
         
-        .row-number:hover {
-            background: linear-gradient(180deg, #eef2f5 0%, #d1d9e0 100%) !important;
-        }
-        
         .badge-employee {
             background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
             color: white;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: 500;
             border: 1px solid #495057;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             display: inline-block;
             text-align: center;
-            min-width: 35px;
+            min-width: 40px;
         }
         
         .badge-client {
             background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
             color: white;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: 500;
             border: 1px solid #dc2626;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .badge-activity {
-            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-            color: white;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            border: 1px solid #15803d;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             display: inline-block;
             text-align: center;
@@ -348,7 +372,7 @@ $uniqueClients = count($clients);
         .hours-display {
             font-weight: bold;
             color: #16a34a;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
         
         .breadcrumb-nav {
@@ -357,20 +381,6 @@ $uniqueClients = count($clients);
             padding: 0.5rem 1rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
-        }
-        
-        .dt-buttons {
-            margin-bottom: 1rem;
-        }
-        
-        .dt-button {
-            margin-right: 0.5rem;
-        }
-        
-        .cell-selected {
-            background-color: #dbeafe !important;
-            border: 2px solid #3b82f6 !important;
-            outline: none;
         }
         
         .cell-tooltip {
@@ -401,41 +411,13 @@ $uniqueClients = count($clients);
             visibility: visible;
         }
         
-        .cell-tooltip .tooltip-content::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #374151 transparent transparent transparent;
-        }
-        
-        .description-cell {
-            max-width: 300px;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .description-cell:hover {
-            background-color: #fef3c7 !important;
-            border-color: #f59e0b !important;
-        }
-        
-        .description-cell:hover:after {
-            content: '👁️ Clicca per dettagli';
-            position: absolute;
-            top: -25px;
-            right: 0;
-            background: #374151;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.65rem;
-            white-space: nowrap;
-            z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        .filter-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #0d47a1;
         }
         
         @media (max-width: 768px) {
@@ -444,19 +426,14 @@ $uniqueClients = count($clients);
             }
             
             #timbratureTable tbody td {
-                font-size: 0.7rem;
-                padding: 0.3rem 0.2rem;
+                font-size: 0.75rem;
+                padding: 0.4rem 0.3rem;
             }
             
             .row-number {
-                width: 35px;
-                min-width: 35px;
-                max-width: 35px;
-                font-size: 0.65rem;
-            }
-            
-            .description-cell:hover:after {
-                display: none;
+                width: 40px;
+                min-width: 40px;
+                max-width: 40px;
             }
         }
     </style>
@@ -467,9 +444,9 @@ $uniqueClients = count($clients);
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h1 class="mb-2">
-                        <i class="fas fa-clock me-3"></i>Timbrature
+                        <i class="fas fa-clock me-3"></i>Timbrature Semplificate
                     </h1>
-                    <p class="mb-0">Controllo orari e timbrature dipendenti</p>
+                    <p class="mb-0">Visualizzazione ottimizzata senza colonne ridondanti</p>
                 </div>
                 <div class="col-md-4 text-end">
                     <a href="laravel_bait/public/index_standalone.php" class="btn btn-light btn-lg">
@@ -492,6 +469,26 @@ $uniqueClients = count($clients);
                 <li class="breadcrumb-item active">Timbrature</li>
             </ol>
         </nav>
+
+        <!-- Filter Information -->
+        <?php if (!empty($csvData['excluded_columns'])): ?>
+        <div class="filter-info">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h6 class="mb-2"><i class="fas fa-filter me-2"></i>Filtro Attivo</h6>
+                    <p class="mb-0">
+                        <strong><?= count($csvData['excluded_columns']) ?> colonne</strong> sono state nascoste per semplificare la visualizzazione:
+                        <em><?= implode(', ', array_slice($csvData['excluded_columns'], 0, 3)) ?><?= count($csvData['excluded_columns']) > 3 ? ', e altre...' : '' ?></em>
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <small class="text-muted">
+                        Mostrando <?= count($csvData['headers']) ?> di <?= $csvData['original_column_count'] ?? count($csvData['headers']) ?> colonne
+                    </small>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Statistics Cards -->
         <div class="row stats-row mb-4">
@@ -533,9 +530,16 @@ $uniqueClients = count($clients);
                     </div>
                     <div class="col-md-4 text-end">
                         <?php if ($hasCSV): ?>
-                        <span class="badge bg-success">
-                            <i class="fas fa-check-circle me-1"></i>Dati Caricati
-                        </span>
+                        <div class="d-flex align-items-center justify-content-end gap-2 flex-wrap">
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Dati Caricati
+                            </span>
+                            <?php if (!empty($csvData['excluded_columns'])): ?>
+                            <span class="badge bg-info" title="Colonne filtrate: <?= htmlspecialchars(implode(', ', $csvData['excluded_columns'])) ?>">
+                                <i class="fas fa-filter me-1"></i><?= count($csvData['excluded_columns']) ?> filtrate
+                            </span>
+                            <?php endif; ?>
+                        </div>
                         <?php else: ?>
                         <span class="badge bg-danger">
                             <i class="fas fa-exclamation-circle me-1"></i>File Mancante
@@ -588,25 +592,20 @@ $uniqueClients = count($clients);
                                         $cellData = '<span class="text-muted">-</span>';
                                     }
                                 } elseif (strpos(strtolower($header), 'cliente') !== false || strpos(strtolower($header), 'azienda') !== false) {
-                                    // Client/Company columns
+                                    // Client/Company columns - esclude A&B Consulting dalle visualizzazioni
                                     $cellClass = 'text-center';
                                     if (!empty($cell)) {
-                                        $cellData = '<span class="badge-client">' . htmlspecialchars(mb_substr($cell, 0, 20)) . '</span>';
-                                        if (mb_strlen($cell) > 20) {
+                                        // Evidenzia A&B Consulting come azienda interna
+                                        if (stripos($cell, 'A&B Consulting') !== false || stripos($cell, 'A & B Consulting') !== false) {
+                                            $cellData = '<span class="badge bg-secondary text-white" title="Azienda interna - Sede">🏢 SEDE</span>';
                                             $hasTooltip = true;
-                                            $tooltipContent = htmlspecialchars($cell);
-                                        }
-                                    } else {
-                                        $cellData = '<span class="text-muted">-</span>';
-                                    }
-                                } elseif (strpos(strtolower($header), 'attivit') !== false || strpos(strtolower($header), 'tipologia') !== false) {
-                                    // Activity columns
-                                    $cellClass = 'text-center';
-                                    if (!empty($cell)) {
-                                        $cellData = '<span class="badge-activity">' . htmlspecialchars(mb_substr($cell, 0, 15)) . '</span>';
-                                        if (mb_strlen($cell) > 15) {
-                                            $hasTooltip = true;
-                                            $tooltipContent = htmlspecialchars($cell);
+                                            $tooltipContent = htmlspecialchars($cell) . ' (Azienda interna)';
+                                        } else {
+                                            $cellData = '<span class="badge-client">' . htmlspecialchars(mb_substr($cell, 0, 25)) . '</span>';
+                                            if (mb_strlen($cell) > 25) {
+                                                $hasTooltip = true;
+                                                $tooltipContent = htmlspecialchars($cell);
+                                            }
                                         }
                                     } else {
                                         $cellData = '<span class="text-muted">-</span>';
@@ -645,7 +644,7 @@ $uniqueClients = count($clients);
                                         $cellData = '<span class="text-muted">-</span>';
                                     }
                                 } elseif (TimbratureParser::isDurationColumn($header)) {
-                                    // Duration/Hours calculation columns
+                                    // Duration/Hours calculation columns (SOLO QUELLE VALIDE)
                                     $cellClass = 'text-center';
                                     if (!empty($cell)) {
                                         // Handle Excel duration format "12/31/1899 X:XX:XX AM/PM"
@@ -683,13 +682,6 @@ $uniqueClients = count($clients);
                                             $minutes = intval($matches[2]);
                                             $cellData = '<span class="hours-display">' . $hours . 'h ' . $minutes . 'm</span>';
                                             
-                                        } elseif (preg_match('/(\d+(?:\.\d+)?)/', $cell, $matches)) {
-                                            // Decimal hours like "8.5"
-                                            $totalHours = floatval($matches[1]);
-                                            $h = floor($totalHours);
-                                            $m = round(($totalHours - $h) * 60);
-                                            $cellData = '<span class="hours-display">' . $h . 'h ' . $m . 'm</span>';
-                                            
                                         } else {
                                             // Fallback for other formats
                                             $cellData = '<span class="hours-display">' . htmlspecialchars($cell) . '</span>';
@@ -697,23 +689,11 @@ $uniqueClients = count($clients);
                                     } else {
                                         $cellData = '<span class="text-muted">-</span>';
                                     }
-                                } elseif (strpos(strtolower($header), 'descri') !== false || strpos(strtolower($header), 'note') !== false) {
-                                    // Description columns
-                                    $cellClass = 'description-cell';
-                                    if (!empty($cell)) {
-                                        $cellData = htmlspecialchars(mb_substr($cell, 0, 45) . (mb_strlen($cell) > 45 ? '...' : ''));
-                                        if (mb_strlen($cell) > 45) {
-                                            $hasTooltip = true;
-                                            $tooltipContent = htmlspecialchars($cell);
-                                        }
-                                    } else {
-                                        $cellData = '<span class="text-muted">-</span>';
-                                    }
                                 } else {
                                     // Default cell formatting
                                     $cellData = !empty($cell) ? htmlspecialchars($cell) : '<span class="text-muted">-</span>';
-                                    if (mb_strlen($cell) > 30) {
-                                        $cellData = htmlspecialchars(mb_substr($cell, 0, 30) . '...');
+                                    if (mb_strlen($cell) > 35) {
+                                        $cellData = htmlspecialchars(mb_substr($cell, 0, 35) . '...');
                                         $hasTooltip = true;
                                         $tooltipContent = htmlspecialchars($cell);
                                     }
@@ -775,12 +755,18 @@ $uniqueClients = count($clients);
                 language: {
                     url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/it-IT.json'
                 },
-                order: [[4, 'desc']], // Order by start time
+                order: [[2, 'desc']], // Order by first data column
                 columnDefs: [
                     { orderable: false, targets: 0 } // Disable ordering on row number column
                 ],
                 scrollX: true
             });
+            <?php endif; ?>
+            
+            // Show filter info on page load
+            console.log('Dashboard Timbrature Semplificata caricata');
+            <?php if (!empty($csvData['excluded_columns'])): ?>
+            console.log('Colonne filtrate:', <?= json_encode($csvData['excluded_columns']) ?>);
             <?php endif; ?>
         });
     </script>

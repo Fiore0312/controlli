@@ -295,74 +295,79 @@ function loadRealData() {
         } catch (Exception $e) {
             // Fallback to direct query
             try {
-                // Prima prova query nuova tabella alert_dettagliati
-                $stmt = $pdo->query("
-                    SELECT 
-                        ad.alert_id as id,
-                        ad.numero_ticket,
-                        ad.severita as severity,
-                        ad.confidence_score,
-                        COALESCE(t.nome_completo, 'Sistema') as tecnico,
-                        ad.descrizione_completa as message,
-                        ad.tipo_anomalia as category,
-                        ad.data_creazione as timestamp,
-                        ad.data_intervento,
-                        ad.orario_inizio_intervento,
-                        ad.orario_fine_intervento,
-                        -- ad.costo_stimato_euro as estimated_cost,  -- Rimosso
-                        ad.elementi_anomalia as details,
-                        ar.nome_azienda,
-                        ar.citta,
-                        ar.zona_geografica,
-                        ad.tempo_previsto_min,
-                        ad.tempo_dichiarato_min,
-                        ad.differenza_min,
-                        ad.distanza_calcolata_km
-                    FROM alert_dettagliati ad
-                    LEFT JOIN tecnici t ON ad.tecnico_id = t.id 
-                    LEFT JOIN aziende_reali ar ON ad.azienda_id = ar.id
-                    WHERE ad.stato IN ('Aperto', 'In_Analisi')
-                    ORDER BY 
-                        CASE ad.severita 
-                            WHEN 'CRITICO' THEN 1 
-                            WHEN 'ALTO' THEN 2 
-                            WHEN 'MEDIO' THEN 3 
-                            ELSE 4 
-                        END,
-                        ad.confidence_score DESC, 
-                        ad.data_creazione DESC
-                    LIMIT 20
-                ");
-                $alertsData = $stmt->fetchAll();
+                // PRIORITÀ: Usa sempre gli alert reali più recenti invece dei dati demo
+                $alertsData = [];
                 
-                // Se tabella nuova è vuota, fallback alla vecchia
-                if (empty($alertsData)) {
+                // Prima prova con alert_dettagliati (dati CORRETTI con ticket numbers) 
+                try {
                     $stmt = $pdo->query("
                         SELECT 
-                            CONCAT('BAIT_', DATE_FORMAT(a.created_at, '%Y%m%d'), '_', LPAD(a.id, 4, '0')) as id,
-                            a.severity,
-                            a.confidence_score,
+                            ad.alert_id as id,
+                            ad.numero_ticket,
+                            ad.severita as severity,
+                            ad.confidence_score,
                             COALESCE(t.nome_completo, 'Sistema') as tecnico,
-                            a.message,
-                            a.category,
-                            a.created_at as timestamp,
-                            a.estimated_cost,
-                            a.details
-                        FROM alerts a
-                        LEFT JOIN tecnici t ON a.tecnico_id = t.id 
-                        WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            ad.descrizione_completa as message,
+                            ad.tipo_anomalia as category,
+                            ad.data_creazione as timestamp,
+                            ad.data_intervento,
+                            ad.orario_inizio_intervento,
+                            ad.orario_fine_intervento,
+                            ad.elementi_anomalia as details
+                        FROM alert_dettagliati ad
+                        LEFT JOIN tecnici t ON ad.tecnico_id = t.id 
+                        WHERE ad.stato IN ('Aperto', 'In_Analisi')
                         ORDER BY 
-                            CASE a.severity 
+                            CASE ad.severita 
                                 WHEN 'CRITICO' THEN 1 
                                 WHEN 'ALTO' THEN 2 
                                 WHEN 'MEDIO' THEN 3 
                                 ELSE 4 
                             END,
-                            confidence_score DESC, 
-                            created_at DESC
+                            ad.confidence_score DESC, 
+                            ad.data_creazione DESC
                         LIMIT 20
                     ");
                     $alertsData = $stmt->fetchAll();
+                    
+                    // alert_dettagliati dovrebbe avere i dati corretti con ticket numbers
+                    
+                } catch (Exception $e) {
+                    // Fallback: se alert_dettagliati fallisce, usa alerts table generica
+                    try {
+                        $stmt = $pdo->query("
+                            SELECT 
+                                CONCAT('BAIT_', DATE_FORMAT(a.created_at, '%Y%m%d'), '_', LPAD(a.id, 4, '0')) as id,
+                                NULL as numero_ticket,
+                                a.severity,
+                                a.confidence_score,
+                                COALESCE(t.nome_completo, 'Sistema') as tecnico,
+                                a.message,
+                                a.category,
+                                a.created_at as timestamp,
+                                NULL as data_intervento,
+                                NULL as orario_inizio_intervento,
+                                NULL as orario_fine_intervento,
+                                a.details
+                            FROM alerts a
+                            LEFT JOIN tecnici t ON a.tecnico_id = t.id 
+                            WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            ORDER BY 
+                                CASE a.severity 
+                                    WHEN 'CRITICO' THEN 1 
+                                    WHEN 'ALTO' THEN 2 
+                                    WHEN 'MEDIO' THEN 3 
+                                    ELSE 4 
+                                END,
+                                confidence_score DESC, 
+                                created_at DESC
+                            LIMIT 20
+                        ");
+                        $alertsData = $stmt->fetchAll();
+                    } catch (Exception $e2) {
+                        $alertsData = [];
+                        error_log("Error fetching fallback alerts: " . $e2->getMessage());
+                    }
                 }
             } catch (Exception $e) {
                 $alertsData = [];
@@ -756,7 +761,7 @@ if (!$data) {
                                     <i class="bi bi-calendar-check me-1"></i>Richieste Permessi
                                 </a>
                                 <a href="/controlli/timbrature.php" target="_blank" class="btn btn-outline-info btn-sm">
-                                    <i class="bi bi-clock me-1"></i>Timbrature
+                                    <i class="bi bi-clock me-1"></i>Timbrature Enterprise
                                 </a>
                                 <a href="/controlli/sessioni_teamviewer.php" target="_blank" class="btn btn-outline-warning btn-sm">
                                     <i class="bi bi-display me-1"></i>Sessioni TeamViewer

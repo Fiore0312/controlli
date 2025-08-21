@@ -51,7 +51,7 @@ try {
 }
 
 /**
- * Gestisce caricamento CSV quotidiano
+ * Gestisce caricamento CSV quotidiano con gestione robusta Windows file locking
  */
 function handleCSVUpload($pdo) {
     $results = [
@@ -78,10 +78,15 @@ function handleCSVUpload($pdo) {
             $tmpName = $_FILES[$fileKey]['tmp_name'];
             $destination = $uploadDir . $fileName;
             
-            // Backup file precedente se esiste
+            // Backup file precedente con gestione robusta Windows
+            $backupResult = null;
             if (file_exists($destination)) {
-                $backupName = $uploadDir . 'backup_' . date('Y-m-d_H-i-s') . '_' . $fileName;
-                rename($destination, $backupName);
+                $backupResult = createBackupWithRetry($destination, $uploadDir, $fileName);
+                if (!$backupResult['success']) {
+                    $results['details'][] = "⚠️ $fileName: " . $backupResult['message'];
+                } else {
+                    $results['details'][] = "🔄 $fileName: " . $backupResult['message'];
+                }
             }
             
             // Carica nuovo file
@@ -89,8 +94,8 @@ function handleCSVUpload($pdo) {
                 $results['files_processed']++;
                 $results['details'][] = "✅ $fileName caricato con successo";
                 
-                // Log upload nel database
-                logFileUpload($pdo, $fileName, filesize($destination));
+                // Log upload nel database con informazioni backup
+                logFileUpload($pdo, $fileName, filesize($destination), $backupResult);
                 
             } else {
                 $results['errors'][] = "❌ Errore caricamento $fileName";
@@ -249,23 +254,135 @@ function getMonthlyStatistics($pdo, $monthYear) {
 }
 
 /**
- * Log caricamento file
+ * Gestione backup con retry per Windows file locking
  */
-function logFileUpload($pdo, $fileName, $fileSize) {
+function createBackupWithRetry($sourceFile, $backupDir, $fileName, $maxRetries = 3) {
+    $backupName = $backupDir . 'backup_' . date('Y-m-d_H-i-s') . '_' . $fileName;
+    
+    // Strategia 1: Prova rename diretto (più veloce)
+    for ($i = 0; $i < $maxRetries; $i++) {
+        // Attendi che il file non sia più in uso
+        if (isFileInUse($sourceFile)) {
+            usleep(500000); // Aspetta 500ms
+            continue;
+        }
+        
+        if (@rename($sourceFile, $backupName)) {
+            return [
+                'success' => true, 
+                'message' => 'Backup creato con rename',
+                'backup_path' => $backupName
+            ];
+        }
+        
+        // Se rename fallisce, aspetta e riprova
+        usleep(250000); // Aspetta 250ms tra i tentativi
+    }
+    
+    // Strategia 2: Copia + elimina se rename continua a fallire
+    if (copy($sourceFile, $backupName)) {
+        // Prova a eliminare il file originale con retry
+        for ($i = 0; $i < $maxRetries; $i++) {
+            if (isFileInUse($sourceFile)) {
+                usleep(500000);
+                continue;
+            }
+            
+            if (@unlink($sourceFile)) {
+                return [
+                    'success' => true, 
+                    'message' => 'Backup creato con copy+delete',
+                    'backup_path' => $backupName
+                ];
+            }
+            usleep(250000);
+        }
+        
+        // Se non riusciamo a eliminare, mantieni entrambi i file
+        return [
+            'success' => true, 
+            'message' => 'Backup creato (file originale mantenuto)',
+            'backup_path' => $backupName,
+            'warning' => 'File originale non eliminato per file locking'
+        ];
+    }
+    
+    // Fallback: nessun backup ma continua
+    return [
+        'success' => false, 
+        'message' => 'Backup fallito - caricamento comunque in corso',
+        'backup_path' => null
+    ];
+}
+
+/**
+ * Verifica se un file è in uso da altri processi (Windows compatibile)
+ */
+function isFileInUse($filePath) {
+    if (!file_exists($filePath)) {
+        return false;
+    }
+    
+    // Su Windows, prova ad aprire il file in modalità esclusiva
+    if (PHP_OS_FAMILY === 'Windows') {
+        $handle = @fopen($filePath, 'r+');
+        if ($handle === false) {
+            return true; // File probabilmente in uso
+        }
+        
+        // Prova lock esclusivo
+        if (!@flock($handle, LOCK_EX | LOCK_NB)) {
+            fclose($handle);
+            return true; // File in uso
+        }
+        
+        flock($handle, LOCK_UN);
+        fclose($handle);
+        return false;
+    }
+    
+    // Su sistemi Unix-like, controlla con lsof se disponibile
+    if (function_exists('exec')) {
+        $output = [];
+        $return_var = 0;
+        @exec("lsof '$filePath' 2>/dev/null", $output, $return_var);
+        return count($output) > 0;
+    }
+    
+    return false; // Assumi che non sia in uso se non possiamo verificare
+}
+
+/**
+ * Log caricamento file con informazioni backup
+ */
+function logFileUpload($pdo, $fileName, $fileSize, $backupInfo = null) {
     $stmt = $pdo->prepare("
         INSERT INTO audit_log (event_type, description, metadata, created_at)
         VALUES ('file_upload', ?, ?, NOW())
     ");
     
-    $metadata = json_encode([
+    $metadata = [
         'file_name' => $fileName,
         'file_size_bytes' => $fileSize,
-        'upload_date' => date('Y-m-d H:i:s')
-    ]);
+        'upload_date' => date('Y-m-d H:i:s'),
+        'server_os' => PHP_OS_FAMILY
+    ];
+    
+    // Aggiungi informazioni di backup se disponibili
+    if ($backupInfo) {
+        $metadata['backup_status'] = $backupInfo['success'] ? 'success' : 'failed';
+        $metadata['backup_method'] = $backupInfo['message'];
+        if (isset($backupInfo['backup_path'])) {
+            $metadata['backup_file'] = basename($backupInfo['backup_path']);
+        }
+        if (isset($backupInfo['warning'])) {
+            $metadata['backup_warning'] = $backupInfo['warning'];
+        }
+    }
     
     $stmt->execute([
-        "File CSV caricato: $fileName",
-        $metadata
+        "File CSV caricato: $fileName" . ($backupInfo && !$backupInfo['success'] ? " (backup fallito)" : ""),
+        json_encode($metadata)
     ]);
 }
 

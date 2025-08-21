@@ -1,0 +1,217 @@
+# =============================================================================
+# BAIT SERVICE ENTERPRISE - MySQL Performance Configuration
+# Optimized my.ini settings for XAMPP/WSL environment
+# Target: Production-ready performance for business dashboard workload
+# =============================================================================
+
+# COPY TO: /mnt/c/xampp/mysql/bin/my.ini (replace existing [mysqld] section)
+
+# The following options will be passed to all MySQL clients
+[client]
+port=3306
+socket="C:/xampp/mysql/mysql.sock"
+default-character-set=utf8mb4
+
+# The MySQL server - OPTIMIZED FOR BAIT SERVICE ENTERPRISE
+[mysqld]
+port=3306
+socket="C:/xampp/mysql/mysql.sock"
+basedir="C:/xampp/mysql"
+tmpdir="C:/xampp/tmp"
+datadir="C:/xampp/mysql/data"
+pid_file="mysql.pid"
+
+# =============================================================================
+# CHARACTER SET AND COLLATION - UTF-8 Full Support
+# =============================================================================
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+init_connect='SET NAMES utf8mb4'
+
+# =============================================================================
+# MEMORY OPTIMIZATION - Tuned for Dashboard Workload
+# =============================================================================
+
+# Buffer Pool (Most Important Setting)
+# Set to 70-80% of available RAM dedicated to MySQL
+# For 4GB system with other applications: 1GB
+# For 8GB system: 2GB  
+# For 16GB system: 4GB
+innodb_buffer_pool_size=1G
+
+# MyISAM Key Buffer (for system tables)
+key_buffer_size=128M
+
+# Query Cache (if using older MySQL/MariaDB)
+# Note: Disabled in MySQL 8.0+
+query_cache_type=1
+query_cache_size=64M
+query_cache_limit=2M
+
+# Sort and Join Buffers
+sort_buffer_size=2M
+read_buffer_size=1M
+read_rnd_buffer_size=2M
+join_buffer_size=1M
+
+# =============================================================================
+# INNODB OPTIMIZATION - Core Engine Settings
+# =============================================================================
+
+# Log Files (Critical for Performance)
+innodb_log_file_size=256M
+innodb_log_buffer_size=32M
+innodb_log_files_in_group=2
+
+# Flush Settings (Balance performance vs durability)
+# For production use: innodb_flush_log_at_trx_commit=1 (safest)
+# For development/testing: 2 (faster, less safe)
+innodb_flush_log_at_trx_commit=2
+innodb_flush_method=O_DIRECT
+
+# File Per Table (Always enable)
+innodb_file_per_table=1
+
+# Thread Concurrency (Set to 2x CPU cores)
+innodb_thread_concurrency=8
+innodb_read_io_threads=4
+innodb_write_io_threads=4
+
+# Additional InnoDB Settings
+innodb_buffer_pool_instances=1
+innodb_max_dirty_pages_pct=75
+innodb_adaptive_hash_index=ON
+
+# =============================================================================
+# CONNECTION AND NETWORK SETTINGS
+# =============================================================================
+
+# Connection Limits
+max_connections=200
+max_user_connections=180
+connect_timeout=10
+interactive_timeout=28800
+wait_timeout=28800
+
+# Packet Sizes
+max_allowed_packet=64M
+net_buffer_length=32K
+
+# =============================================================================
+# CACHE AND TEMPORARY TABLES
+# =============================================================================
+
+# Table Cache
+table_open_cache=4000
+table_definition_cache=2000
+
+# Temporary Tables
+tmp_table_size=64M
+max_heap_table_size=64M
+
+# Thread Cache
+thread_cache_size=50
+
+# =============================================================================
+# LOGGING AND MONITORING  
+# =============================================================================
+
+# General Log (disable in production)
+# general_log=ON
+# general_log_file="mysql_general.log"
+
+# Error Log
+log_error="mysql_error.log"
+
+# Slow Query Log (Essential for Performance Monitoring)
+slow_query_log=ON
+slow_query_log_file="mysql_slow.log"
+long_query_time=2.0
+log_queries_not_using_indexes=ON
+min_examined_row_limit=1000
+
+# Binary Log (for backup and replication)
+log_bin=mysql-bin
+binlog_format=ROW
+max_binlog_size=100M
+expire_logs_days=7
+
+# =============================================================================
+# SECURITY SETTINGS
+# =============================================================================
+
+# Server ID (required for replication)
+server-id=1
+
+# Security Options
+# bind-address=127.0.0.1  # Uncomment for local-only access
+
+# Plugin Directory
+plugin_dir="C:/xampp/mysql/lib/plugin/"
+
+# =============================================================================
+# MYISAM SETTINGS (for system tables)
+# =============================================================================
+myisam_sort_buffer_size=64M
+myisam_max_sort_file_size=1G
+myisam_repair_threads=1
+
+# =============================================================================
+# ADVANCED OPTIMIZATION SETTINGS
+# =============================================================================
+
+# Query Optimizer
+optimizer_search_depth=62
+optimizer_prune_level=1
+
+# Full-Text Search
+ft_min_word_len=3
+ft_max_word_len=84
+
+# Group Concat Limit
+group_concat_max_len=2048
+
+# =============================================================================
+# BAIT SERVICE SPECIFIC TUNING
+# Optimized for dashboard queries and business analytics workload  
+# =============================================================================
+
+# Optimized for JOIN-heavy queries (dashboard aggregations)
+join_buffer_size=2M
+sort_buffer_size=4M
+
+# Optimized for datetime range queries (timeline analysis) 
+range_optimizer_max_mem_size=8M
+
+# Optimized for GROUP BY operations (KPI calculations)
+tmp_table_size=128M
+max_heap_table_size=128M
+
+# =============================================================================
+# PERFORMANCE SCHEMA (Optional - Enable for Advanced Monitoring)
+# =============================================================================
+performance_schema=ON
+performance_schema_max_table_instances=12500
+performance_schema_max_table_handles=4000
+
+# =============================================================================
+# END OF OPTIMIZED CONFIGURATION
+# 
+# RESTART REQUIRED: After copying these settings to my.ini
+# 1. Stop XAMPP MySQL service
+# 2. Copy optimized settings to /mnt/c/xampp/mysql/bin/my.ini  
+# 3. Start XAMPP MySQL service
+# 4. Verify with: SHOW VARIABLES LIKE 'innodb_buffer_pool_size';
+# =============================================================================
+
+[mysql]
+default-character-set=utf8mb4
+
+[mysqldump] 
+default-character-set=utf8mb4
+single-transaction
+routines
+triggers
+
+[mysqlhotcopy]
+interactive-timeout
