@@ -316,7 +316,7 @@ function loadRealData() {
                             ad.elementi_anomalia as details
                         FROM alert_dettagliati ad
                         LEFT JOIN tecnici t ON ad.tecnico_id = t.id 
-                        WHERE ad.stato IN ('Aperto', 'In_Analisi')
+                        WHERE ad.stato IN ('Aperto', 'In_Analisi', 'Risolto', 'Chiuso') AND ad.data_creazione >= DATE_SUB(NOW(), INTERVAL 30 DAY)
                         ORDER BY 
                             CASE ad.severita 
                                 WHEN 'CRITICO' THEN 1 
@@ -326,7 +326,7 @@ function loadRealData() {
                             END,
                             ad.confidence_score DESC, 
                             ad.data_creazione DESC
-                        LIMIT 20
+                        LIMIT 50
                     ");
                     $alertsData = $stmt->fetchAll();
                     
@@ -351,7 +351,7 @@ function loadRealData() {
                                 a.details
                             FROM alerts a
                             LEFT JOIN tecnici t ON a.tecnico_id = t.id 
-                            WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
                             ORDER BY 
                                 CASE a.severity 
                                     WHEN 'CRITICO' THEN 1 
@@ -361,7 +361,7 @@ function loadRealData() {
                                 END,
                                 confidence_score DESC, 
                                 created_at DESC
-                            LIMIT 20
+                            LIMIT 50
                         ");
                         $alertsData = $stmt->fetchAll();
                     } catch (Exception $e2) {
@@ -852,6 +852,16 @@ if (!$data) {
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Temporal Filter Info -->
+        <div class="alert alert-info mb-3" style="border-left: 4px solid #0dcaf0;">
+            <i class="bi bi-calendar-range me-2"></i>
+            <strong>Range Temporale:</strong> 
+            Mostrando dati degli ultimi <strong>30 giorni</strong> 
+            <small class="text-muted">
+                (dal <?= date('d/m/Y', strtotime('-30 days')) ?> al <?= date('d/m/Y') ?>)
+            </small>
         </div>
 
         <!-- Alerts Table -->

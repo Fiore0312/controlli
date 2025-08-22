@@ -68,7 +68,7 @@ function handleCSVUpload($pdo) {
         mkdir($uploadDir, 0755, true);
     }
 
-    // Lista dei file CSV attesi (7 COMPLETI)
+    // Lista dei file CSV attesi (7 COMPLETI) + supporto .ics per calendario
     $expectedFiles = ['attivita.csv', 'timbrature.csv', 'teamviewer_bait.csv', 'teamviewer_gruppo.csv', 'permessi.csv', 'auto.csv', 'calendario.csv'];
     
     foreach ($expectedFiles as $fileName) {
@@ -942,9 +942,9 @@ $currentSession = getCurrentAuditSession($pdo);
                                     Calendario Appuntamenti
                                 </label>
                                 <input type="file" name="calendario" id="calendario" class="bait-form-control" 
-                                       accept=".csv" aria-describedby="calendario-help">
+                                       accept=".csv,.ics" aria-describedby="calendario-help">
                                 <div class="bait-form-help" id="calendario-help">
-                                    Appuntamenti pianificati Outlook
+                                    Appuntamenti Outlook: CSV o iCalendar (.ics) ✨ <strong>CONSIGLIATO</strong>
                                 </div>
                             </div>
                         </div>

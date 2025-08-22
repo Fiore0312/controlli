@@ -6,35 +6,201 @@
 
 header('Content-Type: text/html; charset=utf-8');
 
-// Funzione per leggere CSV con gestione encoding
-function readCSVFile($filepath) {
-    if (!file_exists($filepath)) {
-        return ['headers' => [], 'data' => []];
+// Parser per file .ics (iCalendar format)
+function parseIcsFile($icsContent) {
+    $events = [];
+    $currentEvent = [];
+    $inEvent = false;
+    
+    // Split per righe
+    $lines = explode("\n", $icsContent);
+    
+    foreach ($lines as $line) {
+        $line = trim($line);
+        
+        if ($line === "BEGIN:VEVENT") {
+            $inEvent = true;
+            $currentEvent = [];
+            continue;
+        }
+        
+        if ($line === "END:VEVENT") {
+            $inEvent = false;
+            if (!empty($currentEvent)) {
+                $events[] = $currentEvent;
+            }
+            continue;
+        }
+        
+        if ($inEvent && !empty($line)) {
+            // Parse proprietà ICS con gestione completa parametri
+            if (strpos($line, ":") !== false) {
+                list($propertyPart, $value) = explode(":", $line, 2);
+                
+                // Gestisci proprietà con parametri (es. DTSTART;VALUE=DATE:20250818)
+                $property = $propertyPart;
+                if (strpos($propertyPart, ";") !== false) {
+                    $parts = explode(";", $propertyPart);
+                    $property = $parts[0];
+                    
+                    // Conserva parametri per debug se necessario
+                    $parameters = array_slice($parts, 1);
+                    $currentEvent[$property . '_PARAMS'] = $parameters;
+                }
+                
+                $currentEvent[$property] = $value;
+            }
+        }
     }
     
-    $csvContent = file_get_contents($filepath);
+    return $events;
+}
+
+// Converte data ICS in formato leggibile - VERSIONE CORRETTA
+function parseIcsDateTime($icsDateTime) {
+    // Rimuovi eventuali parametri dalla data (es. TZID=)
+    $cleanDateTime = $icsDateTime;
+    if (strpos($icsDateTime, ':') !== false) {
+        $parts = explode(':', $icsDateTime);
+        $cleanDateTime = end($parts);
+    }
+    
+    $cleanDateTime = trim($cleanDateTime);
+    
+    // Pattern per data ISO (con o senza time) - VERSIONE ROBUSTA
+    if (preg_match('/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2}))?/', $cleanDateTime, $matches)) {
+        $year = (int)$matches[1];
+        $month = (int)$matches[2];
+        $day = (int)$matches[3];
+        $hour = isset($matches[4]) ? (int)$matches[4] : 0;
+        $minute = isset($matches[5]) ? (int)$matches[5] : 0;
+        $second = isset($matches[6]) ? (int)$matches[6] : 0;
+        
+        // VALIDAZIONE DATE - Previene timestamp = 0 (01/01/1970)
+        if ($year >= 2020 && $year <= 2030 && $month >= 1 && $month <= 12 && $day >= 1 && $day <= 31) {
+            $timestamp = mktime($hour, $minute, $second, $month, $day, $year);
+            
+            return [
+                "timestamp" => $timestamp,
+                "formatted" => sprintf("%02d/%02d/%04d %02d:%02d", $day, $month, $year, $hour, $minute),
+                "date" => sprintf("%02d/%02d/%04d", $day, $month, $year),
+                "time" => sprintf("%02d:%02d", $hour, $minute),
+                "is_all_day" => ($hour == 0 && $minute == 0 && !isset($matches[4]))
+            ];
+        }
+    }
+    
+    return null;
+}
+
+// Converte eventi ICS in formato calendario standard
+function convertIcsToCalendarFormat($icsEvents) {
+    $headers = ["SUMMARY", "DTSTART", "DTEND", "NOTES", "ATTENDEE", "LOCATION"];
+    $data = [];
+    
+    foreach ($icsEvents as $event) {
+        $summary = $event["SUMMARY"] ?? "";
+        $organizer = $event["ORGANIZER"] ?? "";
+        $location = $event["LOCATION"] ?? "";
+        $description = $event["DESCRIPTION"] ?? "";
+        
+        // Parse date
+        $startParsed = parseIcsDateTime($event["DTSTART"] ?? "");
+        $endParsed = parseIcsDateTime($event["DTEND"] ?? "");
+        
+        $dtstart = $startParsed ? $startParsed["formatted"] : "";
+        $dtend = $endParsed ? $endParsed["formatted"] : "";
+        
+        // Estrai tecnico dall'organizer o dal summary
+        $technician = "";
+        if (!empty($organizer)) {
+            $technician = $organizer;
+        } else {
+            $technicians = ["Davide Cestone", "Arlind Hoxha", "Gabriele De Palma", "Matteo Signo", "Marco Birocchi", "Alex Ferrario", "Franco Fiorellino", "Veronica Totta"];
+            foreach ($technicians as $tech) {
+                if (stripos($summary, $tech) !== false) {
+                    $technician = $tech;
+                    break;
+                }
+            }
+        }
+        
+        // Note intelligenti
+        $notes = "";
+        if (!empty($description)) {
+            $notes = $description;
+        } elseif (stripos($summary, "ferie") !== false) {
+            $notes = "Ferie";
+        } elseif (preg_match('/TICKET#?(\d+)/i', $summary, $ticketMatch)) {
+            $notes = "Ticket " . $ticketMatch[1];
+        } elseif (stripos($summary, "remoto") !== false) {
+            $notes = "Lavoro Remoto";
+        }
+        
+        // BUGFIX: Se il parsing fallisce, usa date placeholder
+        if (!$startParsed || $startParsed["timestamp"] <= 0) {
+            $dtstart = "Data non valida";
+        }
+        if (!$endParsed || $endParsed["timestamp"] <= 0) {
+            $dtend = "Data non valida";
+        }
+        
+        $data[] = [
+            $summary,     // SUMMARY
+            $dtstart,     // DTSTART
+            $dtend,       // DTEND
+            $notes,       // NOTES
+            $technician,  // ATTENDEE
+            $location,    // LOCATION
+            "start_parsed" => $startParsed ? $startParsed["timestamp"] : null,
+            "end_parsed" => $endParsed ? $endParsed["timestamp"] : null
+        ];
+    }
+    
+    return ["headers" => $headers, "data" => $data, "format" => "ics_parsed"];
+}
+
+// Funzione specializzata per leggere formato Outlook Calendar CSV e ICS
+function readOutlookCalendarCSV($filepath) {
+    if (!file_exists($filepath)) {
+        return ['headers' => [], 'data' => [], 'format' => 'not_found'];
+    }
+    
+    $content = file_get_contents($filepath);
     
     // Detect encoding and convert to UTF-8
-    $encoding = mb_detect_encoding($csvContent, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+    $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
     if ($encoding && $encoding !== 'UTF-8') {
-        $csvContent = mb_convert_encoding($csvContent, 'UTF-8', $encoding);
+        $content = mb_convert_encoding($content, 'UTF-8', $encoding);
     }
     
-    $lines = str_getcsv($csvContent, "\n");
-    if (empty($lines)) return ['headers' => [], 'data' => []];
+    // Rimuovi BOM se presente
+    $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
     
+    // Controlla se è un file .ics
+    if (stripos($content, 'BEGIN:VCALENDAR') !== false && stripos($content, 'BEGIN:VEVENT') !== false) {
+        // È un file .ics - usa parser ICS
+        $icsEvents = parseIcsFile($content);
+        return convertIcsToCalendarFormat($icsEvents);
+    }
+    
+    // È un file CSV - continua con logica esistente
+    $lines = explode("\n", trim($content));
+    $lineCount = count($lines);
+    
+    if ($lineCount <= 2 && strlen($content) > 1000) {
+        // Formato Outlook concatenato - tutto su una riga
+        return parseOutlookConcatenatedFormat($content);
+    }
+    
+    // Formato CSV standard
     $headers = str_getcsv(array_shift($lines), ',');
-    // Clean BOM if present
-    if (!empty($headers[0])) {
-        $headers[0] = preg_replace('/^\xEF\xBB\xBF/', '', $headers[0]);
-    }
-    
     $data = [];
+    
     foreach ($lines as $line) {
         if (trim($line) && !strpos($line, 'Somma di Ore') && !strpos($line, 'Etichette')) {
             $row = str_getcsv($line, ',');
-            // Skip summary rows
-            if (count($row) >= 3 && !empty($row[1]) && !strpos($row[1], 'Totale')) {
+            if (count($row) >= 3 && !empty($row[0])) {
                 while (count($row) < count($headers)) {
                     $row[] = '';
                 }
@@ -43,7 +209,126 @@ function readCSVFile($filepath) {
         }
     }
     
-    return ['headers' => $headers, 'data' => $data];
+    return ['headers' => $headers, 'data' => $data, 'format' => 'standard'];
+}
+
+// Parser specializzato per formato Outlook concatenato - FIXED VERSION
+function parseOutlookConcatenatedFormat($csvContent) {
+    $headers = ['SUMMARY', 'DTSTART', 'DTEND', 'NOTES', 'ATTENDEE', 'LOCATION'];
+    $data = [];
+    
+    // Parser date europeo corretto
+    function parseEuropeanDateTime($dateStr) {
+        if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2})/', $dateStr, $matches)) {
+            $day = (int)$matches[1];
+            $month = (int)$matches[2];
+            $year = (int)$matches[3];
+            $hour = (int)$matches[4];
+            $minute = (int)$matches[5];
+            
+            return mktime($hour, $minute, 0, $month, $day, $year);
+        }
+        return false;
+    }
+    
+    // Pulisce titoli lunghi
+    function cleanEventTitle($title) {
+        $title = preg_replace('/https?:\/\/[^\s"]+/', '', $title);
+        $title = preg_replace('/\s+/', ' ', $title);
+        $title = preg_replace('/_+/', ' ', $title);
+        if (strlen($title) > 80) {
+            $title = substr($title, 0, 80) . '...';
+        }
+        return trim($title);
+    }
+    
+    // Rimuovi header dalla content
+    $content = preg_replace('/^SUMMARY,DTSTART,DTEND,.*?"/', '', $csvContent);
+    
+    // Pattern migliorato per catturare anche i campi aggiuntivi
+    $pattern = '/"([^"]+)","(\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2})","(\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2})","?([^"]*?)"?,"?([^"]*?)"?,"?([^"]*?)"?/';
+    
+    preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+    
+    // Fallback con pattern più semplice se necessario
+    if (empty($matches)) {
+        $simplePattern = '/"([^"]+)","(\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2})","(\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2})"/';
+        preg_match_all($simplePattern, $content, $matches, PREG_SET_ORDER);
+    }
+    
+    foreach ($matches as $match) {
+        if (count($match) >= 4) {
+            $rawSummary = $match[1];
+            $rawDtstart = $match[2];
+            $rawDtend = $match[3];
+            $rawNotes = $match[4] ?? '';
+            $rawAttendee = $match[5] ?? '';
+            $rawLocation = $match[6] ?? '';
+            
+            // Parse date con parser europeo
+            $startTime = parseEuropeanDateTime($rawDtstart);
+            $endTime = parseEuropeanDateTime($rawDtend);
+            
+            // Pulizia summary
+            $summary = cleanEventTitle($rawSummary);
+            
+            // Estrai tecnico
+            $technician = '';
+            if (!empty($rawAttendee) && $rawAttendee !== 'TRUE' && strlen($rawAttendee) < 50) {
+                $technician = $rawAttendee;
+            } else {
+                $technicians = ['Davide Cestone', 'Arlind Hoxha', 'Gabriele De Palma', 'Matteo Signo', 'Marco Birocchi', 'Alex Ferrario', 'Franco Fiorellino', 'Veronica Totta'];
+                foreach ($technicians as $tech) {
+                    if (stripos($summary, $tech) !== false) {
+                        $technician = $tech;
+                        break;
+                    }
+                }
+                // Fallback pattern
+                if (empty($technician) && preg_match('/- ([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*$/', $summary, $techMatch)) {
+                    $technician = trim($techMatch[1]);
+                }
+            }
+            
+            // Location intelligente
+            $location = '';
+            if (!empty($rawLocation) && $rawLocation !== 'TRUE') {
+                $location = $rawLocation;
+            } elseif (stripos($summary, 'REMOTO') !== false) {
+                $location = 'Remoto';
+            } elseif (preg_match('/(INDITEX|BAIT|Comune|Lentate|Melzo|Milano|Spolidoro)/i', $summary, $locMatch)) {
+                $location = trim($locMatch[1]);
+            }
+            
+            // Note intelligenti
+            $notes = '';
+            if (!empty($rawNotes)) {
+                $notes = $rawNotes;
+            } elseif (stripos($summary, 'ferie') !== false) {
+                $notes = 'Ferie';
+            } elseif (preg_match('/TICKET#?(\d+)/i', $summary, $ticketMatch)) {
+                $notes = 'Ticket ' . $ticketMatch[1];
+            } elseif (stripos($summary, 'remoto') !== false) {
+                $notes = 'Lavoro Remoto';
+            } elseif (stripos($summary, 'manutenzione') !== false) {
+                $notes = 'Manutenzione';
+            }
+            
+            $event = [
+                $summary,     // SUMMARY
+                $rawDtstart,  // DTSTART  
+                $rawDtend,    // DTEND
+                $notes,       // NOTES
+                $technician,  // ATTENDEE
+                $location,    // LOCATION
+                'start_parsed' => $startTime,
+                'end_parsed' => $endTime
+            ];
+            $data[] = $event;
+        }
+    }
+    
+    return ['headers' => $headers, 'data' => $data, 'format' => 'outlook_concatenated_fixed', 'events_found' => count($data)];
 }
 
 $csvPath = __DIR__ . '/data/input/calendario.csv';
@@ -56,7 +341,7 @@ $debugInfo = [
     'input_dir_exists' => is_dir(__DIR__ . '/data/input/'),
     'input_dir_readable' => is_readable(__DIR__ . '/data/input/')
 ];
-$csvData = $hasCSV ? readCSVFile($csvPath) : ['headers' => [], 'data' => []];
+$csvData = $hasCSV ? readOutlookCalendarCSV($csvPath) : ['headers' => [], 'data' => []];
 
 // Funzione robusta per parsare Outlook calendar - gestisce formati instabili
 function parseOutlookCalendar($rawData) {
@@ -72,14 +357,188 @@ function parseOutlookCalendar($rawData) {
         ];
     }
     
-    // Se il CSV ha troppe colonne su una riga (formato Outlook concatenato)
+    // Se il formato è ICS parsato, processa direttamente
+    if (isset($rawData['format']) && $rawData['format'] === 'ics_parsed') {
+        $parsedData = [];
+        $totalHours = 0;
+        $employees = [];
+        $clients = [];
+        $locations = [];
+        
+        foreach ($rawData['data'] as $row) {
+            if (count($row) >= 6) {
+                $summary = $row[0];     // SUMMARY
+                $dtstart = $row[1];     // DTSTART
+                $dtend = $row[2];       // DTEND
+                $notes = $row[3];       // NOTES
+                $attendee = $row[4];    // ATTENDEE
+                $location = $row[5];    // LOCATION
+                
+                // Skip header row
+                if ($summary === 'SUMMARY' || trim($summary) === '') {
+                    continue;
+                }
+                
+                // Calcola ore usando timestamp ICS precisi
+                $ore = 0;
+                if (isset($row['start_parsed']) && isset($row['end_parsed']) && $row['start_parsed'] && $row['end_parsed']) {
+                    $start = $row['start_parsed'];
+                    $end = $row['end_parsed'];
+                    
+                    if ($start && $end && $end > $start) {
+                        $hoursDiff = ($end - $start) / 3600;
+                        
+                        // Per eventi all-day (00:00 - 00:00), converti in giorni
+                        $startHour = date('H:i', $start);
+                        $endHour = date('H:i', $end);
+                        
+                        if ($startHour === '00:00' && $endHour === '00:00') {
+                            $ore = ($end - $start) / (24 * 3600); // Giorni
+                        } else {
+                            $ore = $hoursDiff;
+                        }
+                    }
+                }
+                
+                // Estrai cliente dal summary
+                $cliente = $summary;
+                if (preg_match('/^([^-]+)/', $summary, $matches)) {
+                    $cliente = trim($matches[1]);
+                }
+                
+                if (!empty($attendee)) $employees[$attendee] = true;
+                if (!empty($cliente)) $clients[$cliente] = true;
+                if (!empty($location)) $locations[$location] = true;
+                $totalHours += $ore;
+                
+                $parsedData[] = [
+                    'dipendente' => $attendee,
+                    'cliente' => $cliente,
+                    'dove' => $location,
+                    'data_inizio' => $dtstart,
+                    'data_fine' => $dtend,
+                    'ore_totali' => $ore,
+                    'note' => $notes
+                ];
+            }
+        }
+        
+        return [
+            'events' => $parsedData,
+            'total_hours' => $totalHours,
+            'employees' => $employees,
+            'clients' => $clients,
+            'locations' => $locations,
+            'parsing_status' => 'ics_parsed_success',
+            'events_parsed' => count($parsedData)
+        ];
+    }
+    
+    // Se il formato è outlook_concatenated, è già stato parsato correttamente
+    if (isset($rawData['format']) && $rawData['format'] === 'outlook_concatenated') {
+        // Processa i dati già parsati dal formato concatenato
+        $parsedData = [];
+        $totalHours = 0;
+        $employees = [];
+        $clients = [];
+        $locations = [];
+        
+        foreach ($rawData['data'] as $row) {
+            if (count($row) >= 6) {
+                $summary = $row[0];     // SUMMARY
+                $dtstart = $row[1];     // DTSTART
+                $dtend = $row[2];       // DTEND
+                $notes = $row[3];       // NOTES
+                $attendee = $row[4];    // ATTENDEE
+                $location = $row[5];    // LOCATION
+                
+                // Skip header row
+                if ($summary === 'SUMMARY' || trim($summary) === '') {
+                    continue;
+                }
+                
+                // Calcola ore con parser europeo migliorato
+                $ore = 0;
+                if (!empty($dtstart) && !empty($dtend)) {
+                    try {
+                        // Prima prova con timestamp parsati se disponibili
+                        if (isset($row['start_parsed']) && isset($row['end_parsed']) && $row['start_parsed'] && $row['end_parsed']) {
+                            $start = $row['start_parsed'];
+                            $end = $row['end_parsed'];
+                        } else {
+                            // Fallback con parser date europeo
+                            if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2})/', $dtstart, $matches)) {
+                                $start = mktime((int)$matches[4], (int)$matches[5], 0, (int)$matches[2], (int)$matches[1], (int)$matches[3]);
+                            } else {
+                                $start = strtotime($dtstart);
+                            }
+                            
+                            if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2})/', $dtend, $matches)) {
+                                $end = mktime((int)$matches[4], (int)$matches[5], 0, (int)$matches[2], (int)$matches[1], (int)$matches[3]);
+                            } else {
+                                $end = strtotime($dtend);
+                            }
+                        }
+                        
+                        if ($start && $end && $end > $start) {
+                            $hoursDiff = ($end - $start) / 3600;
+                            
+                            // Per eventi all-day (00:00 - 00:00), converti in giorni
+                            $startHour = date('H:i', $start);
+                            $endHour = date('H:i', $end);
+                            
+                            if ($startHour === '00:00' && $endHour === '00:00') {
+                                $ore = ($end - $start) / (24 * 3600); // Giorni
+                            } else {
+                                $ore = $hoursDiff;
+                            }
+                        }
+                    } catch (Exception $e) {
+                        $ore = 0;
+                    }
+                }
+                
+                // Estrai cliente dal summary
+                $cliente = $summary;
+                if (preg_match('/^([^-]+)/', $summary, $matches)) {
+                    $cliente = trim($matches[1]);
+                }
+                
+                if (!empty($attendee)) $employees[$attendee] = true;
+                if (!empty($cliente)) $clients[$cliente] = true;
+                if (!empty($location)) $locations[$location] = true;
+                $totalHours += $ore;
+                
+                $parsedData[] = [
+                    'dipendente' => $attendee,
+                    'cliente' => $cliente,
+                    'dove' => $location,
+                    'data_inizio' => $dtstart,
+                    'data_fine' => $dtend,
+                    'ore_totali' => $ore,
+                    'note' => $notes
+                ];
+            }
+        }
+        
+        return [
+            'events' => $parsedData,
+            'total_hours' => $totalHours,
+            'employees' => $employees,
+            'clients' => $clients,
+            'locations' => $locations,
+            'parsing_status' => 'outlook_concatenated_success',
+            'events_parsed' => count($parsedData)
+        ];
+    }
+    
+    // Verifica se il formato sembra troppo complesso (fallback per formati non gestiti)
     $totalColumns = 0;
     foreach ($rawData['data'] as $row) {
         $totalColumns = max($totalColumns, count($row));
     }
     
     if ($totalColumns > 50) {
-        // Formato Outlook speciale - troppo complesso per parsing affidabile
         return [
             'events' => [],
             'total_hours' => 0,
@@ -424,28 +883,32 @@ $uniqueLocations = count($locations);
                             <td>
                                 <?php 
                                 if (!empty($event['data_inizio'])) {
-                                    try {
-                                        echo date('d/m/Y H:i', strtotime($event['data_inizio']));
-                                    } catch (Exception $e) {
-                                        echo htmlspecialchars($event['data_inizio']);
-                                    }
+                                    // Usa il formato già corretto dalle funzioni di parsing
+                                    echo htmlspecialchars($event['data_inizio']);
                                 }
                                 ?>
                             </td>
                             <td>
                                 <?php 
                                 if (!empty($event['data_fine'])) {
-                                    try {
-                                        echo date('d/m/Y H:i', strtotime($event['data_fine']));
-                                    } catch (Exception $e) {
-                                        echo htmlspecialchars($event['data_fine']);
-                                    }
+                                    // Usa il formato già corretto dalle funzioni di parsing
+                                    echo htmlspecialchars($event['data_fine']);
                                 }
                                 ?>
                             </td>
                             <td>
                                 <?php if ($event['ore_totali'] > 0): ?>
-                                    <span class="badge-hours"><?= number_format($event['ore_totali'], 1) ?>h</span>
+                                    <?php 
+                                    // Controlla se è un evento all-day dal formato della data
+                                    $isAllDay = (strpos($event['data_inizio'], '00:00') !== false && 
+                                                strpos($event['data_fine'], '00:00') !== false);
+                                    ?>
+                                    
+                                    <?php if ($isAllDay && $event['ore_totali'] >= 1): ?>
+                                        <span class="badge" style="background-color: #6f42c1; color: white;"><?= number_format($event['ore_totali'], 0) ?> giorni</span>
+                                    <?php else: ?>
+                                        <span class="badge-hours"><?= number_format($event['ore_totali'], 1) ?>h</span>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
@@ -478,8 +941,31 @@ $uniqueLocations = count($locations);
                             <li><strong>File:</strong> <?= $debugInfo['file_exists'] ? '✅ Trovato' : '❌ Mancante' ?> (<?= basename($debugInfo['file_path']) ?>)</li>
                             <li><strong>Directory Input:</strong> <?= $debugInfo['input_dir_exists'] ? '✅ Esiste' : '❌ Mancante' ?></li>
                             <li><strong>Directory Leggibile:</strong> <?= $debugInfo['input_dir_readable'] ? '✅ Sì' : '❌ No' ?></li>
+                            <?php if (isset($csvData['format'])): ?>
+                            <li><strong>Formato CSV:</strong> <?= $csvData['format'] ?></li>
+                            <?php endif; ?>
+                            <?php if (isset($csvData['events_found'])): ?>
+                            <li><strong>Eventi Regex:</strong> <?= $csvData['events_found'] ?> trovati</li>
+                            <?php endif; ?>
+                            <li><strong>Parsing Status:</strong> <?= $calendarData['parsing_status'] ?? 'unknown' ?></li>
+                            <?php if (isset($calendarData['events_parsed'])): ?>
+                            <li><strong>Eventi Processati:</strong> <?= $calendarData['events_parsed'] ?></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
+                    
+                    <?php if ($debugInfo['file_exists'] && isset($csvData['format']) && $csvData['format'] === 'outlook_concatenated'): ?>
+                    <div class="alert alert-warning text-start mt-3">
+                        <h6><i class="fas fa-tools me-2"></i>Tentativo Parsing Outlook Concatenato:</h6>
+                        <p class="mb-1">Il sistema ha rilevato un formato Outlook concatenato e ha estratto <strong><?= $csvData['events_found'] ?? 0 ?></strong> eventi tramite regex.</p>
+                        <p class="mb-0">Se non vedi dati, il formato potrebbe richiedere ulteriori ottimizzazioni di parsing.</p>
+                        <p class="mt-2 mb-0">
+                            <a href="test_calendario_comprehensive.php" class="btn btn-warning btn-sm">
+                                <i class="fas fa-bug me-1"></i>Test Parsing Dettagliato
+                            </a>
+                        </p>
+                    </div>
+                    <?php endif; ?>
                     
                     <div class="mt-4">
                         <a href="laravel_bait/public/index_standalone.php" class="btn btn-primary me-2">
