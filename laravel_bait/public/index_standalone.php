@@ -337,30 +337,32 @@ function loadRealData() {
                         
                         (SELECT 
                             CONCAT('AUDIT_', audit.id) as id,
-                            audit.ticket_id as numero_ticket,
-                            audit.severity,
-                            COALESCE(audit.confidence_score, 85) as confidence_score,
-                            COALESCE(t.nome_completo, 'Sistema') as tecnico,
-                            audit.message,
-                            audit.category,
+                            audit.alert_id as numero_ticket,
+                            COALESCE(audit.severity, audit.severita) as severity,
+                            85 as confidence_score,
+                            COALESCE(audit.assegnato_a, 'Sistema') as tecnico,
+                            COALESCE(audit.message, audit.descrizione) as message,
+                            COALESCE(audit.category, audit.categoria) as category,
                             audit.created_at as timestamp,
                             DATE(audit.created_at) as data_intervento,
                             TIME(audit.created_at) as orario_inizio_intervento,
                             NULL as orario_fine_intervento,
-                            audit.details
+                            COALESCE(audit.evidence, audit.evidenze) as details
                         FROM audit_alerts audit
-                        LEFT JOIN tecnici t ON audit.tecnico_id = t.id)
+                        WHERE COALESCE(audit.severity, audit.severita) IS NOT NULL AND COALESCE(audit.severity, audit.severita) != '')
                         
                         ORDER BY 
+                            data_intervento DESC,
                             CASE severity 
                                 WHEN 'CRITICO' THEN 1 
                                 WHEN 'ALTO' THEN 2 
                                 WHEN 'MEDIO' THEN 3 
-                                ELSE 4 
+                                WHEN 'WARNING' THEN 4
+                                WHEN 'INFO' THEN 5
+                                ELSE 6
                             END,
-                            confidence_score DESC, 
-                            timestamp DESC
-                        LIMIT 50
+                            confidence_score DESC
+                        LIMIT 100
                     ";
                     
                     if (!empty($queryParams)) {
