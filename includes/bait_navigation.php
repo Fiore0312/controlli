@@ -27,6 +27,12 @@ $navigation = [
         'icon' => 'bi-person-check',
         'description' => 'Controllo dettagliato attività singolo tecnico'
     ],
+    'bait_ai_chat' => [
+        'title' => 'AI Chat',
+        'url' => '/controlli/bait_ai_chat.php',
+        'icon' => 'bi-robot',
+        'description' => 'Assistente AI per analisi file e business intelligence'
+    ],
     'gestione_csv' => [
         'title' => 'Gestione CSV',
         'icon' => 'bi-file-earmark-spreadsheet',
@@ -176,6 +182,16 @@ function renderBaitNavigation($currentPage, $dataSource = 'database') {
                            href="<?= $navigation['audit_tecnico']['url'] ?>">
                             <i class="<?= $navigation['audit_tecnico']['icon'] ?> me-1"></i>
                             <?= $navigation['audit_tecnico']['title'] ?>
+                        </a>
+                    </li>
+                    
+                    <!-- AI Chat -->
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActivePage('bait_ai_chat', $currentPage) ? 'active' : '' ?>" 
+                           href="<?= $navigation['bait_ai_chat']['url'] ?>">
+                            <i class="<?= $navigation['bait_ai_chat']['icon'] ?> me-1"></i>
+                            <?= $navigation['bait_ai_chat']['title'] ?>
+                            <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6em;">AI</span>
                         </a>
                     </li>
                     
