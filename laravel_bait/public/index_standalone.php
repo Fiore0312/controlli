@@ -298,10 +298,25 @@ function loadRealData() {
                 // PRIORITÀ: Usa sempre gli alert reali più recenti invece dei dati demo
                 $alertsData = [];
                 
+                // Check for custom date range from URL parameters
+                $dateStart = $_GET['date_start'] ?? null;
+                $dateEnd = $_GET['date_end'] ?? null;
+                
+                $dateCondition = "";
+                $queryParams = [];
+                
+                if ($dateStart && $dateEnd) {
+                    $dateCondition = " AND ad.data_intervento BETWEEN ? AND ?";
+                    $queryParams = [$dateStart, $dateEnd];
+                } else {
+                    // Default: ALL available data (no date limitation)
+                    $dateCondition = "";
+                }
+                
                 // Prima prova con alert_dettagliati (dati CORRETTI con ticket numbers) 
                 try {
-                    $stmt = $pdo->query("
-                        SELECT 
+                    $query = "
+                        (SELECT 
                             ad.alert_id as id,
                             ad.numero_ticket,
                             ad.severita as severity,
@@ -316,21 +331,47 @@ function loadRealData() {
                             ad.elementi_anomalia as details
                         FROM alert_dettagliati ad
                         LEFT JOIN tecnici t ON ad.tecnico_id = t.id 
-                        WHERE ad.stato IN ('Aperto', 'In_Analisi', 'Risolto', 'Chiuso') AND ad.data_creazione >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                        WHERE ad.stato IN ('Aperto', 'In_Analisi', 'Risolto', 'Chiuso') {$dateCondition})
+                        
+                        UNION ALL
+                        
+                        (SELECT 
+                            CONCAT('AUDIT_', audit.id) as id,
+                            audit.ticket_id as numero_ticket,
+                            audit.severity,
+                            COALESCE(audit.confidence_score, 85) as confidence_score,
+                            COALESCE(t.nome_completo, 'Sistema') as tecnico,
+                            audit.message,
+                            audit.category,
+                            audit.created_at as timestamp,
+                            DATE(audit.created_at) as data_intervento,
+                            TIME(audit.created_at) as orario_inizio_intervento,
+                            NULL as orario_fine_intervento,
+                            audit.details
+                        FROM audit_alerts audit
+                        LEFT JOIN tecnici t ON audit.tecnico_id = t.id)
+                        
                         ORDER BY 
-                            CASE ad.severita 
+                            CASE severity 
                                 WHEN 'CRITICO' THEN 1 
                                 WHEN 'ALTO' THEN 2 
                                 WHEN 'MEDIO' THEN 3 
                                 ELSE 4 
                             END,
-                            ad.confidence_score DESC, 
-                            ad.data_creazione DESC
+                            confidence_score DESC, 
+                            timestamp DESC
                         LIMIT 50
-                    ");
+                    ";
+                    
+                    if (!empty($queryParams)) {
+                        $stmt = $pdo->prepare($query);
+                        $stmt->execute($queryParams);
+                    } else {
+                        $stmt = $pdo->query($query);
+                    }
                     $alertsData = $stmt->fetchAll();
                     
-                    // alert_dettagliati dovrebbe avere i dati corretti con ticket numbers
+                    // Combina dati da alert_dettagliati e audit_alerts per coverage completa
                     
                 } catch (Exception $e) {
                     // Fallback: se alert_dettagliati fallisce, usa alerts table generica
@@ -351,7 +392,7 @@ function loadRealData() {
                                 a.details
                             FROM alerts a
                             LEFT JOIN tecnici t ON a.tecnico_id = t.id 
-                            WHERE a.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                            WHERE 1=1
                             ORDER BY 
                                 CASE a.severity 
                                     WHEN 'CRITICO' THEN 1 
@@ -854,14 +895,46 @@ if (!$data) {
             </div>
         </div>
 
-        <!-- Temporal Filter Info -->
-        <div class="alert alert-info mb-3" style="border-left: 4px solid #0dcaf0;">
-            <i class="bi bi-calendar-range me-2"></i>
-            <strong>Range Temporale:</strong> 
-            Mostrando dati degli ultimi <strong>30 giorni</strong> 
-            <small class="text-muted">
-                (dal <?= date('d/m/Y', strtotime('-30 days')) ?> al <?= date('d/m/Y') ?>)
-            </small>
+        <!-- Date Range Filter -->
+        <div class="card mb-3">
+            <div class="card-body py-3">
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label for="date_filter_start" class="form-label">
+                            <i class="bi bi-calendar-range me-2"></i>Data Inizio
+                        </label>
+                        <input type="date" class="form-control" id="date_filter_start" 
+                               value="<?= isset($_GET['date_start']) ? $_GET['date_start'] : date('Y-m-01') ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date_filter_end" class="form-label">Data Fine</label>
+                        <input type="date" class="form-control" id="date_filter_end" 
+                               value="<?= isset($_GET['date_end']) ? $_GET['date_end'] : date('Y-m-d') ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary" onclick="applyDateFilter()">
+                            <i class="bi bi-funnel me-2"></i>Applica Filtro
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/controlli/bait_incongruenze_manager.php" class="btn btn-success w-100">
+                            <i class="bi bi-search me-2"></i>Analisi Dettagliata
+                        </a>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Attualmente mostrando: <strong>ultimi 30 giorni</strong>
+                        (dal <?= date('d/m/Y', strtotime('-30 days')) ?> al <?= date('d/m/Y') ?>)
+                        <?php 
+                        $customRange = isset($_GET['date_start']) || isset($_GET['date_end']);
+                        if ($customRange): ?>
+                        - <strong>Range personalizzato attivo</strong>
+                        <?php endif; ?>
+                    </small>
+                </div>
+            </div>
         </div>
 
         <!-- Alerts Table -->
@@ -1159,6 +1232,30 @@ if (!$data) {
         
         // Global access for debugging
         window.BAIT = BAIT;
+        
+        // Date filter function
+        function applyDateFilter() {
+            const startDate = document.getElementById('date_filter_start').value;
+            const endDate = document.getElementById('date_filter_end').value;
+            
+            if (!startDate || !endDate) {
+                alert('Seleziona entrambe le date per applicare il filtro');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                alert('La data di inizio deve essere precedente o uguale alla data di fine');
+                return;
+            }
+            
+            // Build new URL with date parameters
+            const url = new URL(window.location);
+            url.searchParams.set('date_start', startDate);
+            url.searchParams.set('date_end', endDate);
+            
+            // Reload page with new parameters
+            window.location.href = url.toString();
+        }
         
         // Alert Details Functions
         let currentAlertId = null;
