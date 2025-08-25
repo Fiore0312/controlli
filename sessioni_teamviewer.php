@@ -44,8 +44,8 @@ function readCSVFile($filepath) {
 }
 
 // Load both CSV files
-$csvBaitPath = __DIR__ . '/data/input/teamviewer_bait.csv';
-$csvGruppoPath = __DIR__ . '/data/input/teamviewer_gruppo.csv';
+$csvBaitPath = __DIR__ . '/upload_csv/teamviewer_bait.csv';
+$csvGruppoPath = __DIR__ . '/upload_csv/teamviewer_gruppo.csv';
 
 $hasBaitCSV = file_exists($csvBaitPath);
 $hasGruppoCSV = file_exists($csvGruppoPath);
@@ -56,8 +56,8 @@ $debugInfo = [
     'gruppo_path' => $csvGruppoPath,
     'bait_exists' => $hasBaitCSV,
     'gruppo_exists' => $hasGruppoCSV,
-    'input_dir_exists' => is_dir(__DIR__ . '/data/input/'),
-    'input_dir_readable' => is_readable(__DIR__ . '/data/input/')
+    'input_dir_exists' => is_dir(__DIR__ . '/upload_csv/'),
+    'input_dir_readable' => is_readable(__DIR__ . '/upload_csv/')
 ];
 
 $baitData = $hasBaitCSV ? readCSVFile($csvBaitPath) : ['headers' => [], 'data' => []];
