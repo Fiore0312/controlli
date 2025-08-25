@@ -59,7 +59,7 @@ try {
     $apiKeyConfigured = !empty($apiKey);
     
     // Handle API key configuration
-    if ($_POST['action'] === 'configure_api' && !empty($_POST['api_key'])) {
+    if (($_POST['action'] ?? '') === 'configure_api' && !empty($_POST['api_key'])) {
         $apiKey = trim($_POST['api_key']);
         
         // Test the API key
@@ -84,7 +84,7 @@ try {
     }
     
     // Handle chat requests
-    if ($_POST['action'] === 'send_message' && $apiKeyConfigured && !empty($_POST['message'])) {
+    if (($_POST['action'] ?? '') === 'send_message' && $apiKeyConfigured && !empty($_POST['message'])) {
         $userMessage = trim($_POST['message']);
         $contextType = $_POST['context_type'] ?? 'general';
         $contextId = $_POST['context_id'] ?? null;
