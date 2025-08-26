@@ -61,6 +61,10 @@ try {
     // Handle API key configuration
     if (($_POST['action'] ?? '') === 'configure_api' && !empty($_POST['api_key'])) {
         $apiKey = trim($_POST['api_key']);
+        $selectedModel = $_POST['selected_model'] ?? 'z-ai/glm-4.5-air:free';
+        
+        // Save selected model in session
+        $_SESSION['selected_model'] = $selectedModel;
         
         // Test the API key
         try {
@@ -90,7 +94,8 @@ try {
         $contextId = $_POST['context_id'] ?? null;
         
         try {
-            $client = new OpenRouterClient($apiKey, $pdo);
+            $selectedModel = $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free';
+            $client = new OpenRouterClient($apiKey, $pdo, $selectedModel);
             $startTime = microtime(true);
             
             switch ($contextType) {
@@ -472,13 +477,28 @@ try {
                     
                     <form method="post" class="row g-3">
                         <input type="hidden" name="action" value="configure_api">
-                        <div class="col-12">
+                        <div class="col-md-8">
                             <label for="api_key" class="form-label">
                                 <strong>OpenRouter API Key</strong>
-                                <small class="text-muted">(Modello: z-ai/glm-4.5-air:free - Gratuito)</small>
                             </label>
                             <input type="password" class="form-control" id="api_key" name="api_key" 
                                    placeholder="sk-or-v1-..." required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="selected_model" class="form-label">
+                                <strong>Modello AI</strong>
+                            </label>
+                            <select class="form-select" id="selected_model" name="selected_model">
+                                <?php $currentModel = $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free'; ?>
+                                <option value="z-ai/glm-4.5-air:free" <?= $currentModel === 'z-ai/glm-4.5-air:free' ? 'selected' : '' ?>>GLM-4.5-Air (Gratuito)</option>
+                                <option value="google/gemini-flash-1.5" <?= $currentModel === 'google/gemini-flash-1.5' ? 'selected' : '' ?>>Gemini Flash 1.5</option>
+                                <option value="anthropic/claude-3.5-sonnet" <?= $currentModel === 'anthropic/claude-3.5-sonnet' ? 'selected' : '' ?>>Claude 3.5 Sonnet</option>
+                                <option value="openai/gpt-4o" <?= $currentModel === 'openai/gpt-4o' ? 'selected' : '' ?>>GPT-4o</option>
+                                <option value="meta-llama/llama-3.1-70b-instruct" <?= $currentModel === 'meta-llama/llama-3.1-70b-instruct' ? 'selected' : '' ?>>Llama 3.1 70B</option>
+                                <option value="mistralai/mistral-large" <?= $currentModel === 'mistralai/mistral-large' ? 'selected' : '' ?>>Mistral Large</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
                             <div class="form-text">
                                 <i class="bi bi-info-circle me-1"></i>
                                 Ottieni la tua API key gratuita su 
@@ -516,7 +536,7 @@ try {
                                 <i class="bi bi-chat-dots me-2"></i>
                                 Assistente AI BAIT
                             </h5>
-                            <small class="opacity-75">Powered by z-ai/glm-4.5-air:free via OpenRouter</small>
+                            <small class="opacity-75">Powered by <?= $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free' ?> via OpenRouter</small>
                         </div>
                         <div class="text-end">
                             <button class="btn btn-sm btn-outline-light" onclick="clearChat()">
@@ -536,9 +556,9 @@ try {
                                 <div class="col-md-4 mb-3">
                                     <div class="card border-0 bg-light">
                                         <div class="card-body text-center py-3">
-                                            <i class="bi bi-file-code text-primary mb-2" style="font-size: 1.5rem;"></i>
-                                            <h6>Analisi File</h6>
-                                            <small>Analizza codice PHP, SQL, CSV e altri file</small>
+                                            <i class="bi bi-filetype-csv text-primary mb-2" style="font-size: 1.5rem;"></i>
+                                            <h6>Analisi CSV</h6>
+                                            <small>Specializzato in file CSV: timbrature, TeamViewer, attività, auto</small>
                                         </div>
                                     </div>
                                 </div>
@@ -658,12 +678,16 @@ try {
                             Query Database
                         </button>
                         <button class="btn btn-context" data-context="file_analysis" onclick="setContext('file_analysis')">
-                            <i class="bi bi-file-code me-2"></i>
-                            Analisi File
+                            <i class="bi bi-filetype-csv me-2"></i>
+                            Analisi File CSV
                         </button>
                     </div>
                     
                     <div id="fileSelector" style="display: none;" class="mt-3">
+                        <div class="alert alert-info py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Focus CSV:</strong> I file CSV di dati sono prioritari per analisi di timbrature, TeamViewer, attività e utilizzi auto.
+                        </div>
                         <label class="form-label">Seleziona File:</label>
                         <select class="form-select" id="fileSelect">
                             <option value="">Seleziona un file...</option>
@@ -721,13 +745,17 @@ try {
                                 <i class="bi bi-person-gear me-1"></i>
                                 Performance Tecnici
                             </button>
-                            <button class="btn btn-outline-info btn-sm" onclick="quickQuery('Trova anomalie nei dati di timbratura')">
+                            <button class="btn btn-outline-info btn-sm" onclick="quickQuery('Analizza il file CSV delle timbrature e trova anomalie')">
                                 <i class="bi bi-clock-history me-1"></i>
-                                Anomalie Timbrature
+                                Analisi CSV Timbrature
                             </button>
-                            <button class="btn btn-outline-warning btn-sm" onclick="quickQuery('Riassumi i problemi più frequenti del sistema')">
+                            <button class="btn btn-outline-warning btn-sm" onclick="quickQuery('Analizza i file CSV di TeamViewer per trovare pattern di utilizzo')">
+                                <i class="bi bi-display me-1"></i>
+                                Analisi CSV TeamViewer
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="quickQuery('Confronta i dati tra diversi file CSV per trovare incongruenze')">
                                 <i class="bi bi-list-check me-1"></i>
-                                Problemi Frequenti
+                                Cross-Check CSV
                             </button>
                         </div>
                     </div>
@@ -744,7 +772,7 @@ try {
                     <div class="card-body">
                         <small>
                             <div class="mb-2">
-                                <strong>Modello:</strong> z-ai/glm-4.5-air:free<br>
+                                <strong>Modello:</strong> <?= $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free' ?><br>
                                 <strong>Provider:</strong> OpenRouter<br>
                                 <strong>Costo:</strong> Gratuito
                             </div>
@@ -789,37 +817,154 @@ try {
         
         // Load file list for selection
         function loadFileList() {
-            // This would be populated by AJAX call to get indexed files
-            // For now, static example
             const fileSelect = document.getElementById('fileSelect');
-            fileSelect.innerHTML = `
-                <option value="">Seleziona un file...</option>
-                <option value="1">OpenRouterClient.php</option>
-                <option value="2">FileAnalyzer.php</option>
-                <option value="3">audit_tecnico_dashboard.php</option>
-                <option value="4">bait_incongruenze_manager.php</option>
-            `;
+            fileSelect.innerHTML = '<option value="">Caricando file...</option>';
+            
+            // AJAX call to get real files from database
+            fetch('bait_ai_api.php?action=get_file_list&limit=100')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let options = '<option value="">Seleziona un file...</option>';
+                        
+                        // Separate CSV files and other important files
+                        const csvFiles = data.data.files.filter(file => file.file_type === 'csv');
+                        const otherImportantFiles = data.data.files.filter(file => 
+                            file.file_type !== 'csv' && (
+                                file.file_name.includes('upload') ||
+                                file.file_name.includes('audit') ||
+                                file.file_name.includes('bait') ||
+                                file.file_name.includes('timbrature') ||
+                                file.file_name.includes('teamviewer') ||
+                                file.complexity_score > 50
+                            )
+                        );
+                        
+                        // Sort CSV files by importance
+                        csvFiles.sort((a, b) => {
+                            const importanceA = a.file_name.includes('timbrature') ? 4 :
+                                              a.file_name.includes('teamviewer') ? 3 :
+                                              a.file_name.includes('attivita') ? 2 :
+                                              a.file_name.includes('auto') ? 1 : 0;
+                            const importanceB = b.file_name.includes('timbrature') ? 4 :
+                                              b.file_name.includes('teamviewer') ? 3 :
+                                              b.file_name.includes('attivita') ? 2 :
+                                              b.file_name.includes('auto') ? 1 : 0;
+                            return importanceB - importanceA;
+                        });
+                        
+                        // Add CSV files first with category
+                        if (csvFiles.length > 0) {
+                            options += '<optgroup label="📊 File Dati CSV (Raccomandati)">';
+                            csvFiles.forEach(file => {
+                                const fileDesc = file.file_name.replace('.csv', '');
+                                const filePathInfo = file.file_path.includes('upload_csv') ? ' [Upload]' : 
+                                                   file.file_path.includes('data') ? ' [Data]' : '';
+                                const importance = file.file_name.includes('timbrature') ? ' ⭐ Critico' :
+                                                 file.file_name.includes('teamviewer') ? ' 🔧 Importante' :
+                                                 file.file_name.includes('attivita') ? ' 📋 Attività' : '';
+                                options += `<option value="${file.id}">${fileDesc}${filePathInfo}${importance}</option>`;
+                            });
+                            options += '</optgroup>';
+                        }
+                        
+                        // Add other important files
+                        if (otherImportantFiles.length > 0) {
+                            otherImportantFiles.sort((a, b) => b.complexity_score - a.complexity_score);
+                            options += '<optgroup label="🔧 Altri File Sistema">';
+                            otherImportantFiles.slice(0, 10).forEach(file => { // Limit to 10 files
+                                const fileDesc = `${file.file_name} (${file.file_type.toUpperCase()})`;
+                                options += `<option value="${file.id}">${fileDesc}</option>`;
+                            });
+                            options += '</optgroup>';
+                        }
+                        
+                        fileSelect.innerHTML = options;
+                    } else {
+                        fileSelect.innerHTML = '<option value="">Errore caricamento file</option>';
+                        console.error('Error loading files:', data.error);
+                    }
+                })
+                .catch(error => {
+                    fileSelect.innerHTML = '<option value="">Errore connessione</option>';
+                    console.error('Network error:', error);
+                });
         }
         
-        // Handle form submission
-        document.getElementById('chatForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Handle form submission via AJAX
+        let isSubmitting = false;
+        
+        function handleFormSubmit() {
+            if (isSubmitting) return;
             
             const messageInput = document.getElementById('messageInput');
             const message = messageInput.value.trim();
             
             if (!message) return;
             
-            // Set context ID if file analysis
-            if (currentContext === 'file_analysis') {
-                document.getElementById('contextId').value = document.getElementById('fileSelect').value;
-            }
+            isSubmitting = true;
             
-            // Show typing indicator
+            // Get context data
+            const contextType = currentContext;
+            const contextId = currentContext === 'file_analysis' ? 
+                             document.getElementById('fileSelect').value : '';
+            
+            // Add user message to chat immediately
+            addMessageToChat(message, 'user');
+            
+            // Clear input and show typing
+            messageInput.value = '';
             showTypingIndicator();
             
-            // Submit form
-            this.submit();
+            // AJAX call to send message
+            const formData = new FormData();
+            formData.append('action', 'send_message');
+            formData.append('message', message);
+            formData.append('context_type', contextType);
+            formData.append('context_id', contextId);
+            
+            fetch('bait_ai_api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    addMessageToChat(
+                        data.data.ai_response, 
+                        'ai', 
+                        {
+                            model: data.data.model,
+                            responseTime: data.data.response_time,
+                            tokensUsed: data.data.tokens_used
+                        }
+                    );
+                } else {
+                    addMessageToChat(
+                        'Errore: ' + data.error, 
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                addMessageToChat(
+                    'Errore di connessione: ' + error.message, 
+                    'error'
+                );
+                console.error('Chat error:', error);
+            })
+            .finally(() => {
+                isSubmitting = false;
+                messageInput.focus();
+            });
+        }
+        
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFormSubmit();
         });
         
         // Quick query function
@@ -828,13 +973,76 @@ try {
             if (query.includes('alert')) {
                 setContext('database_query');
             }
-            document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+            handleFormSubmit();
         }
         
         // Show typing indicator
         function showTypingIndicator() {
             document.getElementById('typingIndicator').style.display = 'block';
             scrollToBottom();
+        }
+        
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        // Add message to chat dynamically
+        function addMessageToChat(message, type, meta = {}) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.className = `message message-${type}`;
+            
+            let messageHTML = '';
+            
+            if (type === 'user') {
+                messageHTML = `
+                    <div class="message-bubble">
+                        ${escapeHtml(message).replace(/\n/g, '<br>')}
+                    </div>
+                    <div class="message-meta">
+                        <i class="bi bi-person-circle me-1"></i>
+                        Tu • Adesso
+                    </div>
+                `;
+            } else if (type === 'ai') {
+                messageHTML = `
+                    <div class="message-bubble">
+                        ${escapeHtml(message).replace(/\n/g, '<br>')}
+                    </div>
+                    <div class="message-meta">
+                        <i class="bi bi-robot me-1"></i>
+                        ${meta.model || 'AI'} • ${meta.responseTime || 0}ms • ${meta.tokensUsed || 0} tokens
+                    </div>
+                `;
+            } else if (type === 'error') {
+                messageElement.className = 'message message-ai';
+                messageHTML = `
+                    <div class="message-bubble" style="border-left-color: #dc3545; background: #f8d7da; color: #721c24;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${escapeHtml(message)}
+                    </div>
+                    <div class="message-meta">
+                        <i class="bi bi-exclamation-circle me-1" style="color: #dc3545;"></i>
+                        Sistema • Errore
+                    </div>
+                `;
+            }
+            
+            messageElement.innerHTML = messageHTML;
+            
+            // Insert before typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            messagesDiv.insertBefore(messageElement, typingIndicator);
+            
+            scrollToBottom();
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Scroll to bottom of chat
@@ -863,7 +1071,7 @@ try {
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+                handleFormSubmit();
             }
         });
     </script>
