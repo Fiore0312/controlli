@@ -2,9 +2,13 @@
 /**
  * UTILIZZO AUTO - Gestione utilizzo vetture aziendali
  * Visualizzazione CSV + Inserimento manuale con database
+ * Con selezione multipla clienti e aziende normalizzate
  */
 
 header('Content-Type: text/html; charset=utf-8');
+
+// Include aziende normalizzate
+require_once __DIR__ . '/aziende_normalizzate.php';
 
 $config = [
     'host' => 'localhost',
@@ -41,7 +45,7 @@ try {
         data_utilizzo DATE NOT NULL,
         ora_presa DATETIME,
         ora_riconsegna DATETIME NULL,
-        cliente VARCHAR(255),
+        clienti TEXT, -- Cambio da VARCHAR a TEXT per supportare più clienti
         ore_utilizzo DECIMAL(4,2),
         note TEXT,
         stato ENUM('In_Corso', 'Completato', 'Annullato') DEFAULT 'In_Corso',
@@ -57,11 +61,11 @@ try {
     $carCount = $pdo->query("SELECT COUNT(*) FROM auto_aziendali")->fetchColumn();
     if ($carCount == 0) {
         $sampleCars = "
-        INSERT INTO auto_aziendali (modello, targa, colore) VALUES
-        ('Peugeot 208', 'AA123BB', 'Bianco'),
-        ('Ford Fiesta', 'CC456DD', 'Rosso'),
-        ('Fiat Panda', 'EE789FF', 'Blu'),
-        ('Renault Clio', 'GG012HH', 'Nero')
+        INSERT INTO auto_aziendali (modello, colore) VALUES
+        ('Peugeot 208', 'Bianco'),
+        ('Ford Fiesta', 'Rosso'),
+        ('Fiat Panda', 'Blu'),
+        ('Renault Clio', 'Nero')
         ";
         $pdo->exec($sampleCars);
     }
@@ -78,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'add':
                 $stmt = $pdo->prepare("
-                    INSERT INTO utilizzi_auto (tecnico_id, auto_id, cliente_id, data_utilizzo, ora_presa, ora_riconsegna, ore_utilizzo, stato) 
+                    INSERT INTO utilizzi_auto (tecnico_id, auto_id, clienti, data_utilizzo, ora_presa, ora_riconsegna, ore_utilizzo, stato) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 
@@ -93,10 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stato = 'Completato';
                 }
                 
+                // Gestisci selezione multipla clienti
+                $clienti_selezionati = isset($_POST['clienti']) ? implode(', ', $_POST['clienti']) : '';
+                
                 $stmt->execute([
                     $_POST['tecnico_id'],
                     $_POST['auto_id'],
-                    $_POST['cliente_id'],
+                    $clienti_selezionati,
                     $_POST['data_utilizzo'],
                     $_POST['ora_presa'],
                     !empty($_POST['ora_riconsegna']) ? $_POST['ora_riconsegna'] : null,
@@ -116,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             case 'update':
                 $stmt = $pdo->prepare("
                     UPDATE utilizzi_auto 
-                    SET tecnico_id=?, auto_id=?, cliente_id=?, data_utilizzo=?, ora_presa=?, ora_riconsegna=?, ore_utilizzo=?, stato=?
+                    SET tecnico_id=?, auto_id=?, clienti=?, data_utilizzo=?, ora_presa=?, ora_riconsegna=?, ore_utilizzo=?, stato=?
                     WHERE id=?
                 ");
                 
@@ -131,10 +138,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stato = 'Completato';
                 }
                 
+                // Gestisci selezione multipla clienti per modifica
+                $clienti_selezionati = isset($_POST['clienti']) ? implode(', ', $_POST['clienti']) : '';
+                
                 $stmt->execute([
                     $_POST['tecnico_id'],
                     $_POST['auto_id'],
-                    $_POST['cliente_id'],
+                    $clienti_selezionati,
                     $_POST['data_utilizzo'],
                     $_POST['ora_presa'],
                     !empty($_POST['ora_riconsegna']) ? $_POST['ora_riconsegna'] : null,
@@ -163,16 +173,15 @@ $csvData = [];
 try {
     // Get utilizzi from database
     $utilizzi = $pdo->query("
-        SELECT u.*, t.nome_completo as tecnico_nome, a.modello as auto_modello, c.ragione_sociale as cliente_nome
+        SELECT u.*, t.nome_completo as tecnico_nome, a.modello as auto_modello
         FROM utilizzi_auto u
         LEFT JOIN tecnici t ON u.tecnico_id = t.id
         LEFT JOIN auto_aziendali a ON u.auto_id = a.id
-        LEFT JOIN clienti c ON u.cliente_id = c.id
         ORDER BY u.data_utilizzo DESC, u.ora_presa DESC
     ")->fetchAll();
 
     // Load CSV data as backup
-    $csvPath = __DIR__ . '/data/input/auto.csv';
+    $csvPath = __DIR__ . '/upload_csv/auto.csv';
     $csvData = [];
     if (file_exists($csvPath)) {
         $csvContent = file_get_contents($csvPath);
@@ -197,8 +206,10 @@ try {
 
     // Get dropdown data
     $tecnici = $pdo->query("SELECT id, nome_completo FROM tecnici WHERE attivo = 1 ORDER BY nome_completo")->fetchAll();
-    $auto = $pdo->query("SELECT id, modello FROM auto_aziendali WHERE attiva = 1 ORDER BY modello")->fetchAll();
-    $clienti = $pdo->query("SELECT id, ragione_sociale FROM clienti WHERE attivo = 1 ORDER BY ragione_sociale")->fetchAll();
+    $auto = $pdo->query("SELECT id, modello FROM auto_aziendali ORDER BY modello")->fetchAll();
+    
+    // Get aziende normalizzate
+    $aziende_clienti = getAziendeNormalizzate();
 
     // Calculate statistics
     $stats = [
@@ -514,25 +525,29 @@ try {
         
         .cell-tooltip .tooltip-content {
             visibility: hidden;
-            position: absolute;
-            z-index: 1000;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #374151;
+            opacity: 0;
+            position: fixed;
+            z-index: 99999;
+            background-color: #1f2937;
             color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
             max-width: 300px;
-            word-wrap: break-word;
+            min-width: 150px;
             white-space: normal;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            word-wrap: break-word;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border: 1px solid #4b5563;
+            line-height: 1.4;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
         }
         
         .cell-tooltip:hover .tooltip-content {
             visibility: visible;
+            opacity: 1;
         }
         
         .cell-tooltip .tooltip-content::after {
@@ -661,14 +676,16 @@ try {
                                 <label class="form-label">Data Utilizzo</label>
                                 <input type="date" class="form-control" name="data_utilizzo" required>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Cliente</label>
-                                <select class="form-select" name="cliente_id" required>
-                                    <option value="">Seleziona cliente...</option>
-                                    <?php foreach ($clienti as $cliente): ?>
-                                        <option value="<?= $cliente['id'] ?>"><?= htmlspecialchars($cliente['ragione_sociale']) ?></option>
+                            <div class="col-md-6">
+                                <label class="form-label">Clienti Visitati <small class="text-muted">(Selezione multipla - più clienti per singolo utilizzo)</small></label>
+                                <select class="form-select" name="clienti[]" multiple required size="4" style="height: auto;">
+                                    <?php foreach ($aziende_clienti as $azienda): ?>
+                                        <option value="<?= htmlspecialchars($azienda) ?>"><?= htmlspecialchars($azienda) ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle"></i> Tieni premuto Ctrl/Cmd per selezionare più aziende
+                                </small>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -791,8 +808,17 @@ try {
                                 <?= $oraRiconsegnaFormatted ?: '<span class="text-muted">-</span>' ?>
                             </td>
                             <td class="text-center">
-                                <?php if (!empty($u['cliente_nome'])): ?>
-                                <span class="badge-client"><?= htmlspecialchars(mb_substr($u['cliente_nome'], 0, 20)) ?></span>
+                                <?php if (!empty($u['clienti'])): ?>
+                                    <?php 
+                                    $clienti_lista = explode(', ', $u['clienti']);
+                                    $clienti_brevi = array_map(function($cliente) {
+                                        return mb_substr($cliente, 0, 15) . (strlen($cliente) > 15 ? '...' : '');
+                                    }, $clienti_lista);
+                                    ?>
+                                    <span class="badge-client cell-tooltip" title="<?= htmlspecialchars($u['clienti']) ?>">
+                                        <?= count($clienti_lista) > 1 ? count($clienti_lista) . ' clienti' : htmlspecialchars($clienti_brevi[0]) ?>
+                                        <div class="tooltip-content"><?= htmlspecialchars($u['clienti']) ?></div>
+                                    </span>
                                 <?php else: ?>
                                 <span class="text-muted">-</span>
                                 <?php endif; ?>
@@ -981,6 +1007,41 @@ try {
                 }, 3000);
             }
 
+            // Enhanced tooltip positioning
+            let currentTooltip = null;
+            
+            $('.cell-tooltip').on('mouseenter', function(e) {
+                const $tooltip = $(this).find('.tooltip-content');
+                currentTooltip = $tooltip[0];
+                
+                // Position tooltip near mouse cursor
+                const updateTooltipPosition = function(event) {
+                    if (currentTooltip) {
+                        const x = event.clientX + 15;
+                        const y = event.clientY - 10;
+                        
+                        // Keep tooltip within viewport
+                        const rect = currentTooltip.getBoundingClientRect();
+                        const maxX = window.innerWidth - rect.width - 20;
+                        const maxY = window.innerHeight - rect.height - 20;
+                        
+                        $(currentTooltip).css({
+                            left: Math.min(x, maxX) + 'px',
+                            top: Math.max(20, Math.min(y, maxY)) + 'px'
+                        });
+                    }
+                };
+                
+                // Initial position
+                updateTooltipPosition(e);
+                
+                // Update position on mouse move
+                $(this).on('mousemove.tooltip', updateTooltipPosition);
+            }).on('mouseleave', function() {
+                $(this).off('mousemove.tooltip');
+                currentTooltip = null;
+            });
+
             // Form submission
             $('#autoForm').on('submit', function(e) {
                 e.preventDefault();
@@ -1016,9 +1077,16 @@ try {
             $('[name="tecnico_id"]').val(utilizzo.tecnico_id);
             $('[name="auto_id"]').val(utilizzo.auto_id);
             $('[name="data_utilizzo"]').val(utilizzo.data_utilizzo);
-            $('[name="cliente_id"]').val(utilizzo.cliente_id);
             $('[name="id"]').val(utilizzo.id);
             $('[name="action"]').val('update');
+            
+            // Gestisci selezione multipla clienti per modifica
+            if (utilizzo.clienti) {
+                const clientiArray = utilizzo.clienti.split(', ');
+                $('[name="clienti[]"]').val(clientiArray);
+            } else {
+                $('[name="clienti[]"]').val([]);
+            }
             
             if (utilizzo.ora_presa) {
                 $('[name="ora_presa"]').val(utilizzo.ora_presa.replace(' ', 'T'));
