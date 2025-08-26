@@ -45,9 +45,7 @@ function loadDashboardData() {
                 'attivita_oggi' => 0,
                 'alert_attivi' => 0,
                 'coverage_percentage' => 0
-            ],
-            'recent_alerts' => [],
-            'tecnici_stats' => []
+            ]
         ];
     }
     
@@ -109,41 +107,8 @@ function loadDashboardData() {
         $kpis['coverage_percentage'] = $kpis['tecnici_attivi'] > 0 ? 
             round(($tecnici_con_attivita / $kpis['tecnici_attivi']) * 100) : 0;
         
-        // Alert recenti (ultimi 10)
-        $stmt = $pdo->prepare("
-            SELECT aa.*, t.nome_completo as tecnico_nome,
-                   DATE(aa.created_at) as alert_date,
-                   TIME(aa.created_at) as alert_time
-            FROM audit_alerts aa
-            LEFT JOIN technician_daily_analysis tda ON aa.daily_analysis_id = tda.id
-            LEFT JOIN tecnici t ON tda.tecnico_id = t.id
-            WHERE aa.status = 'new'
-            ORDER BY aa.created_at DESC
-            LIMIT 10
-        ");
-        $stmt->execute();
-        $recent_alerts = $stmt->fetchAll();
-        
-        // Stats per tecnico
-        $stmt = $pdo->prepare("
-            SELECT t.nome_completo, t.id,
-                   COUNT(tda.id) as analisi_count,
-                   AVG(tda.quality_score) as avg_quality,
-                   COUNT(aa.id) as alert_count
-            FROM tecnici t
-            LEFT JOIN technician_daily_analysis tda ON t.id = tda.tecnico_id AND DATE(tda.created_at) >= CURDATE() - INTERVAL 7 DAY
-            LEFT JOIN audit_alerts aa ON tda.id = aa.daily_analysis_id AND aa.status = 'new'
-            WHERE t.attivo = 1
-            GROUP BY t.id, t.nome_completo
-            ORDER BY t.nome_completo
-        ");
-        $stmt->execute();
-        $tecnici_stats = $stmt->fetchAll();
-        
         return [
-            'kpis' => $kpis,
-            'recent_alerts' => $recent_alerts,
-            'tecnici_stats' => $tecnici_stats
+            'kpis' => $kpis
         ];
         
     } catch (Exception $e) {
@@ -154,9 +119,7 @@ function loadDashboardData() {
                 'attivita_oggi' => 0,
                 'alert_attivi' => 0,
                 'coverage_percentage' => 0
-            ],
-            'recent_alerts' => [],
-            'tecnici_stats' => []
+            ]
         ];
     }
 }
@@ -459,7 +422,7 @@ $isConnected = getDatabase() !== null;
                                 </a>
                             </div>
                             <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/index.php" target="_blank" class="btn btn-outline-info w-100 py-3">
+                                <a href="/controlli/upload_csv_simple.php" class="btn btn-outline-info w-100 py-3">
                                     <i class="bi bi-cloud-upload fs-4 d-block mb-1"></i>
                                     <small>Carica File</small>
                                 </a>
@@ -534,96 +497,6 @@ $isConnected = getDatabase() !== null;
             </div>
         </div>
         
-        <div class="row g-4">
-            <!-- Alert Recenti -->
-            <div class="col-lg-6">
-                <div class="card section-card">
-                    <div class="card-header bg-white border-bottom-0 py-3">
-                        <h5 class="mb-0">
-                            <i class="bi bi-bell text-warning me-2"></i>
-                            Alert Recenti
-                            <span class="badge bg-secondary ms-2" id="alertDateRange">Tutti</span>
-                        </h5>
-                    </div>
-                    <div class="card-body" id="alertRecentiContent">
-                        <?php if (empty($data['recent_alerts'])): ?>
-                        <div class="text-center py-4 text-muted">
-                            <i class="bi bi-check-circle-fill text-success fs-3 mb-2"></i>
-                            <p class="mb-0">Nessun alert attivo</p>
-                            <small>Sistema funzionando regolarmente</small>
-                        </div>
-                        <?php else: ?>
-                        <div class="overflow-auto" style="max-height: 400px;">
-                            <?php foreach ($data['recent_alerts'] as $alert): ?>
-                            <div class="alert-item alert-<?= strtolower($alert['severita']) ?>">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1"><?= htmlspecialchars($alert['titolo']) ?></h6>
-                                        <p class="mb-1 small text-muted"><?= htmlspecialchars($alert['descrizione']) ?></p>
-                                        <div class="d-flex align-items-center small text-muted">
-                                            <i class="bi bi-person me-1"></i>
-                                            <?= htmlspecialchars($alert['tecnico_nome'] ?? 'Sistema') ?>
-                                            <span class="mx-2">•</span>
-                                            <i class="bi bi-clock me-1"></i>
-                                            <?= $alert['alert_time'] ?>
-                                        </div>
-                                    </div>
-                                    <span class="badge <?= getSeverityBadge($alert['severita']) ?>">
-                                        <?= ucfirst($alert['severita']) ?>
-                                    </span>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Statistiche Tecnici -->
-            <div class="col-lg-6">
-                <div class="card section-card">
-                    <div class="card-header bg-white border-bottom-0 py-3">
-                        <h5 class="mb-0">
-                            <i class="bi bi-people text-primary me-2"></i>
-                            Statistiche Tecnici
-                            <span class="badge bg-secondary ms-2" id="statsDateRange">Tutti</span>
-                        </h5>
-                    </div>
-                    <div class="card-body" id="statisticheTecniciContent">
-                        <div class="overflow-auto" style="max-height: 400px;">
-                            <?php foreach ($data['tecnici_stats'] as $tecnico): ?>
-                            <div class="tech-stat mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-1"><?= htmlspecialchars($tecnico['nome_completo']) ?></h6>
-                                        <div class="d-flex align-items-center small text-muted">
-                                            <span>Analisi: <?= $tecnico['analisi_count'] ?></span>
-                                            <span class="mx-2">•</span>
-                                            <span>Alert: <?= $tecnico['alert_count'] ?></span>
-                                        </div>
-                                    </div>
-                                    <div class="text-end">
-                                        <?php if ($tecnico['avg_quality']): ?>
-                                        <span class="badge <?= getQualityBadge($tecnico['avg_quality']) ?>">
-                                            <?= round($tecnico['avg_quality']) ?>%
-                                        </span>
-                                        <?php endif; ?>
-                                        <div class="small text-muted mt-1">
-                                            <a href="/controlli/audit_tecnico_dashboard.php?tecnico=<?= $tecnico['id'] ?>" 
-                                               class="text-decoration-none">
-                                                <i class="bi bi-arrow-right-circle"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -786,104 +659,6 @@ $isConnected = getDatabase() !== null;
             // Lo spinner verrà sostituito dai dati aggiornati
         }
         
-        // Aggiorna sezione Alert Recenti
-        function updateAlertRecenti(alerts) {
-            const content = document.getElementById('alertRecentiContent');
-            
-            if (alerts.length === 0) {
-                content.innerHTML = `
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-check-circle-fill text-success fs-3 mb-2"></i>
-                        <p class="mb-0">Nessun alert nel periodo selezionato</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            alerts.forEach(alert => {
-                const priorityClass = {
-                    'CRITICO': 'alert-critical',
-                    'ALTO': 'alert-high',
-                    'MEDIO': 'alert-medium',
-                    'BASSO': 'alert-low'
-                }[alert.priority] || 'alert-medium';
-                
-                html += `
-                    <div class="alert-item ${priorityClass}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1">${alert.title || 'Alert'}</h6>
-                                <p class="mb-1 text-muted small">${alert.description || ''}</p>
-                                <small class="text-muted">
-                                    <i class="bi bi-calendar me-1"></i>${alert.date || ''}
-                                    <i class="bi bi-person-fill ms-2 me-1"></i>${alert.tecnico || ''}
-                                </small>
-                            </div>
-                            <span class="badge bg-${alert.priority === 'CRITICO' ? 'danger' : alert.priority === 'ALTO' ? 'warning' : 'primary'} ms-2">
-                                ${alert.priority || 'MEDIO'}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            content.innerHTML = html;
-        }
-        
-        // Aggiorna sezione Statistiche Tecnici
-        function updateStatisticheTecnici(stats) {
-            const content = document.getElementById('statisticheTecniciContent');
-            
-            if (stats.length === 0) {
-                content.innerHTML = `
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-people-fill fs-3 mb-2"></i>
-                        <p class="mb-0">Nessuna statistica nel periodo selezionato</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '<div class="overflow-auto" style="max-height: 400px;">';
-            stats.forEach(tecnico => {
-                html += `
-                    <div class="tech-stat mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">${tecnico.nome_completo || 'Tecnico'}</h6>
-                                <div class="row text-center">
-                                    <div class="col-4">
-                                        <small class="text-muted d-block">Ore</small>
-                                        <strong class="text-primary">${tecnico.ore_lavorate || 0}</strong>
-                                    </div>
-                                    <div class="col-4">
-                                        <small class="text-muted d-block">Attività</small>
-                                        <strong class="text-success">${tecnico.numero_attivita || 0}</strong>
-                                    </div>
-                                    <div class="col-4">
-                                        <small class="text-muted d-block">Clienti</small>
-                                        <strong class="text-info">${tecnico.clienti_unici || 0}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <span class="status-${tecnico.status || 'offline'}">
-                                    <i class="bi bi-circle-fill"></i>
-                                </span>
-                                <div class="mt-1">
-                                    <small class="text-muted">Efficienza</small>
-                                    <div><strong class="text-primary">${tecnico.efficienza || 0}%</strong></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            
-            content.innerHTML = html;
-        }
         
         // Event listeners per aggiornamento automatico display date
         document.addEventListener('DOMContentLoaded', function() {

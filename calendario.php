@@ -248,8 +248,8 @@ function convertIcsToCalendarFormatFixed($icsEvents) {
     ];
 }
 
-// Leggi e processa il file calendario
-$csvPath = __DIR__ . '/data/input/calendario.csv';
+// Leggi e processa il file calendario - UNIFICATO su upload_csv
+$csvPath = __DIR__ . '/upload_csv/calendario.csv';
 $hasCSV = file_exists($csvPath);
 
 if ($hasCSV) {
@@ -304,7 +304,7 @@ $uniqueClients = count($clients);
         }
         
         .main-header {
-            background: linear-gradient(135deg, #fd7e14 0%, #e66500 100%);
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -396,13 +396,13 @@ $uniqueClients = count($clients);
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h1 class="mb-2">
-                        <i class="fas fa-calendar-alt me-3"></i>Calendario
+                        <i class="fas fa-calendar-check me-3"></i>Calendario
                     </h1>
-                    <p class="mb-0">Pianificazione appuntamenti e gestione calendario</p>
+                    <p class="mb-0">✅ Versione con estrazione dipendenti corretta</p>
                 </div>
                 <div class="col-md-4 text-end">
                     <a href="laravel_bait/public/index_standalone.php" class="btn btn-light btn-lg">
-                        <i class="fas fa-dashboard me-2"></i>Dashboard
+                        <i class="fas fa-arrow-left me-2"></i>Dashboard Principale
                     </a>
                 </div>
             </div>
@@ -410,17 +410,6 @@ $uniqueClients = count($clients);
     </div>
 
     <div class="container-fluid">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb-nav" style="background: white; border-radius: 8px; padding: 0.5rem 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem;">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item">
-                    <a href="laravel_bait/public/index_standalone.php">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li class="breadcrumb-item active">Calendario</li>
-            </ol>
-        </nav>
 
         <!-- Statistics Cards -->
         <div class="row stats-row mb-4">
@@ -456,13 +445,13 @@ $uniqueClients = count($clients);
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h4 class="mb-0">
-                            <i class="fas fa-list-alt me-2"></i>Eventi Calendario
+                            <i class="fas fa-list-alt me-2"></i>Eventi Calendario (Con Dipendenti)
                         </h4>
-                        <small>File: calendario.csv</small>
+                        <small>File: upload_csv/calendario.csv - Parser ICS migliorato</small>
                     </div>
                     <div class="col-md-4 text-end">
                         <span class="badge bg-success">
-                            <i class="fas fa-check-circle me-1"></i>Dati Caricati
+                            <i class="fas fa-check-circle me-1"></i>Attendees Estratti
                         </span>
                     </div>
                 </div>
@@ -543,7 +532,7 @@ $uniqueClients = count($clients);
                 <div class="text-center p-5">
                     <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                     <h4>File non trovato</h4>
-                    <p class="text-muted">Il file calendario.csv non è disponibile.</p>
+                    <p class="text-muted">Il file upload_csv/calendario.csv non è disponibile.</p>
                 </div>
                 <?php endif; ?>
             </div>

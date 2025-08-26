@@ -138,13 +138,68 @@ function readCSVFile($filepath) {
     ];
 }
 
-$csvPath = __DIR__ . '/data/input/timbrature.csv';
+$csvPath = __DIR__ . '/upload_csv/timbrature.csv';
 $hasCSV = file_exists($csvPath);
 $csvData = $hasCSV ? readCSVFile($csvPath) : ['headers' => [], 'data' => [], 'excluded_columns' => []];
 $totalRecords = count($csvData['data']);
 
-// Calcola statistiche
-$totalHours = 0;
+// Database configuration
+$config = [
+    'host' => 'localhost',
+    'port' => 3306,
+    'database' => 'bait_service_real',
+    'username' => 'root',
+    'password' => '',
+    'charset' => 'utf8mb4'
+];
+
+// Database connection
+function getDatabase() {
+    global $config;
+    try {
+        $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
+        $pdo = new PDO($dsn, $config['username'], $config['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+        ]);
+        return $pdo;
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+// Try to load data from database first
+$pdo = getDatabase();
+$dbHours = 0;
+$hasDbData = false;
+
+if ($pdo) {
+    try {
+        $stmt = $pdo->query("
+            SELECT 
+                COUNT(*) as total_timbrature,
+                SUM(ore_lavorate) as totale_ore_lavorate,
+                COUNT(DISTINCT tecnico_id) as tecnici_unici,
+                COUNT(DISTINCT cliente_id) as clienti_unici
+            FROM timbrature 
+            WHERE ore_lavorate IS NOT NULL AND ore_lavorate > 0
+        ");
+        
+        $dbStats = $stmt->fetch();
+        if ($dbStats && $dbStats['total_timbrature'] > 0) {
+            $dbHours = floatval($dbStats['totale_ore_lavorate']);
+            $hasDbData = true;
+            $totalRecords = $dbStats['total_timbrature'];
+        }
+    } catch (Exception $e) {
+        // Database error, will use CSV calculation
+        $dbError = $e->getMessage();
+    }
+}
+
+// Calcola statistiche (da database se disponibile, altrimenti da CSV)
+$totalHours = $hasDbData ? $dbHours : 0;
 $employees = [];
 $clients = [];
 
@@ -197,7 +252,7 @@ $uniqueClients = count($clients);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⏰ Timbrature - Vista Semplificata</title>
+    <title>⏰ Timbrature - BAIT Service</title>
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -209,6 +264,9 @@ $uniqueClients = count($clients);
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- BAIT Tooltip System -->
+    <link href="/controlli/assets/css/bait-tooltips.css" rel="stylesheet">
     
     <style>
         body {
@@ -383,33 +441,6 @@ $uniqueClients = count($clients);
             margin-bottom: 1rem;
         }
         
-        .cell-tooltip {
-            position: relative;
-            overflow: visible;
-        }
-        
-        .cell-tooltip .tooltip-content {
-            visibility: hidden;
-            position: absolute;
-            z-index: 1000;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #374151;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            max-width: 300px;
-            word-wrap: break-word;
-            white-space: normal;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .cell-tooltip:hover .tooltip-content {
-            visibility: visible;
-        }
         
         .filter-info {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
@@ -444,7 +475,7 @@ $uniqueClients = count($clients);
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h1 class="mb-2">
-                        <i class="fas fa-clock me-3"></i>Timbrature Semplificate
+                        <i class="fas fa-clock me-3"></i>Timbrature
                     </h1>
                     <p class="mb-0">Visualizzazione ottimizzata senza colonne ridondanti</p>
                 </div>
@@ -586,8 +617,7 @@ $uniqueClients = count($clients);
                                                 $initials .= mb_strtoupper(mb_substr($word, 0, 1));
                                             }
                                         }
-                                        $cellData = '<span class="badge-employee cell-tooltip" title="' . htmlspecialchars($employeeName) . '">' . $initials . '<div class="tooltip-content">' . htmlspecialchars($employeeName) . '</div></span>';
-                                        $hasTooltip = true;
+                                        $cellData = '<span class="badge-employee" data-bs-toggle="tooltip" data-bs-title="' . htmlspecialchars($employeeName) . '">' . $initials . '</span>';
                                     } else {
                                         $cellData = '<span class="text-muted">-</span>';
                                     }
@@ -699,11 +729,8 @@ $uniqueClients = count($clients);
                                     }
                                 }
                             ?>
-                            <td class="<?= $cellClass ?> <?= $hasTooltip ? 'cell-tooltip' : '' ?>" data-header="<?= htmlspecialchars($header) ?>">
+                            <td class="<?= $cellClass ?>" <?= $hasTooltip ? 'data-bs-toggle="tooltip" data-bs-title="' . $tooltipContent . '"' : '' ?> data-header="<?= htmlspecialchars($header) ?>">
                                 <?= $cellData ?>
-                                <?php if ($hasTooltip && !empty($tooltipContent)): ?>
-                                <div class="tooltip-content"><?= $tooltipContent ?></div>
-                                <?php endif; ?>
                             </td>
                             <?php endforeach; ?>
                         </tr>
@@ -732,6 +759,9 @@ $uniqueClients = count($clients);
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    
+    <!-- BAIT Tooltip System -->
+    <script src="/controlli/assets/js/bait-tooltips.js"></script>
 
     <script>
         $(document).ready(function() {
