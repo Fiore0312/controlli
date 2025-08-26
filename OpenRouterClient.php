@@ -13,25 +13,42 @@
 class OpenRouterClient {
     private $apiKey;
     private $baseUrl = 'https://openrouter.ai/api/v1';
-    private $model = 'z-ai/glm-4.5-air:free';
-    private $maxTokens = 4000;
-    private $temperature = 0.7;
+    private $model = 'meta-llama/llama-3.2-1b-instruct:free';
+    private $maxTokens = 2000; // Reduced for faster responses
+    private $temperature = 0.3; // Lower temperature for faster, more focused responses
     private $pdo;
     
-    public function __construct($apiKey, $pdo = null) {
+    public function __construct($apiKey, $pdo = null, $model = null) {
         if (empty($apiKey)) {
             throw new Exception('OpenRouter API key is required');
         }
         
         $this->apiKey = $apiKey;
         $this->pdo = $pdo;
+        if ($model) {
+            $this->model = $model;
+        }
     }
     
     /**
-     * Send a chat completion request to OpenRouter
+     * Send a chat completion request to OpenRouter with caching
      */
     public function chat($messages, $systemPrompt = null) {
         try {
+            // Check cache first for identical requests
+            $cacheKey = md5(serialize([$messages, $systemPrompt, $this->model]));
+            $cachedResponse = $this->getCachedResponse($cacheKey);
+            
+            if ($cachedResponse) {
+                return [
+                    'success' => true,
+                    'content' => $cachedResponse['content'],
+                    'usage' => $cachedResponse['usage'],
+                    'model' => $this->model,
+                    'cached' => true
+                ];
+            }
+            
             // Prepare messages array
             $formattedMessages = [];
             
@@ -52,10 +69,21 @@ class OpenRouterClient {
                 $formattedMessages = array_merge($formattedMessages, $messages);
             }
             
+            // Calculate input length and adjust max_tokens if needed
+            $inputLength = strlen(json_encode($formattedMessages));
+            $adjustedMaxTokens = $this->maxTokens;
+            
+            // Reduce max_tokens for very long inputs to avoid timeouts
+            if ($inputLength > 50000) {
+                $adjustedMaxTokens = 2000;
+            } elseif ($inputLength > 20000) {
+                $adjustedMaxTokens = 3000;
+            }
+            
             $payload = [
                 'model' => $this->model,
                 'messages' => $formattedMessages,
-                'max_tokens' => $this->maxTokens,
+                'max_tokens' => $adjustedMaxTokens,
                 'temperature' => $this->temperature,
                 'stream' => false
             ];
@@ -63,11 +91,18 @@ class OpenRouterClient {
             $response = $this->makeRequest('/chat/completions', $payload);
             
             if (isset($response['choices'][0]['message']['content'])) {
+                $content = $response['choices'][0]['message']['content'];
+                $usage = $response['usage'] ?? null;
+                
+                // Cache the response for future use
+                $this->cacheResponse($cacheKey, ['content' => $content, 'usage' => $usage]);
+                
                 return [
                     'success' => true,
-                    'content' => $response['choices'][0]['message']['content'],
-                    'usage' => $response['usage'] ?? null,
-                    'model' => $this->model
+                    'content' => $content,
+                    'usage' => $usage,
+                    'model' => $this->model,
+                    'cached' => false
                 ];
             }
             
@@ -147,53 +182,37 @@ class OpenRouterClient {
     }
     
     /**
-     * Build system prompt for file analysis
+     * Build system prompt for file analysis (optimized for speed)
      */
     private function buildFileAnalysisPrompt($fileName, $fileType, $context) {
-        $basePrompt = "You are an expert BAIT Service Enterprise system analyst. ";
-        $basePrompt .= "You're analyzing a {$fileType} file named {$fileName}. ";
-        $basePrompt .= "Provide precise, actionable insights focusing on business value and technical accuracy. ";
-        
-        if (!empty($context)) {
-            $basePrompt .= "Context: " . implode(', ', $context) . ". ";
-        }
+        $basePrompt = "You are a BAIT Service analyst. Analyze {$fileName} ({$fileType}). ";
         
         switch ($fileType) {
             case 'php':
-                $basePrompt .= "Focus on code logic, security issues, performance bottlenecks, and integration points. ";
+                $basePrompt .= "Focus: code logic, security, performance. ";
                 break;
             case 'sql':
-                $basePrompt .= "Analyze database queries, performance, data integrity, and optimization opportunities. ";
+                $basePrompt .= "Focus: query performance, data integrity. ";
                 break;
             case 'csv':
-                $basePrompt .= "Examine data patterns, anomalies, missing values, and business insights. ";
-                break;
-            case 'html':
-            case 'css':
-            case 'js':
-                $basePrompt .= "Review UI/UX implementation, accessibility, and user experience optimization. ";
+                $basePrompt .= "Focus: data patterns, anomalies, business insights. ";
                 break;
             default:
-                $basePrompt .= "Provide comprehensive analysis based on file content and business context. ";
+                $basePrompt .= "Focus: key issues and optimization opportunities. ";
         }
         
-        $basePrompt .= "Always provide specific, actionable recommendations.";
+        $basePrompt .= "Be concise and actionable.";
         
         return $basePrompt;
     }
     
     /**
-     * Build system prompt for database queries
+     * Build system prompt for database queries (optimized for speed)
      */
     private function buildDatabaseQueryPrompt($context) {
-        $prompt = "You are a BAIT Service Enterprise database analyst. ";
-        $prompt .= "You understand MySQL databases and the BAIT business domain (technician activities, alerts, timbratures, clients). ";
-        $prompt .= "When asked about data, provide SQL queries and explain insights in business terms. ";
-        $prompt .= "Focus on: technician productivity, alert patterns, time tracking accuracy, client service quality. ";
-        
-        if (!empty($context)) {
-            $prompt .= "Additional context: " . implode(', ', $context) . ". ";
-        }
+        $prompt = "You are a BAIT Service database analyst. ";
+        $prompt .= "Focus: technician productivity, alerts, timbratures, clients. ";
+        $prompt .= "Provide SQL queries and business insights. Be concise.";
         
         return $prompt;
     }
@@ -263,9 +282,9 @@ class OpenRouterClient {
     }
     
     /**
-     * Make HTTP request to OpenRouter API
+     * Make HTTP request to OpenRouter API with retry logic
      */
-    private function makeRequest($endpoint, $data) {
+    private function makeRequest($endpoint, $data, $retries = 2) {
         $url = $this->baseUrl . $endpoint;
         
         $headers = [
@@ -275,38 +294,52 @@ class OpenRouterClient {
             'X-Title: BAIT Service Enterprise'
         ];
         
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_USERAGENT => 'BAIT-Service-Enterprise/1.0'
-        ]);
+        $lastError = null;
         
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-        
-        if ($error) {
-            throw new Exception('cURL Error: ' . $error);
+        for ($attempt = 0; $attempt <= $retries; $attempt++) {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($data),
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_TIMEOUT => 120,
+                CURLOPT_CONNECTTIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_USERAGENT => 'BAIT-Service-Enterprise/1.0',
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 3
+            ]);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            // Success case
+            if (!$error && $httpCode === 200) {
+                $decoded = json_decode($response, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    return $decoded;
+                }
+                $lastError = 'Invalid JSON response: ' . json_last_error_msg();
+            }
+            // Error cases
+            else if ($error) {
+                $lastError = 'cURL Error: ' . $error;
+            } else {
+                $lastError = 'HTTP Error ' . $httpCode . ': ' . $response;
+            }
+            
+            // Wait before retry (exponential backoff)
+            if ($attempt < $retries) {
+                sleep(pow(2, $attempt)); // 1s, 2s, 4s delays
+            }
         }
         
-        if ($httpCode !== 200) {
-            throw new Exception('HTTP Error ' . $httpCode . ': ' . $response);
-        }
-        
-        $decoded = json_decode($response, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Invalid JSON response: ' . json_last_error_msg());
-        }
-        
-        return $decoded;
+        // All retries failed
+        throw new Exception($lastError . ' (after ' . ($retries + 1) . ' attempts)');
     }
     
     /**
@@ -335,6 +368,40 @@ class OpenRouterClient {
             'max_tokens' => $this->maxTokens,
             'temperature' => $this->temperature
         ];
+    }
+    
+    /**
+     * Get cached response if available
+     */
+    private function getCachedResponse($cacheKey) {
+        $cacheFile = sys_get_temp_dir() . '/bait_llm_cache_' . $cacheKey;
+        
+        if (file_exists($cacheFile)) {
+            $cacheData = json_decode(file_get_contents($cacheFile), true);
+            
+            // Check if cache is still valid (15 minutes)
+            if (isset($cacheData['timestamp']) && (time() - $cacheData['timestamp']) < 900) {
+                return $cacheData['response'];
+            } else {
+                // Clean expired cache
+                unlink($cacheFile);
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Cache response for future use
+     */
+    private function cacheResponse($cacheKey, $response) {
+        $cacheFile = sys_get_temp_dir() . '/bait_llm_cache_' . $cacheKey;
+        $cacheData = [
+            'timestamp' => time(),
+            'response' => $response
+        ];
+        
+        file_put_contents($cacheFile, json_encode($cacheData));
     }
 }
 ?>

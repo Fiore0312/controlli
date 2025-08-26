@@ -197,7 +197,8 @@ try {
                     'ai_response' => $result['content'],
                     'response_time' => $responseTime,
                     'tokens_used' => $result['usage']['total_tokens'] ?? 0,
-                    'model' => $result['model']
+                    'model' => $result['model'],
+                    'cached' => $result['cached'] ?? false
                 ];
             } else {
                 throw new Exception($result['error']);

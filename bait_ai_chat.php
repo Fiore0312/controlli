@@ -91,9 +91,31 @@ try {
     if (($_POST['action'] ?? '') === 'change_model' && !empty($_POST['selected_model'])) {
         $newModel = $_POST['selected_model'];
         $_SESSION['selected_model'] = $newModel;
+        
+        // Get model display name
+        $modelNames = [
+            'meta-llama/llama-3.2-1b-instruct:free' => 'Llama 3.2 1B (Veloce) 🚀',
+            'microsoft/phi-3-mini-4k-instruct:free' => 'Phi-3 Mini (Veloce) 🚀',
+            'deepseek/deepseek-r1-0528:free' => 'DeepSeek R1 (Potente) ⭐',
+            'z-ai/glm-4.5-air:free' => 'GLM-4.5-Air',
+            'google/gemini-flash-1.5' => 'Gemini Flash 1.5',
+            'microsoft/phi-3-medium-4k-instruct:free' => 'Phi-3 Medium', 
+            'meta-llama/llama-3.2-3b-instruct:free' => 'Llama 3.2 3B',
+            'mistralai/mistral-7b-instruct:free' => 'Mistral 7B',
+            'huggingfaceh4/zephyr-7b-beta:free' => 'Zephyr 7B',
+            'anthropic/claude-3.5-sonnet' => 'Claude 3.5 Sonnet',
+            'openai/gpt-4o' => 'GPT-4o',
+            'meta-llama/llama-3.1-70b-instruct' => 'Llama 3.1 70B',
+            'mistralai/mistral-large' => 'Mistral Large'
+        ];
+        
         $chatResponse = [
             'type' => 'success',
-            'message' => 'Modello cambiato con successo a: ' . $newModel,
+            'message' => 'Modello cambiato con successo a: ' . ($modelNames[$newModel] ?? $newModel),
+            'model_info' => [
+                'model' => $newModel,
+                'provider' => 'OpenRouter'
+            ]
         ];
     }
     
@@ -500,12 +522,25 @@ try {
                             </label>
                             <select class="form-select" id="selected_model" name="selected_model">
                                 <?php $currentModel = $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free'; ?>
-                                <option value="z-ai/glm-4.5-air:free" <?= $currentModel === 'z-ai/glm-4.5-air:free' ? 'selected' : '' ?>>GLM-4.5-Air (Gratuito)</option>
-                                <option value="google/gemini-flash-1.5" <?= $currentModel === 'google/gemini-flash-1.5' ? 'selected' : '' ?>>Gemini Flash 1.5</option>
-                                <option value="anthropic/claude-3.5-sonnet" <?= $currentModel === 'anthropic/claude-3.5-sonnet' ? 'selected' : '' ?>>Claude 3.5 Sonnet</option>
-                                <option value="openai/gpt-4o" <?= $currentModel === 'openai/gpt-4o' ? 'selected' : '' ?>>GPT-4o</option>
-                                <option value="meta-llama/llama-3.1-70b-instruct" <?= $currentModel === 'meta-llama/llama-3.1-70b-instruct' ? 'selected' : '' ?>>Llama 3.1 70B</option>
-                                <option value="mistralai/mistral-large" <?= $currentModel === 'mistralai/mistral-large' ? 'selected' : '' ?>>Mistral Large</option>
+                                <optgroup label="⚡ Modelli Veloci (Raccomandati)">
+                                    <option value="meta-llama/llama-3.2-1b-instruct:free" <?= $currentModel === 'meta-llama/llama-3.2-1b-instruct:free' ? 'selected' : '' ?>>Llama 3.2 1B (Veloce) 🚀</option>
+                                    <option value="microsoft/phi-3-mini-4k-instruct:free" <?= $currentModel === 'microsoft/phi-3-mini-4k-instruct:free' ? 'selected' : '' ?>>Phi-3 Mini (Veloce) 🚀</option>
+                                </optgroup>
+                                <optgroup label="🆓 Modelli Standard">
+                                    <option value="deepseek/deepseek-r1-0528:free" <?= $currentModel === 'deepseek/deepseek-r1-0528:free' ? 'selected' : '' ?>>DeepSeek R1 (Potente) ⭐</option>
+                                    <option value="z-ai/glm-4.5-air:free" <?= $currentModel === 'z-ai/glm-4.5-air:free' ? 'selected' : '' ?>>GLM-4.5-Air</option>
+                                    <option value="microsoft/phi-3-medium-4k-instruct:free" <?= $currentModel === 'microsoft/phi-3-medium-4k-instruct:free' ? 'selected' : '' ?>>Phi-3 Medium</option>
+                                    <option value="meta-llama/llama-3.2-3b-instruct:free" <?= $currentModel === 'meta-llama/llama-3.2-3b-instruct:free' ? 'selected' : '' ?>>Llama 3.2 3B</option>
+                                    <option value="mistralai/mistral-7b-instruct:free" <?= $currentModel === 'mistralai/mistral-7b-instruct:free' ? 'selected' : '' ?>>Mistral 7B</option>
+                                    <option value="huggingfaceh4/zephyr-7b-beta:free" <?= $currentModel === 'huggingfaceh4/zephyr-7b-beta:free' ? 'selected' : '' ?>>Zephyr 7B</option>
+                                </optgroup>
+                                <optgroup label="💰 Modelli Premium">
+                                    <option value="google/gemini-flash-1.5" <?= $currentModel === 'google/gemini-flash-1.5' ? 'selected' : '' ?>>Gemini Flash 1.5</option>
+                                    <option value="anthropic/claude-3.5-sonnet" <?= $currentModel === 'anthropic/claude-3.5-sonnet' ? 'selected' : '' ?>>Claude 3.5 Sonnet</option>
+                                    <option value="openai/gpt-4o" <?= $currentModel === 'openai/gpt-4o' ? 'selected' : '' ?>>GPT-4o</option>
+                                    <option value="meta-llama/llama-3.1-70b-instruct" <?= $currentModel === 'meta-llama/llama-3.1-70b-instruct' ? 'selected' : '' ?>>Llama 3.1 70B</option>
+                                    <option value="mistralai/mistral-large" <?= $currentModel === 'mistralai/mistral-large' ? 'selected' : '' ?>>Mistral Large</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="col-12">
@@ -531,7 +566,9 @@ try {
         <div class="alert alert-success alert-dismissible fade show api-success">
             <i class="bi bi-check-circle me-2"></i>
             <strong>Successo!</strong> <?= htmlspecialchars($chatResponse['message']) ?>
+            <?php if (isset($chatResponse['model_info'])): ?>
             <br><small>Modello: <?= htmlspecialchars($chatResponse['model_info']['model']) ?> | Provider: <?= htmlspecialchars($chatResponse['model_info']['provider']) ?></small>
+            <?php endif; ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <?php endif; ?>
@@ -682,12 +719,25 @@ try {
                         <div class="input-group">
                             <select class="form-select" name="selected_model" id="currentModel" onchange="changeModel()">
                                 <?php $currentModel = $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free'; ?>
-                                <option value="z-ai/glm-4.5-air:free" <?= $currentModel === 'z-ai/glm-4.5-air:free' ? 'selected' : '' ?>>GLM-4.5-Air (Free)</option>
-                                <option value="google/gemini-flash-1.5" <?= $currentModel === 'google/gemini-flash-1.5' ? 'selected' : '' ?>>Gemini Flash 1.5</option>
-                                <option value="anthropic/claude-3.5-sonnet" <?= $currentModel === 'anthropic/claude-3.5-sonnet' ? 'selected' : '' ?>>Claude 3.5 Sonnet</option>
-                                <option value="openai/gpt-4o" <?= $currentModel === 'openai/gpt-4o' ? 'selected' : '' ?>>GPT-4o</option>
-                                <option value="meta-llama/llama-3.1-70b-instruct" <?= $currentModel === 'meta-llama/llama-3.1-70b-instruct' ? 'selected' : '' ?>>Llama 3.1 70B</option>
-                                <option value="mistralai/mistral-large" <?= $currentModel === 'mistralai/mistral-large' ? 'selected' : '' ?>>Mistral Large</option>
+                                <optgroup label="⚡ Modelli Veloci (Raccomandati)">
+                                    <option value="meta-llama/llama-3.2-1b-instruct:free" <?= $currentModel === 'meta-llama/llama-3.2-1b-instruct:free' ? 'selected' : '' ?>>Llama 3.2 1B (Veloce) 🚀</option>
+                                    <option value="microsoft/phi-3-mini-4k-instruct:free" <?= $currentModel === 'microsoft/phi-3-mini-4k-instruct:free' ? 'selected' : '' ?>>Phi-3 Mini (Veloce) 🚀</option>
+                                </optgroup>
+                                <optgroup label="🆓 Modelli Standard">
+                                    <option value="deepseek/deepseek-r1-0528:free" <?= $currentModel === 'deepseek/deepseek-r1-0528:free' ? 'selected' : '' ?>>DeepSeek R1 (Potente) ⭐</option>
+                                    <option value="z-ai/glm-4.5-air:free" <?= $currentModel === 'z-ai/glm-4.5-air:free' ? 'selected' : '' ?>>GLM-4.5-Air</option>
+                                    <option value="microsoft/phi-3-medium-4k-instruct:free" <?= $currentModel === 'microsoft/phi-3-medium-4k-instruct:free' ? 'selected' : '' ?>>Phi-3 Medium</option>
+                                    <option value="meta-llama/llama-3.2-3b-instruct:free" <?= $currentModel === 'meta-llama/llama-3.2-3b-instruct:free' ? 'selected' : '' ?>>Llama 3.2 3B</option>
+                                    <option value="mistralai/mistral-7b-instruct:free" <?= $currentModel === 'mistralai/mistral-7b-instruct:free' ? 'selected' : '' ?>>Mistral 7B</option>
+                                    <option value="huggingfaceh4/zephyr-7b-beta:free" <?= $currentModel === 'huggingfaceh4/zephyr-7b-beta:free' ? 'selected' : '' ?>>Zephyr 7B</option>
+                                </optgroup>
+                                <optgroup label="💰 Modelli Premium">
+                                    <option value="google/gemini-flash-1.5" <?= $currentModel === 'google/gemini-flash-1.5' ? 'selected' : '' ?>>Gemini Flash 1.5</option>
+                                    <option value="anthropic/claude-3.5-sonnet" <?= $currentModel === 'anthropic/claude-3.5-sonnet' ? 'selected' : '' ?>>Claude 3.5 Sonnet</option>
+                                    <option value="openai/gpt-4o" <?= $currentModel === 'openai/gpt-4o' ? 'selected' : '' ?>>GPT-4o</option>
+                                    <option value="meta-llama/llama-3.1-70b-instruct" <?= $currentModel === 'meta-llama/llama-3.1-70b-instruct' ? 'selected' : '' ?>>Llama 3.1 70B</option>
+                                    <option value="mistralai/mistral-large" <?= $currentModel === 'mistralai/mistral-large' ? 'selected' : '' ?>>Mistral Large</option>
+                                </optgroup>
                             </select>
                             <button class="btn btn-outline-primary btn-sm" type="submit">
                                 <i class="bi bi-check"></i>
@@ -973,7 +1023,8 @@ try {
                         {
                             model: data.data.model,
                             responseTime: data.data.response_time,
-                            tokensUsed: data.data.tokens_used
+                            tokensUsed: data.data.tokens_used,
+                            cached: data.data.cached || false
                         }
                     );
                 } else {
@@ -1041,13 +1092,14 @@ try {
                     </div>
                 `;
             } else if (type === 'ai') {
+                const cacheIcon = meta.cached ? '<i class="bi bi-lightning-charge text-success me-1" title="Risposta cached (veloce)"></i>' : '';
                 messageHTML = `
                     <div class="message-bubble">
                         ${escapeHtml(message).replace(/\n/g, '<br>')}
                     </div>
                     <div class="message-meta">
                         <i class="bi bi-robot me-1"></i>
-                        ${meta.model || 'AI'} • ${meta.responseTime || 0}ms • ${meta.tokensUsed || 0} tokens
+                        ${meta.model || 'AI'} • ${meta.responseTime || 0}ms • ${meta.tokensUsed || 0} tokens ${cacheIcon}
                     </div>
                 `;
             } else if (type === 'error') {
