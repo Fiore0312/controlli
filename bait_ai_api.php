@@ -25,6 +25,19 @@ $response = [
     'data' => null
 ];
 
+// Helper function to determine CSV file importance
+function getCSVImportance($fileName) {
+    $fileName = strtolower($fileName);
+    if (strpos($fileName, 'timbrature') !== false) return 100;
+    if (strpos($fileName, 'teamviewer') !== false) return 90;
+    if (strpos($fileName, 'attivita') !== false) return 80;
+    if (strpos($fileName, 'auto') !== false) return 70;
+    if (strpos($fileName, 'calendario') !== false) return 60;
+    if (strpos($fileName, 'permessi') !== false) return 50;
+    if (strpos($fileName, 'aziende') !== false) return 40;
+    return 30;
+}
+
 try {
     $pdo = new PDO("mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}", 
                    $config['username'], $config['password'], [
@@ -37,12 +50,34 @@ try {
     
     switch ($action) {
         case 'get_file_list':
-            $fileAnalyzer = new FileAnalyzer($pdo);
-            $query = $_GET['query'] ?? '';
-            $fileType = $_GET['file_type'] ?? null;
-            $limit = (int)($_GET['limit'] ?? 50);
+            // Get files directly from upload_csv folder for immediate results
+            $uploadDir = __DIR__ . '/upload_csv/';
+            $files = [];
+            $id = 1;
             
-            $files = $fileAnalyzer->searchFiles($query, $fileType, $limit);
+            if (is_dir($uploadDir)) {
+                $csvFiles = glob($uploadDir . '*.csv');
+                foreach ($csvFiles as $filePath) {
+                    $fileName = basename($filePath);
+                    $fileSize = filesize($filePath);
+                    $lastModified = filemtime($filePath);
+                    
+                    $files[] = [
+                        'id' => $id++,
+                        'file_name' => $fileName,
+                        'file_path' => 'upload_csv/' . $fileName,
+                        'file_type' => 'csv',
+                        'file_size' => $fileSize,
+                        'last_modified' => date('Y-m-d H:i:s', $lastModified),
+                        'complexity_score' => getCSVImportance($fileName)
+                    ];
+                }
+                
+                // Sort by importance
+                usort($files, function($a, $b) {
+                    return $b['complexity_score'] - $a['complexity_score'];
+                });
+            }
             
             $response['success'] = true;
             $response['data'] = [
@@ -81,19 +116,33 @@ try {
                 throw new Exception('Message is required');
             }
             
-            $client = new OpenRouterClient($apiKey, $pdo);
+            $selectedModel = $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free';
+            $client = new OpenRouterClient($apiKey, $pdo, $selectedModel);
             $fileAnalyzer = new FileAnalyzer($pdo);
             $startTime = microtime(true);
             
             switch ($contextType) {
                 case 'file_analysis':
                     if ($contextId) {
-                        $file = $fileAnalyzer->getFileForAnalysis($contextId);
-                        if ($file) {
-                            $filePath = __DIR__ . DIRECTORY_SEPARATOR . $file['file_path'];
-                            $result = $client->analyzeFile($filePath, $message, ['project' => 'BAIT Service Enterprise']);
+                        // Get CSV files directly from upload folder
+                        $uploadDir = __DIR__ . '/upload_csv/';
+                        $csvFiles = glob($uploadDir . '*.csv');
+                        $selectedFile = null;
+                        
+                        // Find file by ID (matching the list we generated)
+                        $id = 1;
+                        foreach ($csvFiles as $filePath) {
+                            if ($id == $contextId) {
+                                $selectedFile = $filePath;
+                                break;
+                            }
+                            $id++;
+                        }
+                        
+                        if ($selectedFile && file_exists($selectedFile)) {
+                            $result = $client->analyzeFile($selectedFile, $message, ['project' => 'BAIT Service Enterprise']);
                         } else {
-                            throw new Exception('File not found');
+                            throw new Exception('CSV file not found');
                         }
                     } else {
                         throw new Exception('File ID is required for file analysis');

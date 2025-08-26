@@ -87,6 +87,16 @@ try {
         }
     }
     
+    // Handle model change
+    if (($_POST['action'] ?? '') === 'change_model' && !empty($_POST['selected_model'])) {
+        $newModel = $_POST['selected_model'];
+        $_SESSION['selected_model'] = $newModel;
+        $chatResponse = [
+            'type' => 'success',
+            'message' => 'Modello cambiato con successo a: ' . $newModel,
+        ];
+    }
+    
     // Handle chat requests
     if (($_POST['action'] ?? '') === 'send_message' && $apiKeyConfigured && !empty($_POST['message'])) {
         $userMessage = trim($_POST['message']);
@@ -661,6 +671,31 @@ try {
             
             <!-- Context & Controls -->
             <div class="col-lg-4">
+                <!-- Model Selector (Always Visible) -->
+                <div class="context-selector">
+                    <h6 class="mb-3">
+                        <i class="bi bi-cpu me-2"></i>
+                        Modello AI Attivo
+                    </h6>
+                    <form method="post" id="modelChangeForm">
+                        <input type="hidden" name="action" value="change_model">
+                        <div class="input-group">
+                            <select class="form-select" name="selected_model" id="currentModel" onchange="changeModel()">
+                                <?php $currentModel = $_SESSION['selected_model'] ?? 'z-ai/glm-4.5-air:free'; ?>
+                                <option value="z-ai/glm-4.5-air:free" <?= $currentModel === 'z-ai/glm-4.5-air:free' ? 'selected' : '' ?>>GLM-4.5-Air (Free)</option>
+                                <option value="google/gemini-flash-1.5" <?= $currentModel === 'google/gemini-flash-1.5' ? 'selected' : '' ?>>Gemini Flash 1.5</option>
+                                <option value="anthropic/claude-3.5-sonnet" <?= $currentModel === 'anthropic/claude-3.5-sonnet' ? 'selected' : '' ?>>Claude 3.5 Sonnet</option>
+                                <option value="openai/gpt-4o" <?= $currentModel === 'openai/gpt-4o' ? 'selected' : '' ?>>GPT-4o</option>
+                                <option value="meta-llama/llama-3.1-70b-instruct" <?= $currentModel === 'meta-llama/llama-3.1-70b-instruct' ? 'selected' : '' ?>>Llama 3.1 70B</option>
+                                <option value="mistralai/mistral-large" <?= $currentModel === 'mistralai/mistral-large' ? 'selected' : '' ?>>Mistral Large</option>
+                            </select>
+                            <button class="btn btn-outline-primary btn-sm" type="submit">
+                                <i class="bi bi-check"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <!-- Context Selector -->
                 <div class="context-selector">
                     <h6 class="mb-3">
@@ -918,7 +953,7 @@ try {
             
             // AJAX call to send message
             const formData = new FormData();
-            formData.append('action', 'send_message');
+            formData.append('action', 'send_chat_message');
             formData.append('message', message);
             formData.append('context_type', contextType);
             formData.append('context_id', contextId);
@@ -1059,12 +1094,24 @@ try {
             }
         }
         
+        // Change model function
+        function changeModel() {
+            const form = document.getElementById('modelChangeForm');
+            const select = document.getElementById('currentModel');
+            const selectedModel = select.value;
+            
+            // Submit form to change model
+            form.submit();
+        }
+        
         // Auto-scroll on page load
         document.addEventListener('DOMContentLoaded', function() {
             scrollToBottom();
             
             // Auto-focus message input
-            document.getElementById('messageInput').focus();
+            if (document.getElementById('messageInput')) {
+                document.getElementById('messageInput').focus();
+            }
         });
         
         // Handle Enter key
