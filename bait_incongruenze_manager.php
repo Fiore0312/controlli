@@ -220,7 +220,7 @@ function getAvailableDates($pdo) {
     }
     
     // Add CSV file dates from data directory
-    $csvDataDir = __DIR__ . '/data/input/';
+    $csvDataDir = __DIR__ . '/upload_csv/';
     if (is_dir($csvDataDir)) {
         $files = glob($csvDataDir . '*.csv');
         foreach ($files as $file) {

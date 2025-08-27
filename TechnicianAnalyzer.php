@@ -34,7 +34,7 @@ class TechnicianAnalyzer {
             'enable_ai_analysis' => true,
             'enable_cross_validation' => true,
             'enable_advanced_timeline' => true,
-            'enable_automatic_corrections' => true
+            'enable_automatic_corrections' => false
         ];
         
         $this->businessRules = [
@@ -162,7 +162,7 @@ class TechnicianAnalyzer {
      * Attività dal CSV Deepser
      */
     private function getDeepserActivities($technicianName, $date) {
-        $csvPath = __DIR__ . '/data/input/attivita.csv';
+        $csvPath = __DIR__ . '/upload_csv/attivita.csv';
         if (!file_exists($csvPath)) return [];
         
         $activities = [];
@@ -215,7 +215,7 @@ class TechnicianAnalyzer {
      */
     private function getCalendarAppointments($technicianName, $date) {
         // Implementazione placeholder - adattare alla fonte calendario reale
-        $csvPath = __DIR__ . '/data/input/calendario.csv';
+        $csvPath = __DIR__ . '/upload_csv/calendario.csv';
         if (!file_exists($csvPath)) return [];
         
         // Logica simile per parsing calendario
@@ -226,7 +226,7 @@ class TechnicianAnalyzer {
      * Utilizzo auto dal CSV
      */
     private function getAutoUsage($technicianName, $date) {
-        $csvPath = __DIR__ . '/data/input/auto.csv';
+        $csvPath = __DIR__ . '/upload_csv/auto.csv';
         if (!file_exists($csvPath)) return [];
         
         $autoUsage = [];
@@ -272,7 +272,7 @@ class TechnicianAnalyzer {
      * Sessioni TeamViewer
      */
     private function getTeamViewerSessions($technicianName, $date) {
-        $csvPath = __DIR__ . '/data/input/teamviewer_bait.csv';
+        $csvPath = __DIR__ . '/upload_csv/teamviewer_bait.csv';
         if (!file_exists($csvPath)) return [];
         
         $sessions = [];
@@ -551,21 +551,57 @@ class TechnicianAnalyzer {
      * Utility functions
      */
     private function getCurrentAuditSession() {
+        $currentMonth = date('Y-m');
+        
         $stmt = $this->pdo->prepare("
             SELECT id FROM audit_sessions 
             WHERE month_year = ? AND session_status = 'active'
         ");
-        $currentMonth = date('Y-m');
         $stmt->execute([$currentMonth]);
         $sessionId = $stmt->fetchColumn();
         
         if (!$sessionId) {
-            // Crea nuova sessione
+            // Crea nuova sessione con tutti i campi richiesti
+            $sessionIdStr = 'AUDIT_' . date('Ym') . '_' . substr(md5(uniqid()), 0, 8);
+            $startDate = date('Y-m-01'); // First day of current month
+            $endDate = date('Y-m-t');   // Last day of current month
+            
+            // Calculate working days (rough estimate - excluding weekends)
+            $workingDays = 0;
+            $start = strtotime($startDate);
+            $end = strtotime($endDate);
+            for ($current = $start; $current <= $end; $current = strtotime('+1 day', $current)) {
+                $dayOfWeek = date('N', $current);
+                if ($dayOfWeek < 6) { // Monday = 1, Friday = 5
+                    $workingDays++;
+                }
+            }
+            
+            // Create empty JSON for tecnici_analizzati
+            $tecniciAnalizzati = json_encode([
+                'tecnici_attivi' => [],
+                'data_ultimo_aggiornamento' => date('Y-m-d H:i:s'),
+                'stati_analisi' => []
+            ]);
+            
             $stmt = $this->pdo->prepare("
-                INSERT INTO audit_sessions (month_year, current_day, session_status)
-                VALUES (?, ?, 'active')
+                INSERT INTO audit_sessions 
+                (session_id, mese_anno, data_inizio_analisi, data_fine_analisi, 
+                 tecnici_analizzati, giorni_lavorativi, month_year, current_day, session_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
             ");
-            $stmt->execute([$currentMonth, date('j')]);
+            
+            $stmt->execute([
+                $sessionIdStr,
+                $currentMonth,
+                $startDate,
+                $endDate,
+                $tecniciAnalizzati,
+                $workingDays,
+                $currentMonth,
+                date('j')
+            ]);
+            
             $sessionId = $this->pdo->lastInsertId();
         }
         
@@ -573,14 +609,30 @@ class TechnicianAnalyzer {
     }
     
     private function createDailyAnalysis($auditSessionId, $tecnicoId, $date) {
+        // Prima cerca se esiste già
+        $stmt = $this->pdo->prepare("
+            SELECT id FROM technician_daily_analysis 
+            WHERE audit_session_id = ? AND tecnico_id = ? AND data_analisi = ?
+        ");
+        $stmt->execute([$auditSessionId, $tecnicoId, $date]);
+        $existingId = $stmt->fetchColumn();
+        
+        if ($existingId) {
+            $this->log("📋 Usando analysis esistente ID: $existingId");
+            return $existingId;
+        }
+        
+        // Se non esiste, crea nuovo
         $stmt = $this->pdo->prepare("
             INSERT INTO technician_daily_analysis 
             (audit_session_id, tecnico_id, data_analisi)
             VALUES (?, ?, ?)
-            ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
         ");
         $stmt->execute([$auditSessionId, $tecnicoId, $date]);
-        return $this->pdo->lastInsertId();
+        $newId = $this->pdo->lastInsertId();
+        
+        $this->log("🆕 Creata nuova analysis ID: $newId");
+        return $newId;
     }
     
     private function insertTimelineEvent($event) {
@@ -608,16 +660,24 @@ class TechnicianAnalyzer {
     }
     
     private function generateAlertId($alert) {
-        // Generate unique alert_id in format AUDIT_YYYYMMDD_XXXX
-        $date = date('Ymd');
-        $type = strtoupper(substr($alert['type'] ?? 'ALERT', 0, 4));
-        $random = str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+        static $counter = 0; // Static counter per garantire unicità in questa esecuzione
         
-        $alertId = "AUDIT_{$type}_{$date}_{$random}";
+        // Generate unique alert_id with max 20 chars constraint
+        $microtime = microtime(true);
+        $date = date('md'); // Solo mese e giorno (4 chars)
+        $time = date('His', (int)$microtime); // Ora minuti secondi (6 chars)  
+        $microsec = substr(sprintf("%.6f", $microtime), -3); // Ultimi 3 digit microsecondi
+        $counter++; // Increment counter for this execution
         
-        // Ensure uniqueness by checking database
+        // Format: AUDIT_MMDD_HHMMSS_XXX (max 20 chars: 5+4+6+3+2 = 20)
+        $alertId = "A{$date}{$time}{$microsec}" . sprintf("%02d", $counter % 100);
+        
+        // Ensure exactly 20 chars
+        $alertId = substr($alertId, 0, 20);
+        
+        // Double-check uniqueness
         $attempts = 0;
-        while ($attempts < 10) {
+        while ($attempts < 5) {
             $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM audit_alerts WHERE alert_id = ?");
             $stmt->execute([$alertId]);
             
@@ -625,14 +685,18 @@ class TechnicianAnalyzer {
                 return $alertId; // Unique alert_id found
             }
             
-            // Generate new random number if collision
-            $random = str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
-            $alertId = "AUDIT_{$type}_{$date}_{$random}";
+            // Extremely rare case - modify last digits
+            $counter++;
+            $lastTwoDigits = sprintf("%02d", $counter % 100);
+            $alertId = substr($alertId, 0, 18) . $lastTwoDigits;
             $attempts++;
+            
+            // Add small delay to ensure different microtime
+            usleep(2000); // 2ms delay
         }
         
-        // Fallback if all attempts failed
-        return "AUDIT_{$type}_{$date}_" . time();
+        // Ultimate fallback with timestamp + random
+        return "A" . date('mdHis') . mt_rand(100, 999) . sprintf("%02d", mt_rand(0, 99));
     }
 
     private function insertAlert($analysisId, $alert) {
@@ -1057,7 +1121,7 @@ class TechnicianAnalyzer {
     
     private function log($message) {
         error_log("[TechnicianAnalyzer] " . $message);
-        echo $message . "\n";
+        // echo $message . "\n"; // Removed to prevent debug output in web interface
     }
 }
 

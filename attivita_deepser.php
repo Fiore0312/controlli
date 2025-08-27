@@ -8,7 +8,7 @@
 header('Content-Type: text/html; charset=utf-8');
 
 // Configurazione paths
-$csvPath = __DIR__ . '/data/input/attivita.csv';
+$csvPath = __DIR__ . '/upload_csv/attivita.csv';
 $hasCSV = file_exists($csvPath);
 
 // Funzione per leggere CSV con gestione encoding
@@ -134,6 +134,9 @@ $uniqueTechnicians = count($technicians);
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- BAIT Tooltip System -->
+    <link href="/controlli/assets/css/bait-tooltips.css" rel="stylesheet">
     
     <style>
         body {
@@ -414,45 +417,6 @@ $uniqueTechnicians = count($technicians);
             background: linear-gradient(180deg, #e8f0fe 0%, #c8d6e5 100%);
         }
         
-        /* Better tooltips */
-        .cell-tooltip {
-            position: relative;
-            overflow: visible;
-        }
-        
-        .cell-tooltip .tooltip-content {
-            visibility: hidden;
-            position: absolute;
-            z-index: 1000;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #374151;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            max-width: 300px;
-            word-wrap: break-word;
-            white-space: normal;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .cell-tooltip:hover .tooltip-content {
-            visibility: visible;
-        }
-        
-        .cell-tooltip .tooltip-content::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #374151 transparent transparent transparent;
-        }
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -656,7 +620,7 @@ $uniqueTechnicians = count($technicians);
                                                     $initials .= mb_strtoupper(mb_substr($word, 0, 1));
                                                 }
                                             }
-                                            $cellData = '<span class="badge bg-secondary" title="' . htmlspecialchars($cell) . '">' . $initials . '</span>';
+                                            $cellData = '<span class="badge bg-secondary">' . $initials . '</span>';
                                             $hasTooltip = true;
                                             $tooltipContent = htmlspecialchars($cell);
                                         } else {
@@ -672,11 +636,8 @@ $uniqueTechnicians = count($technicians);
                                         }
                                 }
                             ?>
-                            <td class="<?= $cellClass ?> <?= $hasTooltip ? 'cell-tooltip' : '' ?>" data-header="<?= htmlspecialchars($header) ?>">
+                            <td class="<?= $cellClass ?>" <?= $hasTooltip ? 'data-bs-toggle="tooltip" data-bs-title="' . $tooltipContent . '"' : '' ?> data-header="<?= htmlspecialchars($header) ?>">
                                 <?= $cellData ?>
-                                <?php if ($hasTooltip): ?>
-                                <div class="tooltip-content"><?= $tooltipContent ?></div>
-                                <?php endif; ?>
                             </td>
                             <?php endforeach; ?>
                         </tr>
@@ -710,6 +671,9 @@ $uniqueTechnicians = count($technicians);
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    
+    <!-- BAIT Tooltip System -->
+    <script src="/controlli/assets/js/bait-tooltips.js"></script>
 
     <script>
         $(document).ready(function() {

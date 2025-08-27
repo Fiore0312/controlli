@@ -414,8 +414,7 @@ class FileAnalyzer {
             $params[] = $fileType;
         }
         
-        $sql .= " ORDER BY complexity_score DESC, last_modified DESC LIMIT ?";
-        $params[] = $limit;
+        $sql .= " ORDER BY complexity_score DESC, last_modified DESC LIMIT " . (int)$limit;
         
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);

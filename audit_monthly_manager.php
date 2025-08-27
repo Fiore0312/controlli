@@ -694,6 +694,10 @@ $currentSession = null;
                                     <input type="file" name="teamviewer_bait" class="form-control" accept=".csv">
                                 </div>
                                 <div class="col-md-6 mb-3">
+                                    <label class="form-label">TeamViewer Gruppo</label>
+                                    <input type="file" name="teamviewer_gruppo" class="form-control" accept=".csv">
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Auto</label>
                                     <input type="file" name="auto" class="form-control" accept=".csv">
                                 </div>

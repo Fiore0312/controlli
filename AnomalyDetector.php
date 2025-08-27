@@ -470,7 +470,7 @@ class AnomalyDetector {
     
     private function log($message) {
         error_log("[AnomalyDetector] " . $message);
-        echo $message . "\n";
+        // echo $message . "\n"; // Removed to prevent debug output in web interface
     }
     
     // Placeholder implementations per algoritmi complessi

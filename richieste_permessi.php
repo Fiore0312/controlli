@@ -43,7 +43,7 @@ function readCSVFile($filepath) {
     return ['headers' => $headers, 'data' => $data];
 }
 
-$csvPath = __DIR__ . '/data/input/permessi.csv';
+$csvPath = __DIR__ . '/upload_csv/permessi.csv';
 $hasCSV = file_exists($csvPath);
 $csvData = $hasCSV ? readCSVFile($csvPath) : ['headers' => [], 'data' => []];
 $totalRecords = count($csvData['data']);

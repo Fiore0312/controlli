@@ -591,7 +591,7 @@ class TimelineBuilder {
     
     private function log($message) {
         error_log("[TimelineBuilder] " . $message);
-        echo $message . "\n";
+        // echo $message . "\n"; // Removed to prevent debug output in web interface
     }
     
     // Placeholder implementations for complex methods

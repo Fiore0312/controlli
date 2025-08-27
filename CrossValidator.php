@@ -701,7 +701,7 @@ class CrossValidator {
     
     private function log($message) {
         error_log("[CrossValidator] " . $message);
-        echo $message . "\n";
+        // echo $message . "\n"; // Removed to prevent debug output in web interface
     }
     
     // Additional helper methods (placeholder implementations)

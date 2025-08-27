@@ -158,17 +158,92 @@ $isConnected = getDatabase() !== null;
     
     <style>
         :root {
+            /* Light Theme (Default) */
             --bait-primary: #2563eb;
             --bait-secondary: #64748b;
             --bait-success: #059669;
             --bait-warning: #d97706;
             --bait-danger: #dc2626;
+            
+            /* Background Colors */
+            --bait-bg-primary: #ffffff;
+            --bait-bg-secondary: #f8fafc;
+            --bait-bg-tertiary: #f1f5f9;
+            --bait-bg-card: #ffffff;
+            --bait-bg-sidebar: #ffffff;
+            
+            /* Text Colors */
+            --bait-text-primary: #1e293b;
+            --bait-text-secondary: #64748b;
+            --bait-text-muted: #94a3b8;
+            --bait-text-light: #cbd5e1;
+            
+            /* Border Colors */
+            --bait-border-primary: #e2e8f0;
+            --bait-border-secondary: #cbd5e1;
+            --bait-border-muted: #f1f5f9;
+            
+            /* Shadow Colors */
+            --bait-shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+            --bait-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --bait-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Module Category Colors */
+            --bait-transport: #059669;
+            --bait-activities: #2563eb;
+            --bait-permissions: #dc2626;
+            --bait-time: #0891b2;
+            --bait-remote: #d97706;
+            --bait-calendar: #64748b;
+            --bait-audit: #7c3aed;
+            --bait-ai: #db2777;
+            --bait-upload: #0e7490;
+            --bait-filter: #4f46e5;
+        }
+        
+        /* Dark Theme */
+        [data-theme="dark"] {
+            /* Background Colors */
+            --bait-bg-primary: #0f172a;
+            --bait-bg-secondary: #1e293b;
+            --bait-bg-tertiary: #334155;
+            --bait-bg-card: #1e293b;
+            --bait-bg-sidebar: #0f172a;
+            
+            /* Text Colors */
+            --bait-text-primary: #f8fafc;
+            --bait-text-secondary: #cbd5e1;
+            --bait-text-muted: #94a3b8;
+            --bait-text-light: #64748b;
+            
+            /* Border Colors */
+            --bait-border-primary: #334155;
+            --bait-border-secondary: #475569;
+            --bait-border-muted: #1e293b;
+            
+            /* Shadow Colors */
+            --bait-shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+            --bait-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --bait-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+            
+            /* Adjust primary colors for dark mode */
+            --bait-primary: #3b82f6;
+            --bait-secondary: #94a3b8;
+            --bait-success: #10b981;
+            --bait-warning: #f59e0b;
+            --bait-danger: #ef4444;
         }
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
+            background-color: var(--bait-bg-secondary);
+            color: var(--bait-text-primary);
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Smooth transitions for all theme-aware elements */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
         
         .navbar-brand {
@@ -177,17 +252,17 @@ $isConnected = getDatabase() !== null;
         }
         
         .kpi-card {
-            background: white;
-            border: none;
+            background: var(--bait-bg-card);
+            border: 1px solid var(--bait-border-primary);
             border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
+            box-shadow: var(--bait-shadow-sm);
+            transition: all 0.3s ease;
             height: 100%;
         }
         
         .kpi-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: var(--bait-shadow-lg);
         }
         
         .kpi-icon {
@@ -202,24 +277,25 @@ $isConnected = getDatabase() !== null;
         }
         
         .section-card {
-            background: white;
-            border: none;
+            background: var(--bait-bg-card);
+            border: 1px solid var(--bait-border-primary);
             border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: var(--bait-shadow-sm);
+            transition: all 0.3s ease;
         }
         
         .alert-item {
             padding: 1rem;
-            border: none;
+            border: 1px solid var(--bait-border-primary);
             border-left: 4px solid;
             border-radius: 0 8px 8px 0;
             margin-bottom: 0.5rem;
-            background: #f8fafc;
-            transition: all 0.2s ease;
+            background: var(--bait-bg-tertiary);
+            transition: all 0.3s ease;
         }
         
         .alert-item:hover {
-            background: #f1f5f9;
+            background: var(--bait-bg-secondary);
             transform: translateX(4px);
         }
         
@@ -231,9 +307,9 @@ $isConnected = getDatabase() !== null;
         .tech-stat {
             padding: 1rem;
             border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
+            background: var(--bait-bg-tertiary);
+            border: 1px solid var(--bait-border-primary);
+            transition: all 0.3s ease;
         }
         
         .tech-stat:hover {
@@ -248,11 +324,825 @@ $isConnected = getDatabase() !== null;
         .status-offline {
             color: var(--bait-secondary);
         }
+
+        /* Modern Enterprise Card Grid Styles */
+        .bait-module-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 0;
+        }
+
+        .bait-module-card {
+            background: var(--bait-bg-card);
+            border-radius: 16px;
+            box-shadow: var(--bait-shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--bait-border-primary);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bait-module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--bait-shadow-lg);
+        }
+
+        .bait-module-card[data-category="transport"] {
+            border-top: 4px solid var(--bait-transport);
+        }
+
+        .bait-module-card[data-category="activities"] {
+            border-top: 4px solid var(--bait-activities);
+        }
+
+        .bait-module-card[data-category="permissions"] {
+            border-top: 4px solid var(--bait-permissions);
+        }
+
+        .bait-module-card[data-category="time"] {
+            border-top: 4px solid var(--bait-time);
+        }
+
+        .bait-module-card[data-category="remote"] {
+            border-top: 4px solid var(--bait-remote);
+        }
+
+        .bait-module-card[data-category="calendar"] {
+            border-top: 4px solid var(--bait-calendar);
+        }
+
+        .bait-module-card[data-category="audit"] {
+            border-top: 4px solid var(--bait-audit);
+        }
+
+        .bait-module-card[data-category="ai"] {
+            border-top: 4px solid var(--bait-ai);
+        }
+
+        .bait-module-card[data-category="upload"] {
+            border-top: 4px solid var(--bait-upload);
+        }
+
+        .bait-module-card[data-category="filter"] {
+            border-top: 4px solid var(--bait-filter);
+        }
+
+        .module-link {
+            display: block;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            height: 100%;
+        }
+
+        .module-link:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .module-icon {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            color: var(--bait-text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .bait-module-card:hover .module-icon {
+            transform: scale(1.1);
+        }
+
+        .module-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--bait-text-primary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-description {
+            font-size: 0.875rem;
+            color: var(--bait-text-secondary);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* SPA Content Area Styles */
+        #welcomeScreen {
+            min-height: 400px;
+        }
+        
+        .breadcrumb-item .bi {
+            font-size: 0.9rem;
+        }
+        
+        /* Module Cards in Sidebar */
+        .bait-module-card {
+            transition: all 0.2s ease;
+        }
+        
+        .bait-module-card.active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+            border-color: var(--bait-primary);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .bait-module-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .bait-module-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .module-title {
+                font-size: 0.95rem;
+            }
+            
+            .module-description {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .bait-module-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .module-icon {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .bait-module-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bait-module-card {
+                max-width: 280px;
+                margin: 0 auto;
+            }
+        }
+        
+        /* Theme-aware Bootstrap overrides */
+        .card-header {
+            background-color: var(--bait-bg-card) !important;
+            border-bottom: 1px solid var(--bait-border-primary) !important;
+            color: var(--bait-text-primary) !important;
+        }
+        
+        .text-primary {
+            color: var(--bait-primary) !important;
+        }
+        
+        .text-secondary {
+            color: var(--bait-text-secondary) !important;
+        }
+        
+        .text-muted {
+            color: var(--bait-text-muted) !important;
+        }
+        
+        .border-bottom {
+            border-bottom-color: var(--bait-border-primary) !important;
+        }
+        
+        /* Theme toggle button styles */
+        #themeToggle {
+            transition: all 0.3s ease;
+            border-color: var(--bait-border-secondary);
+            color: var(--bait-text-secondary);
+        }
+        
+        #themeToggle:hover {
+            background-color: var(--bait-bg-tertiary);
+            border-color: var(--bait-primary);
+            color: var(--bait-primary);
+        }
+        
+        /* Dark theme specific adjustments */
+        [data-theme="dark"] .navbar-light .navbar-brand,
+        [data-theme="dark"] .navbar-light .navbar-nav .nav-link {
+            color: var(--bait-text-primary) !important;
+        }
+        
+        [data-theme="dark"] .badge.bg-success {
+            background-color: var(--bait-success) !important;
+        }
+        
+        [data-theme="dark"] .badge.bg-warning {
+            background-color: var(--bait-warning) !important;
+        }
+        
+        [data-theme="dark"] .btn-outline-secondary {
+            border-color: var(--bait-border-secondary);
+            color: var(--bait-text-secondary);
+        }
+        
+        [data-theme="dark"] .btn-outline-secondary:hover {
+            background-color: var(--bait-bg-tertiary);
+            border-color: var(--bait-primary);
+            color: var(--bait-primary);
+        }
+        
+        /* Enhanced AJAX Module Styles */
+        .bait-module-container {
+            min-height: 400px;
+            animation: moduleSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes moduleSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .bait-module-quick-actions {
+            background: var(--bait-bg-card);
+            border: 1px solid var(--bait-border-primary);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--bait-shadow-sm);
+        }
+        
+        .bait-ai-quick-prompts {
+            background: linear-gradient(135deg, var(--bait-bg-card) 0%, var(--bait-bg-tertiary) 100%);
+            border: 1px solid var(--bait-border-primary);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--bait-shadow-sm);
+        }
+        
+        .bait-module-quick-actions .btn-group .btn,
+        .bait-ai-quick-prompts .btn {
+            transition: all 0.2s ease;
+            border-color: var(--bait-border-secondary);
+        }
+        
+        .bait-module-quick-actions .btn-group .btn:hover,
+        .bait-ai-quick-prompts .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--bait-shadow-sm);
+        }
+        
+        /* Loading states for modules */
+        .bait-module-loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .bait-module-error {
+            border-left: 4px solid var(--bait-danger);
+            background: rgba(220, 38, 38, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        /* Enhanced error display */
+        .bait-error-container {
+            background: var(--bait-bg-card);
+            border: 1px solid var(--bait-danger);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            animation: errorShake 0.5s ease-in-out;
+        }
+        
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* Advanced Mobile Optimizations */
+        @media (max-width: 1200px) {
+            .container-fluid {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            /* Tablet Layout Optimizations */
+            .row {
+                margin-left: -0.5rem;
+                margin-right: -0.5rem;
+            }
+            
+            .col-lg-3, .col-lg-9 {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            /* Make sidebar full width on tablet */
+            .col-lg-3.col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .col-lg-9.col-md-8 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            /* Compact module grid for tablet */
+            .bait-module-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .module-title {
+                font-size: 0.9rem;
+            }
+            
+            .module-description {
+                font-size: 0.8rem;
+            }
+            
+            .module-icon {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            /* Mobile Layout Optimizations */
+            body {
+                font-size: 0.9rem;
+            }
+            
+            .container-fluid {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+            
+            /* Mobile navbar adjustments */
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            /* Mobile module grid */
+            .bait-module-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .bait-module-card {
+                border-radius: 12px;
+            }
+            
+            .module-link {
+                padding: 1rem 0.75rem;
+            }
+            
+            .module-icon {
+                font-size: 1.8rem;
+                margin-bottom: 0.4rem;
+            }
+            
+            .module-title {
+                font-size: 0.85rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .module-description {
+                font-size: 0.75rem;
+                line-height: 1.2;
+            }
+            
+            /* Mobile content area */
+            #welcomeScreen {
+                padding: 2rem 1rem !important;
+                min-height: 300px;
+            }
+            
+            #welcomeScreen h3 {
+                font-size: 1.5rem;
+            }
+            
+            #welcomeScreen p {
+                font-size: 1rem;
+            }
+            
+            /* Mobile quick actions */
+            .bait-module-quick-actions {
+                padding: 0.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .bait-module-quick-actions .btn-group {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .bait-module-quick-actions .btn-group .btn {
+                font-size: 0.875rem;
+                padding: 0.75rem;
+                border-radius: 8px !important;
+                margin-bottom: 0.5rem;
+            }
+            
+            .bait-ai-quick-prompts {
+                padding: 0.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .bait-ai-quick-prompts .btn {
+                font-size: 0.875rem;
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+                text-align: left;
+            }
+            
+            /* Mobile breadcrumb */
+            .breadcrumb {
+                background: none;
+                padding: 0.5rem 0;
+                margin-bottom: 0.5rem;
+            }
+            
+            .breadcrumb-item {
+                font-size: 0.875rem;
+            }
+            
+            /* Mobile theme toggle */
+            #themeToggle {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Mobile error container */
+            .bait-error-container {
+                padding: 1.5rem;
+                margin: 1rem 0;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            /* Extra small mobile optimizations */
+            .container-fluid {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            /* Single column layout for very small screens */
+            .bait-module-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .bait-module-card {
+                max-width: none;
+                margin: 0;
+            }
+            
+            .module-link {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .module-icon {
+                font-size: 1.5rem;
+                margin-bottom: 0.3rem;
+            }
+            
+            .module-title {
+                font-size: 0.8rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .module-description {
+                font-size: 0.7rem;
+                line-height: 1.1;
+            }
+            
+            /* Mobile navbar ultra-compact */
+            .navbar {
+                padding: 0.375rem 0.75rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            
+            /* Hide database status text on very small screens */
+            .badge .d-none.d-md-inline {
+                display: none !important;
+            }
+            
+            /* Mobile welcome screen ultra-compact */
+            #welcomeScreen {
+                padding: 1.5rem 0.75rem !important;
+                min-height: 250px;
+            }
+            
+            #welcomeScreen h3 {
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+            }
+            
+            #welcomeScreen p {
+                font-size: 0.9rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            #welcomeScreen .row {
+                margin: 0;
+            }
+            
+            #welcomeScreen .col-auto {
+                padding: 0.25rem;
+            }
+            
+            #welcomeScreen .badge {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            /* Stack buttons vertically on very small screens */
+            .bait-module-quick-actions .btn-group,
+            .d-flex.gap-2 {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .d-flex.gap-2 .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Ultra-compact mobile */
+            .bait-module-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.4rem;
+            }
+            
+            .module-link {
+                padding: 0.6rem 0.4rem;
+            }
+            
+            .module-icon {
+                font-size: 1.4rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .module-title {
+                font-size: 0.75rem;
+                margin-bottom: 0.1rem;
+            }
+            
+            .module-description {
+                font-size: 0.65rem;
+                display: none; /* Hide descriptions on ultra-small screens */
+            }
+        }
+        
+        /* Smooth transitions for all module content */
+        .bait-module-container * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Enhanced breadcrumb styling */
+        .breadcrumb-item span:hover {
+            color: var(--bait-primary) !important;
+            text-decoration: underline;
+        }
+        
+        /* Module-specific styling */
+        .bait-module-container[data-module="ai-chat"] {
+            border-left: 4px solid var(--bait-ai);
+        }
+        
+        .bait-module-container[data-module="auto"] {
+            border-left: 4px solid var(--bait-transport);
+        }
+        
+        .bait-module-container[data-module="attivita"] {
+            border-left: 4px solid var(--bait-activities);
+        }
+        
+        .bait-module-container[data-module="audit-mensile"] {
+            border-left: 4px solid var(--bait-audit);
+        }
+        
+        /* Touch and Mobile-Specific Optimizations */
+        
+        /* Touch targets - minimum 44px for accessibility */
+        @media (pointer: coarse) {
+            .module-link,
+            .btn,
+            .breadcrumb-item span,
+            #themeToggle {
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .module-link {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            }
+            
+            /* Larger touch targets for buttons */
+            .bait-module-quick-actions .btn,
+            .bait-ai-quick-prompts .btn {
+                min-height: 48px;
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        /* Hover effects only on devices that support them */
+        @media (hover: hover) {
+            .bait-module-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--bait-shadow-lg);
+            }
+            
+            .bait-module-quick-actions .btn-group .btn:hover,
+            .bait-ai-quick-prompts .btn:hover {
+                transform: translateY(-1px);
+                box-shadow: var(--bait-shadow-sm);
+            }
+        }
+        
+        /* Disable hover effects on touch devices */
+        @media (hover: none) {
+            .bait-module-card:hover {
+                transform: none;
+                box-shadow: var(--bait-shadow-md);
+            }
+            
+            .bait-module-quick-actions .btn-group .btn:hover,
+            .bait-ai-quick-prompts .btn:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+        
+        /* Active states for touch feedback */
+        .module-link:active,
+        .btn:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+        
+        /* Prevent text selection on interactive elements */
+        .module-link,
+        .btn,
+        .navbar-brand {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Improve touch scrolling */
+        .bait-module-container,
+        .card-body {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        
+        /* Mobile-specific loading optimizations */
+        @media (max-width: 768px) {
+            /* Reduce motion for better performance on mobile */
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+                
+                .bait-module-card:hover {
+                    transform: none;
+                }
+            }
+            
+            /* Optimize font rendering for mobile */
+            body {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeSpeed;
+            }
+            
+            /* Mobile-specific scroll behavior */
+            html {
+                scroll-behavior: smooth;
+            }
+            
+            /* Prevent zoom on input focus */
+            input[type="date"],
+            button,
+            select {
+                font-size: 16px;
+            }
+        }
+        
+        /* Dark mode mobile optimizations */
+        @media (max-width: 768px) and (prefers-color-scheme: dark) {
+            body {
+                background-color: var(--bait-bg-secondary);
+            }
+            
+            .navbar {
+                background-color: var(--bait-bg-primary) !important;
+                border-bottom: 1px solid var(--bait-border-primary);
+            }
+        }
+        
+        /* Landscape mobile optimizations */
+        @media (max-width: 896px) and (orientation: landscape) {
+            .bait-module-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .module-link {
+                padding: 0.5rem;
+            }
+            
+            .module-icon {
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .module-title {
+                font-size: 0.8rem;
+            }
+            
+            .module-description {
+                display: none;
+            }
+            
+            #welcomeScreen {
+                padding: 1rem !important;
+                min-height: 200px;
+            }
+            
+            .navbar {
+                padding: 0.25rem 1rem;
+            }
+        }
+        
+        /* High DPI display optimizations */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .module-icon,
+            .bi {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .navbar,
+            .bait-module-quick-actions,
+            .bait-ai-quick-prompts,
+            #themeToggle {
+                display: none !important;
+            }
+            
+            body {
+                font-size: 12pt;
+                line-height: 1.4;
+                color: black !important;
+                background: white !important;
+            }
+            
+            .bait-module-container {
+                border: 1px solid #ccc;
+                margin: 1cm 0;
+                break-inside: avoid;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom shadow-sm" style="background-color: var(--bait-bg-primary); border-color: var(--bait-border-primary) !important;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="bi bi-shield-check me-2"></i>
@@ -260,6 +1150,12 @@ $isConnected = getDatabase() !== null;
             </a>
             
             <div class="d-flex align-items-center">
+                <!-- Theme Toggle -->
+                <button type="button" class="btn btn-outline-secondary btn-sm me-3" id="themeToggle" onclick="toggleTheme()">
+                    <i class="bi bi-sun-fill" id="themeIcon"></i>
+                    <span class="ms-1 d-none d-md-inline" id="themeText">Chiaro</span>
+                </button>
+                
                 <span class="badge <?= $isConnected ? 'bg-success' : 'bg-warning' ?> me-3">
                     <i class="bi bi-database me-1"></i>
                     <?= $isConnected ? 'Database Online' : 'Database Offline' ?>
@@ -278,161 +1174,214 @@ $isConnected = getDatabase() !== null;
         </div>
         <?php endif; ?>
         
-        <!-- KPI Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="kpi-icon bg-primary me-3">
-                                <i class="bi bi-people"></i>
-                            </div>
-                            <div>
-                                <h6 class="card-subtitle text-muted mb-1">Tecnici Attivi</h6>
-                                <h3 class="mb-0"><?= number_format($data['kpis']['tecnici_attivi']) ?></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="kpi-icon bg-success me-3">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6 class="card-subtitle text-muted mb-1">Attività Oggi</h6>
-                                <h3 class="mb-0"><?= number_format($data['kpis']['attivita_oggi']) ?></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="kpi-icon bg-warning me-3">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
-                            <div>
-                                <h6 class="card-subtitle text-muted mb-1">Alert Attivi</h6>
-                                <h3 class="mb-0"><?= number_format($data['kpis']['alert_attivi']) ?></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="kpi-icon bg-info me-3">
-                                <i class="bi bi-graph-up"></i>
-                            </div>
-                            <div>
-                                <h6 class="card-subtitle text-muted mb-1">Coverage</h6>
-                                <h3 class="mb-0"><?= $data['kpis']['coverage_percentage'] ?>%</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         
-        <!-- Quick Actions -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card section-card">
+        <!-- Main SPA Layout -->
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="card section-card h-100">
                     <div class="card-header bg-white border-bottom-0 py-3">
                         <h5 class="mb-0">
-                            <i class="bi bi-lightning text-primary me-2"></i>
-                            Azioni Rapide
+                            <i class="bi bi-grid-3x3-gap text-primary me-2"></i>
+                            Moduli BAIT
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/utilizzo_auto.php" target="_blank" class="btn btn-outline-success w-100 py-3">
-                                    <i class="bi bi-car-front fs-4 d-block mb-1"></i>
-                                    <small>Auto</small>
-                                </a>
+                        <!-- Modern Enterprise Card Grid -->
+                        <div class="bait-module-grid" id="moduleGrid">
+                            <!-- Auto -->
+                            <div class="bait-module-card" data-module="auto" data-category="transport">
+                                <div class="module-link" onclick="loadModule('auto', '/controlli/utilizzo_auto.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-car-front-fill"></i>
+                                    </div>
+                                    <div class="module-title">Auto</div>
+                                    <div class="module-description">Gestione utilizzi auto</div>
+                                </div>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/attivita_deepser.php" target="_blank" class="btn btn-outline-primary w-100 py-3">
-                                    <i class="bi bi-briefcase fs-4 d-block mb-1"></i>
-                                    <small>Attività</small>
-                                </a>
+
+                            <!-- Attività -->
+                            <div class="bait-module-card" data-module="attivita" data-category="activities">
+                                <div class="module-link" onclick="loadModule('attivita', '/controlli/attivita_deepser.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-briefcase-fill"></i>
+                                    </div>
+                                    <div class="module-title">Attività</div>
+                                    <div class="module-description">Gestione attività Deepser</div>
+                                </div>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/richieste_permessi.php" target="_blank" class="btn btn-outline-danger w-100 py-3">
-                                    <i class="bi bi-calendar-check fs-4 d-block mb-1"></i>
-                                    <small>Permessi</small>
-                                </a>
+
+                            <!-- Permessi -->
+                            <div class="bait-module-card" data-module="permessi" data-category="permissions">
+                                <div class="module-link" onclick="loadModule('permessi', '/controlli/richieste_permessi.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-calendar-check-fill"></i>
+                                    </div>
+                                    <div class="module-title">Permessi</div>
+                                    <div class="module-description">Richieste permessi</div>
+                                </div>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/timbrature.php" target="_blank" class="btn btn-outline-info w-100 py-3">
-                                    <i class="bi bi-clock fs-4 d-block mb-1"></i>
-                                    <small>Timbrature</small>
-                                </a>
+
+                            <!-- Timbrature -->
+                            <div class="bait-module-card" data-module="timbrature" data-category="time">
+                                <div class="module-link" onclick="loadModule('timbrature', '/controlli/timbrature.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-clock-fill"></i>
+                                    </div>
+                                    <div class="module-title">Timbrature</div>
+                                    <div class="module-description">Ore lavorate e presenze</div>
+                                </div>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/sessioni_teamviewer.php" target="_blank" class="btn btn-outline-warning w-100 py-3">
-                                    <i class="bi bi-display fs-4 d-block mb-1"></i>
-                                    <small>TeamViewer</small>
-                                </a>
+
+                            <!-- TeamViewer -->
+                            <div class="bait-module-card" data-module="teamviewer" data-category="remote">
+                                <div class="module-link" onclick="loadModule('teamviewer', '/controlli/teamviewer_dashboard_fixed.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-display-fill"></i>
+                                    </div>
+                                    <div class="module-title">TeamViewer</div>
+                                    <div class="module-description">Sessioni remote</div>
+                                </div>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/calendario.php" target="_blank" class="btn btn-outline-dark w-100 py-3">
-                                    <i class="bi bi-calendar fs-4 d-block mb-1"></i>
-                                    <small>Calendario</small>
-                                </a>
+
+                            <!-- Calendario -->
+                            <div class="bait-module-card" data-module="calendario" data-category="calendar">
+                                <div class="module-link" onclick="loadModule('calendario', '/controlli/calendario.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-calendar-fill"></i>
+                                    </div>
+                                    <div class="module-title">Calendario</div>
+                                    <div class="module-description">Eventi e pianificazione</div>
+                                </div>
+                            </div>
+
+                            <!-- Audit Tecnico -->
+                            <div class="bait-module-card" data-module="audit-tecnico" data-category="audit">
+                                <div class="module-link" onclick="loadModule('audit-tecnico', '/controlli/audit_tecnico_dashboard.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </div>
+                                    <div class="module-title">Audit Tecnico</div>
+                                    <div class="module-description">Controlli tecnici</div>
+                                </div>
+                            </div>
+
+                            <!-- Audit Mensile -->
+                            <div class="bait-module-card" data-module="audit-mensile" data-category="audit">
+                                <div class="module-link" onclick="loadModule('audit-mensile', '/controlli/audit_monthly_manager.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-calendar3-fill"></i>
+                                    </div>
+                                    <div class="module-title">Audit Mensile</div>
+                                    <div class="module-description">Report mensili</div>
+                                </div>
+                            </div>
+
+                            <!-- Incongruenze -->
+                            <div class="bait-module-card" data-module="incongruenze" data-category="audit">
+                                <div class="module-link" onclick="loadModule('incongruenze', '/controlli/bait_incongruenze_manager.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    </div>
+                                    <div class="module-title">Incongruenze</div>
+                                    <div class="module-description">Rilevamento anomalie</div>
+                                </div>
+                            </div>
+
+                            <!-- AI Chat -->
+                            <div class="bait-module-card" data-module="ai-chat" data-category="ai">
+                                <div class="module-link" onclick="loadModule('ai-chat', '/controlli/bait_ai_chat.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-robot"></i>
+                                    </div>
+                                    <div class="module-title">AI Chat</div>
+                                    <div class="module-description">Assistente intelligente</div>
+                                </div>
+                            </div>
+
+                            <!-- Carica File -->
+                            <div class="bait-module-card" data-module="carica-file" data-category="upload">
+                                <div class="module-link" onclick="loadModule('carica-file', '/controlli/upload_csv_simple.php')" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-cloud-upload-fill"></i>
+                                    </div>
+                                    <div class="module-title">Carica File</div>
+                                    <div class="module-description">Upload CSV e dati</div>
+                                </div>
+                            </div>
+
+                            <!-- Filtro Date -->
+                            <div class="bait-module-card" data-module="filtro-date" data-category="filter">
+                                <div class="module-link" onclick="toggleDateFilter()" style="cursor: pointer;">
+                                    <div class="module-icon">
+                                        <i class="bi bi-calendar-range-fill"></i>
+                                    </div>
+                                    <div class="module-title">Filtro Date</div>
+                                    <div class="module-description">Filtra per periodo</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="col-lg-9 col-md-8">
+                <div class="card section-card h-100">
+                    <!-- Breadcrumb Navigation -->
+                    <div class="card-header bg-white border-bottom py-3">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0" id="breadcrumbNav">
+                                <li class="breadcrumb-item">
+                                    <i class="bi bi-house-door text-primary me-1"></i>
+                                    <span class="text-primary fw-semibold">Dashboard</span>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    
+                    <!-- Dynamic Content Container -->
+                    <div class="card-body position-relative" id="mainContent">
+                        <!-- Welcome Screen -->
+                        <div class="text-center py-5" id="welcomeScreen">
+                            <div class="mb-4">
+                                <i class="bi bi-grid-3x3-gap text-primary" style="font-size: 4rem;"></i>
+                            </div>
+                            <h3 class="text-dark mb-3">Benvenuto in BAIT Service Enterprise</h3>
+                            <p class="text-muted fs-5 mb-4">Seleziona un modulo dalla barra laterale per iniziare</p>
+                            <div class="row g-3 justify-content-center">
+                                <div class="col-auto">
+                                    <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                        <i class="bi bi-car-front me-1"></i>
+                                        Gestione Auto
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                        <i class="bi bi-briefcase me-1"></i>
+                                        Attività Deepser
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        Richieste Permessi
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Seconda riga con i 4 bottoni audit + AI -->
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/audit_tecnico_dashboard.php" target="_blank" class="btn btn-outline-secondary w-100 py-3">
-                                    <i class="bi bi-person-check fs-4 d-block mb-1"></i>
-                                    <small>Audit Tecnico</small>
-                                </a>
+                        <!-- Loading Spinner -->
+                        <div class="text-center py-5 d-none" id="loadingSpinner">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Caricamento...</span>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/audit_monthly_manager.php" target="_blank" class="btn btn-outline-secondary w-100 py-3">
-                                    <i class="bi bi-calendar3 fs-4 d-block mb-1"></i>
-                                    <small>Audit Mensile</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/bait_incongruenze_manager.php" target="_blank" class="btn btn-outline-secondary w-100 py-3">
-                                    <i class="bi bi-exclamation-triangle fs-4 d-block mb-1"></i>
-                                    <small>Incongruenze</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/bait_ai_chat.php" target="_blank" class="btn btn-outline-secondary w-100 py-3">
-                                    <i class="bi bi-robot fs-4 d-block mb-1"></i>
-                                    <small>AI Chat</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-sm-4">
-                                <a href="/controlli/upload_csv_simple.php" class="btn btn-outline-info w-100 py-3">
-                                    <i class="bi bi-cloud-upload fs-4 d-block mb-1"></i>
-                                    <small>Carica File</small>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-sm-4">
-                                <div class="btn btn-outline-primary w-100 py-3" style="cursor: pointer;" onclick="toggleDateFilter()">
-                                    <i class="bi bi-calendar-range fs-4 d-block mb-1"></i>
-                                    <small>Filtro Date</small>
-                                </div>
-                            </div>
+                            <h5 class="text-muted">Caricamento modulo in corso...</h5>
+                        </div>
+                        
+                        <!-- Module Content -->
+                        <div class="d-none" id="moduleContent">
+                            <!-- Content will be loaded here via AJAX -->
                         </div>
                     </div>
                 </div>
@@ -501,6 +1450,692 @@ $isConnected = getDatabase() !== null;
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // SPA Router System
+        let currentModule = null;
+        let moduleCache = new Map();
+        let cacheTimeout = 300000; // 5 minutes cache
+        
+        // Module configuration
+        const modules = {
+            'auto': { 
+                title: 'Gestione Auto', 
+                url: '/controlli/utilizzo_auto.php',
+                icon: 'bi-car-front-fill',
+                category: 'transport'
+            },
+            'attivita': { 
+                title: 'Attività Deepser', 
+                url: '/controlli/attivita_deepser.php',
+                icon: 'bi-briefcase-fill',
+                category: 'activities'
+            },
+            'permessi': { 
+                title: 'Richieste Permessi', 
+                url: '/controlli/richieste_permessi.php',
+                icon: 'bi-calendar-check-fill',
+                category: 'permissions'
+            },
+            'timbrature': { 
+                title: 'Timbrature', 
+                url: '/controlli/timbrature.php',
+                icon: 'bi-clock-fill',
+                category: 'time'
+            },
+            'teamviewer': { 
+                title: 'TeamViewer', 
+                url: '/controlli/teamviewer_dashboard_fixed.php',
+                icon: 'bi-display-fill',
+                category: 'remote'
+            },
+            'calendario': { 
+                title: 'Calendario', 
+                url: '/controlli/calendario.php',
+                icon: 'bi-calendar-fill',
+                category: 'calendar'
+            },
+            'audit-tecnico': { 
+                title: 'Audit Tecnico', 
+                url: '/controlli/audit_tecnico_dashboard.php',
+                icon: 'bi-person-check-fill',
+                category: 'audit'
+            },
+            'audit-mensile': { 
+                title: 'Audit Mensile', 
+                url: '/controlli/audit_monthly_manager.php',
+                icon: 'bi-calendar3-fill',
+                category: 'audit'
+            },
+            'incongruenze': { 
+                title: 'Incongruenze', 
+                url: '/controlli/bait_incongruenze_manager.php',
+                icon: 'bi-exclamation-triangle-fill',
+                category: 'audit'
+            },
+            'ai-chat': { 
+                title: 'AI Chat', 
+                url: '/controlli/bait_ai_chat.php',
+                icon: 'bi-robot',
+                category: 'ai'
+            },
+            'carica-file': { 
+                title: 'Carica File', 
+                url: '/controlli/upload_csv_simple.php',
+                icon: 'bi-cloud-upload-fill',
+                category: 'upload'
+            }
+        };
+        
+        // Enhanced AJAX Module Loading System
+        function loadModule(moduleId, url) {
+            if (!modules[moduleId]) {
+                console.error('Module not found:', moduleId);
+                return Promise.reject(new Error('Module not found'));
+            }
+            
+            // Update active state
+            setActiveModule(moduleId);
+            
+            // Show loading spinner
+            showLoading();
+            
+            // Update breadcrumb
+            updateBreadcrumb(modules[moduleId].title, modules[moduleId].icon);
+            
+            // Stop auto-refresh while in module
+            stopAutoRefresh();
+            
+            // Check cache first
+            const cachedContent = getCachedModule(moduleId);
+            if (cachedContent) {
+                console.log(`Loading ${moduleId} from cache`);
+                showModuleContent(cachedContent);
+                initializeModuleFeatures(moduleId);
+                history.pushState({ module: moduleId }, modules[moduleId].title, `#${moduleId}`);
+                currentModule = moduleId;
+                return Promise.resolve({ moduleId, success: true, cached: true });
+            }
+            
+            // Enhanced AJAX loading with timeout and retry
+            return fetchWithRetry(url, { timeout: 10000, retries: 2 })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Process and sanitize content
+                    const processedContent = processModuleContent(html, moduleId);
+                    
+                    // Cache the processed content
+                    cacheModule(moduleId, processedContent);
+                    
+                    // Show module content
+                    showModuleContent(processedContent);
+                    
+                    // Initialize module-specific features
+                    initializeModuleFeatures(moduleId);
+                    
+                    // Update URL without page reload
+                    history.pushState({ module: moduleId }, modules[moduleId].title, `#${moduleId}`);
+                    
+                    currentModule = moduleId;
+                    
+                    // Log successful load
+                    console.log(`Module ${moduleId} loaded successfully`);
+                    
+                    return { moduleId, success: true };
+                })
+                .catch(error => {
+                    console.error(`Error loading module ${moduleId}:`, error);
+                    showError(`Errore nel caricamento del modulo "${modules[moduleId].title}". ${error.message}`);
+                    return { moduleId, success: false, error: error.message };
+                });
+        }
+        
+        // Advanced fetch with retry and timeout
+        function fetchWithRetry(url, options = {}) {
+            const { timeout = 8000, retries = 1 } = options;
+            
+            return new Promise((resolve, reject) => {
+                const attemptFetch = (attempt) => {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    
+                    fetch(url, { 
+                        ...options, 
+                        signal: controller.signal,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Cache-Control': 'no-cache',
+                            ...options.headers
+                        }
+                    })
+                    .then(response => {
+                        clearTimeout(timeoutId);
+                        resolve(response);
+                    })
+                    .catch(error => {
+                        clearTimeout(timeoutId);
+                        if (attempt < retries && (error.name === 'AbortError' || error.name === 'TypeError')) {
+                            console.warn(`Fetch attempt ${attempt + 1} failed, retrying...`);
+                            setTimeout(() => attemptFetch(attempt + 1), 1000);
+                        } else {
+                            reject(error);
+                        }
+                    });
+                };
+                
+                attemptFetch(0);
+            });
+        }
+        
+        // Advanced content processing and sanitization
+        function processModuleContent(html, moduleId) {
+            let content = html;
+            
+            // Extract body content if full HTML document
+            const bodyMatch = content.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+            if (bodyMatch) {
+                content = bodyMatch[1];
+            }
+            
+            // Remove script tags that might conflict (keep data scripts)
+            content = content.replace(/<script(?![^>]*type=["'](?:application\/json|text\/template)["'])[^>]*>[\s\S]*?<\/script>/gi, '');
+            
+            // Remove duplicate stylesheets (keep module-specific ones)
+            content = content.replace(/<link[^>]*href=["'][^"']*bootstrap[^"']*["'][^>]*>/gi, '');
+            
+            // Convert relative URLs to absolute for assets
+            content = content.replace(/src=["'](?!http|\/\/|data:)([^"']+)["']/gi, (match, url) => {
+                const baseUrl = '/controlli/';
+                return `src="${baseUrl}${url}"`;
+            });
+            
+            // Process module-specific content enhancements
+            content = enhanceModuleContent(content, moduleId);
+            
+            // Wrap content in themed container
+            return `
+                <div class="bait-module-container" data-module="${moduleId}" data-theme="${document.documentElement.getAttribute('data-theme') || 'light'}">
+                    ${content}
+                </div>
+            `;
+        }
+        
+        // Module-specific content enhancements
+        function enhanceModuleContent(content, moduleId) {
+            switch (moduleId) {
+                case 'auto':
+                    // Enhanced auto management features
+                    content = addAutoManagementFeatures(content);
+                    break;
+                case 'attivita':
+                    // Enhanced activity tracking
+                    content = addActivityTrackingFeatures(content);
+                    break;
+                case 'audit-mensile':
+                    // Enhanced audit reports
+                    content = addAuditReportFeatures(content);
+                    break;
+                case 'ai-chat':
+                    // Enhanced AI chat features
+                    content = addAIchatFeatures(content);
+                    break;
+                case 'teamviewer':
+                    // Enhanced TeamViewer features
+                    content = addTeamViewerFeatures(content);
+                    break;
+                default:
+                    // Generic enhancements
+                    content = addGenericModuleFeatures(content);
+            }
+            
+            return content;
+        }
+        
+        // Module-specific feature additions
+        function addAutoManagementFeatures(content) {
+            // Add quick filters, export buttons, etc.
+            const quickActions = `
+                <div class="bait-module-quick-actions mb-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="filterToday()">
+                            <i class="bi bi-calendar-day me-1"></i>Oggi
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="filterWeek()">
+                            <i class="bi bi-calendar-week me-1"></i>Settimana
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="exportData()">
+                            <i class="bi bi-download me-1"></i>Esporta
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after first heading or at beginning
+            const headingMatch = content.match(/(<h[1-6][^>]*>.*?<\/h[1-6]>)/i);
+            if (headingMatch) {
+                content = content.replace(headingMatch[1], headingMatch[1] + quickActions);
+            } else {
+                content = quickActions + content;
+            }
+            
+            return content;
+        }
+        
+        function addActivityTrackingFeatures(content) {
+            // Add activity-specific quick actions
+            const quickActions = `
+                <div class="bait-module-quick-actions mb-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-info" onclick="refreshActivities()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Aggiorna
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="showConflicts()">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Conflitti
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return addQuickActionsToContent(content, quickActions);
+        }
+        
+        function addAuditReportFeatures(content) {
+            // Add audit-specific features
+            const quickActions = `
+                <div class="bait-module-quick-actions mb-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="generateReport()">
+                            <i class="bi bi-file-earmark-text me-1"></i>Genera Report
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="showAnalytics()">
+                            <i class="bi bi-graph-up me-1"></i>Analytics
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return addQuickActionsToContent(content, quickActions);
+        }
+        
+        function addAIchatFeatures(content) {
+            // Enhanced AI chat with quick prompts
+            const quickPrompts = `
+                <div class="bait-ai-quick-prompts mb-3">
+                    <div class="btn-group-vertical btn-group-sm d-grid gap-1" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="sendQuickPrompt('analizza-giorno')">
+                            <i class="bi bi-calendar-check me-1"></i>Analizza giornata corrente
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="sendQuickPrompt('conflitti-orari')">
+                            <i class="bi bi-clock-history me-1"></i>Verifica conflitti orari
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="sendQuickPrompt('report-anomalie')">
+                            <i class="bi bi-exclamation-diamond me-1"></i>Report anomalie
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return addQuickActionsToContent(content, quickPrompts);
+        }
+        
+        function addTeamViewerFeatures(content) {
+            // Enhanced TeamViewer with session management tools
+            const quickActions = `
+                <div class="bait-module-quick-actions mb-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-success" onclick="refreshTeamViewerData()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Aggiorna Sessioni
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="showTeamViewerStats()">
+                            <i class="bi bi-bar-chart me-1"></i>Statistiche
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="checkTeamViewerOverlaps()">
+                            <i class="bi bi-clock-history me-1"></i>Verifica Sovrapposizioni
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="exportTeamViewerData()">
+                            <i class="bi bi-download me-1"></i>Esporta
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return addQuickActionsToContent(content, quickActions);
+        }
+        
+        function addGenericModuleFeatures(content) {
+            // Add generic refresh and back buttons
+            const quickActions = `
+                <div class="bait-module-quick-actions mb-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary" onclick="showWelcome()">
+                            <i class="bi bi-arrow-left me-1"></i>Dashboard
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Aggiorna
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return addQuickActionsToContent(content, quickActions);
+        }
+        
+        function addQuickActionsToContent(content, actions) {
+            const headingMatch = content.match(/(<h[1-6][^>]*>.*?<\/h[1-6]>)/i);
+            if (headingMatch) {
+                return content.replace(headingMatch[1], headingMatch[1] + actions);
+            } else {
+                return actions + content;
+            }
+        }
+        
+        // Initialize module-specific features after loading
+        function initializeModuleFeatures(moduleId) {
+            // Apply current theme to new content
+            applyThemeToModules();
+            
+            // Initialize tooltips and popovers if Bootstrap is available
+            if (typeof bootstrap !== 'undefined') {
+                // Initialize Bootstrap tooltips
+                const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+                tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
+                
+                // Initialize Bootstrap popovers
+                const popovers = document.querySelectorAll('[data-bs-toggle="popover"]');
+                popovers.forEach(popover => new bootstrap.Popover(popover));
+            }
+            
+            // Module-specific initializations
+            switch (moduleId) {
+                case 'auto':
+                    initializeAutoManagement();
+                    break;
+                case 'attivita':
+                    initializeActivityTracking();
+                    break;
+                case 'ai-chat':
+                    initializeAIChat();
+                    break;
+                case 'teamviewer':
+                    initializeTeamViewer();
+                    break;
+            }
+            
+            // Add keyboard shortcuts
+            addModuleKeyboardShortcuts(moduleId);
+        }
+        
+        // Module-specific initialization functions
+        function initializeAutoManagement() {
+            // Auto module specific initialization
+            console.log('Auto management module initialized');
+        }
+        
+        function initializeActivityTracking() {
+            // Activity module specific initialization
+            console.log('Activity tracking module initialized');
+        }
+        
+        function initializeAIChat() {
+            // AI Chat module specific initialization
+            console.log('AI Chat module initialized');
+        }
+        
+        function initializeTeamViewer() {
+            // TeamViewer module specific initialization
+            console.log('TeamViewer module initialized');
+            
+            // Add TeamViewer specific functionality
+            window.refreshTeamViewerData = function() {
+                console.log('Refreshing TeamViewer data...');
+                loadModule('teamviewer', '/controlli/teamviewer_dashboard_fixed.php');
+            };
+            
+            window.showTeamViewerStats = function() {
+                console.log('Showing TeamViewer statistics...');
+                // Implementation for showing stats
+            };
+            
+            window.checkTeamViewerOverlaps = function() {
+                console.log('Checking TeamViewer overlaps...');
+                // Implementation for overlap detection
+            };
+            
+            window.exportTeamViewerData = function() {
+                console.log('Exporting TeamViewer data...');
+                // Implementation for data export
+            };
+        }
+        
+        // Add keyboard shortcuts for modules
+        function addModuleKeyboardShortcuts(moduleId) {
+            document.addEventListener('keydown', function(e) {
+                // Escape key to return to dashboard
+                if (e.key === 'Escape' && currentModule === moduleId) {
+                    showWelcome();
+                }
+                
+                // Ctrl+R to refresh module content
+                if (e.ctrlKey && e.key === 'r' && currentModule === moduleId) {
+                    e.preventDefault();
+                    loadModule(moduleId, modules[moduleId].url);
+                }
+            });
+        }
+        
+        // Set active module visual state
+        function setActiveModule(moduleId) {
+            // Remove active class from all cards
+            document.querySelectorAll('.bait-module-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Add active class to selected card
+            const activeCard = document.querySelector(`[data-module="${moduleId}"]`);
+            if (activeCard) {
+                activeCard.classList.add('active');
+            }
+        }
+        
+        // Update breadcrumb navigation
+        function updateBreadcrumb(title, icon) {
+            const breadcrumb = document.getElementById('breadcrumbNav');
+            breadcrumb.innerHTML = `
+                <li class="breadcrumb-item">
+                    <span onclick="showWelcome()" style="cursor: pointer;" class="text-primary fw-semibold">
+                        <i class="bi bi-house-door me-1"></i>
+                        Dashboard
+                    </span>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <i class="${icon} me-1"></i>
+                    ${title}
+                </li>
+            `;
+        }
+        
+        // Show loading state
+        function showLoading() {
+            document.getElementById('welcomeScreen').classList.add('d-none');
+            document.getElementById('moduleContent').classList.add('d-none');
+            document.getElementById('loadingSpinner').classList.remove('d-none');
+        }
+        
+        // Show module content
+        function showModuleContent(html) {
+            document.getElementById('welcomeScreen').classList.add('d-none');
+            document.getElementById('loadingSpinner').classList.add('d-none');
+            document.getElementById('moduleContent').innerHTML = html;
+            document.getElementById('moduleContent').classList.remove('d-none');
+        }
+        
+        // Enhanced error message display
+        function showError(message) {
+            const errorHtml = `
+                <div class="bait-error-container">
+                    <div class="mb-4">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: var(--bait-danger);"></i>
+                    </div>
+                    <h4 class="mb-3" style="color: var(--bait-text-primary);">Errore di Caricamento</h4>
+                    <p class="mb-4" style="color: var(--bait-text-secondary);">${message}</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-primary" onclick="showWelcome()">
+                            <i class="bi bi-house-door me-1"></i>
+                            Torna alla Dashboard
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Ricarica Pagina
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Se il problema persiste, contatta l'amministratore del sistema.
+                        </small>
+                    </div>
+                </div>
+            `;
+            showModuleContent(errorHtml);
+        }
+        
+        // Show welcome screen
+        function showWelcome() {
+            document.getElementById('loadingSpinner').classList.add('d-none');
+            document.getElementById('moduleContent').classList.add('d-none');
+            document.getElementById('welcomeScreen').classList.remove('d-none');
+            
+            // Reset breadcrumb
+            const breadcrumb = document.getElementById('breadcrumbNav');
+            breadcrumb.innerHTML = `
+                <li class="breadcrumb-item">
+                    <i class="bi bi-house-door text-primary me-1"></i>
+                    <span class="text-primary fw-semibold">Dashboard</span>
+                </li>
+            `;
+            
+            // Clear active module
+            setActiveModule(null);
+            currentModule = null;
+            
+            // Update URL
+            history.pushState({}, 'BAIT Service Dashboard', location.pathname);
+            
+            // Restart auto-refresh
+            startAutoRefresh();
+        }
+        
+        // Handle browser back/forward
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.module) {
+                const moduleId = event.state.module;
+                if (modules[moduleId]) {
+                    loadModule(moduleId, modules[moduleId].url);
+                }
+            } else {
+                showWelcome();
+            }
+        });
+        
+        // Enhanced Module Caching System
+        function cacheModule(moduleId, content) {
+            moduleCache.set(moduleId, {
+                content: content,
+                timestamp: Date.now(),
+                size: content.length
+            });
+            
+            // Clean old cache entries if needed
+            cleanupCache();
+        }
+        
+        function getCachedModule(moduleId) {
+            const cached = moduleCache.get(moduleId);
+            if (!cached) return null;
+            
+            // Check if cache is still valid
+            if (Date.now() - cached.timestamp > cacheTimeout) {
+                moduleCache.delete(moduleId);
+                return null;
+            }
+            
+            return cached.content;
+        }
+        
+        function cleanupCache() {
+            const now = Date.now();
+            const maxCacheSize = 10; // Maximum cached modules
+            
+            // Remove expired entries
+            for (const [moduleId, cached] of moduleCache.entries()) {
+                if (now - cached.timestamp > cacheTimeout) {
+                    moduleCache.delete(moduleId);
+                }
+            }
+            
+            // If still too many entries, remove oldest
+            if (moduleCache.size > maxCacheSize) {
+                const entries = Array.from(moduleCache.entries());
+                entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+                
+                const toRemove = entries.slice(0, moduleCache.size - maxCacheSize);
+                toRemove.forEach(([moduleId]) => moduleCache.delete(moduleId));
+            }
+        }
+        
+        function clearModuleCache(moduleId = null) {
+            if (moduleId) {
+                moduleCache.delete(moduleId);
+                console.log(`Cache cleared for module: ${moduleId}`);
+            } else {
+                moduleCache.clear();
+                console.log('All module cache cleared');
+            }
+        }
+        
+        function getCacheStats() {
+            const stats = {
+                total: moduleCache.size,
+                modules: [],
+                totalSize: 0
+            };
+            
+            for (const [moduleId, cached] of moduleCache.entries()) {
+                stats.modules.push({
+                    moduleId,
+                    size: cached.size,
+                    age: Date.now() - cached.timestamp
+                });
+                stats.totalSize += cached.size;
+            }
+            
+            return stats;
+        }
+        
+        // Preload popular modules
+        function preloadModules() {
+            const popularModules = ['auto', 'attivita', 'ai-chat'];
+            
+            popularModules.forEach(moduleId => {
+                if (!getCachedModule(moduleId) && modules[moduleId]) {
+                    // Preload in background without showing
+                    fetchWithRetry(modules[moduleId].url, { timeout: 5000 })
+                        .then(response => response.text())
+                        .then(html => {
+                            const processedContent = processModuleContent(html, moduleId);
+                            cacheModule(moduleId, processedContent);
+                            console.log(`Preloaded module: ${moduleId}`);
+                        })
+                        .catch(error => {
+                            console.warn(`Failed to preload module ${moduleId}:`, error);
+                        });
+                }
+            });
+        }
+        
         // Auto-refresh ogni 30 secondi (disabilitato quando il filtro è attivo)
         let autoRefreshEnabled = true;
         let autoRefreshTimer;
@@ -534,6 +2169,94 @@ $isConnected = getDatabase() !== null;
                 autoRefreshEnabled = false;
                 stopAutoRefresh();
             }
+        }
+        
+        // Theme Management System
+        function initializeTheme() {
+            // Check for saved theme preference or default to 'light'
+            const savedTheme = localStorage.getItem('bait-theme') || 'light';
+            setTheme(savedTheme);
+        }
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+        
+        function setTheme(theme) {
+            // Apply theme to document
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Save preference
+            localStorage.setItem('bait-theme', theme);
+            
+            // Update theme toggle button
+            updateThemeToggle(theme);
+            
+            // Apply theme to dynamically loaded content
+            applyThemeToModules();
+        }
+        
+        function updateThemeToggle(theme) {
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (theme === 'dark') {
+                themeIcon.className = 'bi bi-moon-fill';
+                themeText.textContent = 'Scuro';
+            } else {
+                themeIcon.className = 'bi bi-sun-fill';
+                themeText.textContent = 'Chiaro';
+            }
+        }
+        
+        function applyThemeToModules() {
+            // Apply theme to any dynamically loaded module content
+            const moduleContent = document.getElementById('moduleContent');
+            if (moduleContent && !moduleContent.classList.contains('d-none')) {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                
+                // Find all elements that need theme updates in loaded modules
+                const elementsToUpdate = moduleContent.querySelectorAll('*');
+                elementsToUpdate.forEach(element => {
+                    // Add data-theme attribute to maintain consistency
+                    element.setAttribute('data-theme', currentTheme);
+                });
+            }
+        }
+        
+        // Enhanced color scheme detection
+        function detectSystemTheme() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        }
+        
+        // Listen for system theme changes
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                // Only auto-switch if user hasn't set a preference
+                if (!localStorage.getItem('bait-theme')) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+        
+        // Theme persistence across module loads
+        function preserveThemeInModules() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            
+            // Override the loadModule function to preserve theme
+            const originalLoadModule = loadModule;
+            loadModule = function(moduleId, url) {
+                originalLoadModule(moduleId, url).then(() => {
+                    setTimeout(() => {
+                        applyThemeToModules();
+                    }, 100);
+                });
+            };
         }
         
         // Imposta date rapide
@@ -665,12 +2388,258 @@ $isConnected = getDatabase() !== null;
             const now = new Date();
             console.log('Dashboard caricata alle:', now.toLocaleString('it-IT'));
             
+            // Initialize theme system
+            initializeTheme();
+            
+            // Preload popular modules for better performance
+            setTimeout(() => {
+                preloadModules();
+            }, 2000);
+            
             // Event listeners per i campi data
             document.getElementById('startDate').addEventListener('change', updateDateRangeDisplay);
             document.getElementById('endDate').addEventListener('change', updateDateRangeDisplay);
             
             updateDateRangeDisplay();
             startAutoRefresh();
+            
+            // Initialize mobile optimizations
+            initializeMobileOptimizations();
+        });
+        
+        // Mobile-specific optimizations and features
+        function initializeMobileOptimizations() {
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            if (isMobile || isTouch) {
+                document.body.classList.add('mobile-device');
+                
+                // Add mobile-specific behaviors
+                addTouchGestures();
+                optimizeScrolling();
+                addMobileKeyboardSupport();
+                preventZoomOnFocus();
+                
+                console.log('Mobile optimizations enabled');
+            }
+            
+            // Detect device orientation changes
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('orientationchange', handleOrientationChange);
+            }
+            
+            // Optimize for reduced motion
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.body.classList.add('reduced-motion');
+            }
+            
+            // Add responsive font size adjustment
+            adjustFontSizeForViewport();
+            window.addEventListener('resize', adjustFontSizeForViewport);
+        }
+        
+        // Touch gesture support
+        function addTouchGestures() {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isSwipe = false;
+            
+            // Swipe to return to dashboard
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwipe = true;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                if (!isSwipe) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const diffX = touchStartX - touchEndX;
+                const diffY = touchStartY - touchEndY;
+                
+                // Swipe right to go back (only if viewing a module)
+                if (currentModule && diffX < -50 && Math.abs(diffY) < 100) {
+                    showWelcome();
+                }
+                
+                isSwipe = false;
+            }, { passive: true });
+        }
+        
+        // Optimize scrolling performance
+        function optimizeScrolling() {
+            // Use passive event listeners for better performance
+            document.addEventListener('touchmove', function() {}, { passive: true });
+            document.addEventListener('wheel', function() {}, { passive: true });
+            
+            // Prevent overscroll on body
+            document.body.style.overscrollBehavior = 'none';
+        }
+        
+        // Mobile keyboard support
+        function addMobileKeyboardSupport() {
+            // Adjust viewport when keyboard opens
+            let initialViewportHeight = window.innerHeight;
+            
+            window.addEventListener('resize', function() {
+                const currentHeight = window.innerHeight;
+                const heightDiff = initialViewportHeight - currentHeight;
+                
+                if (heightDiff > 150) {
+                    // Keyboard is likely open
+                    document.body.classList.add('keyboard-open');
+                } else {
+                    // Keyboard is likely closed
+                    document.body.classList.remove('keyboard-open');
+                }
+            });
+        }
+        
+        // Prevent zoom on input focus
+        function preventZoomOnFocus() {
+            const inputs = document.querySelectorAll('input, button, select, textarea');
+            inputs.forEach(input => {
+                if (input.style.fontSize !== '16px') {
+                    input.style.fontSize = '16px';
+                }
+            });
+        }
+        
+        // Handle orientation changes
+        function handleOrientationChange() {
+            // Add a small delay to ensure the orientation has fully changed
+            setTimeout(() => {
+                // Trigger a resize event to recalculate layouts
+                window.dispatchEvent(new Event('resize'));
+                
+                // Update grid layout for landscape mode
+                updateGridForOrientation();
+                
+                // Force redraw to prevent layout issues
+                document.body.style.display = 'none';
+                document.body.offsetHeight; // Trigger reflow
+                document.body.style.display = '';
+                
+                console.log('Orientation changed, layout updated');
+            }, 100);
+        }
+        
+        // Update grid layout based on orientation
+        function updateGridForOrientation() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            const moduleGrid = document.getElementById('moduleGrid');
+            
+            if (moduleGrid && window.innerWidth <= 896) {
+                if (isLandscape) {
+                    moduleGrid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+                } else {
+                    // Reset to CSS-defined responsive layout
+                    moduleGrid.style.gridTemplateColumns = '';
+                }
+            }
+        }
+        
+        // Responsive font size adjustment
+        function adjustFontSizeForViewport() {
+            const viewportWidth = window.innerWidth;
+            let scaleFactor = 1;
+            
+            if (viewportWidth <= 480) {
+                scaleFactor = 0.9;
+            } else if (viewportWidth <= 576) {
+                scaleFactor = 0.95;
+            } else if (viewportWidth <= 768) {
+                scaleFactor = 1;
+            }
+            
+            document.documentElement.style.setProperty('--font-scale', scaleFactor);
+        }
+        
+        // Enhanced error handling for mobile
+        function showMobileError(message) {
+            const isMobile = document.body.classList.contains('mobile-device');
+            
+            if (isMobile) {
+                // Create a mobile-optimized error display
+                const errorHtml = `
+                    <div class="bait-error-container mobile-error">
+                        <div class="mb-3">
+                            <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: var(--bait-danger);"></i>
+                        </div>
+                        <h5 class="mb-2" style="color: var(--bait-text-primary);">Errore</h5>
+                        <p class="mb-3" style="color: var(--bait-text-secondary); font-size: 0.9rem;">${message}</p>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="showWelcome()">
+                                <i class="bi bi-house-door me-1"></i>
+                                Torna alla Dashboard
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                Ricarica Pagina
+                            </button>
+                        </div>
+                    </div>
+                `;
+                showModuleContent(errorHtml);
+            } else {
+                // Use standard error display for desktop
+                showError(message);
+            }
+        }
+        
+        // Mobile-optimized loading spinner
+        function showMobileLoading() {
+            const isMobile = document.body.classList.contains('mobile-device');
+            
+            if (isMobile) {
+                const loadingHtml = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                            <span class="visually-hidden">Caricamento...</span>
+                        </div>
+                        <h6 class="text-muted">Caricamento...</h6>
+                    </div>
+                `;
+                
+                document.getElementById('welcomeScreen').classList.add('d-none');
+                document.getElementById('moduleContent').classList.add('d-none');
+                document.getElementById('loadingSpinner').innerHTML = loadingHtml;
+                document.getElementById('loadingSpinner').classList.remove('d-none');
+            } else {
+                showLoading();
+            }
+        }
+        
+        // Add mobile-specific CSS classes
+        document.addEventListener('DOMContentLoaded', function() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .mobile-device .keyboard-open {
+                    height: 100vh;
+                    overflow: hidden;
+                }
+                
+                .mobile-device .reduced-motion * {
+                    animation-duration: 0.01ms !important;
+                    transition-duration: 0.01ms !important;
+                }
+                
+                .mobile-error {
+                    max-width: 320px;
+                    margin: 0 auto;
+                }
+                
+                @media (max-width: 768px) {
+                    body {
+                        font-size: calc(1rem * var(--font-scale, 1));
+                    }
+                }
+            `;
+            document.head.appendChild(style);
         });
     </script>
 </body>

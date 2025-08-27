@@ -241,6 +241,9 @@ try {
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
+    <!-- BAIT Tooltip System -->
+    <link href="/controlli/assets/css/bait-tooltips.css" rel="stylesheet">
+    
     <style>
         body {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -783,9 +786,8 @@ try {
                             <td class="row-number"><?= $index + 1 ?></td>
                             <td class="text-center">
                                 <?php if ($u['tecnico_nome']): ?>
-                                <span class="badge-technician cell-tooltip" title="<?= htmlspecialchars($u['tecnico_nome']) ?>">
+                                <span class="badge-technician" data-bs-toggle="tooltip" data-bs-title="<?= htmlspecialchars($u['tecnico_nome']) ?>">
                                     <?= $technicoInitials ?>
-                                    <div class="tooltip-content"><?= htmlspecialchars($u['tecnico_nome']) ?></div>
                                 </span>
                                 <?php else: ?>
                                 <span class="text-muted">-</span>
@@ -815,9 +817,8 @@ try {
                                         return mb_substr($cliente, 0, 15) . (strlen($cliente) > 15 ? '...' : '');
                                     }, $clienti_lista);
                                     ?>
-                                    <span class="badge-client cell-tooltip" title="<?= htmlspecialchars($u['clienti']) ?>">
+                                    <span class="badge-client" data-bs-toggle="tooltip" data-bs-title="<?= htmlspecialchars($u['clienti']) ?>">
                                         <?= count($clienti_lista) > 1 ? count($clienti_lista) . ' clienti' : htmlspecialchars($clienti_brevi[0]) ?>
-                                        <div class="tooltip-content"><?= htmlspecialchars($u['clienti']) ?></div>
                                     </span>
                                 <?php else: ?>
                                 <span class="text-muted">-</span>
@@ -867,6 +868,9 @@ try {
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    
+    <!-- BAIT Tooltip System -->
+    <script src="/controlli/assets/js/bait-tooltips.js"></script>
 
     <script>
         let editMode = false;

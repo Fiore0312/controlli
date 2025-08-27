@@ -74,31 +74,59 @@ $pdo = getDatabase();
 $dbData = [];
 $hasDbData = false;
 
+// Database data loaded successfully - debug removed
+
 if ($pdo) {
     try {
-        $stmt = $pdo->query("
-            SELECT 
-                ts.session_id,
-                t.nome_completo as tecnico_nome,
-                c.nome as cliente_nome,
-                ts.data_sessione,
-                ts.ora_inizio,
-                ts.ora_fine,
-                ts.durata_minuti,
-                ts.tipo_sessione,
-                ts.descrizione,
-                ts.computer_remoto
-            FROM teamviewer_sessions ts
-            LEFT JOIN tecnici t ON ts.tecnico_id = t.id
-            LEFT JOIN clienti c ON ts.cliente_id = c.id
-            ORDER BY ts.data_sessione DESC, ts.ora_inizio DESC
-        ");
+        // Debug: Check if teamviewer_sessions table exists and has data
+        $stmt = $pdo->query("SHOW TABLES LIKE '%teamviewer%'");
+        $tables = $stmt->fetchAll();
+        error_log("TeamViewer tables found: " . print_r($tables, true));
         
-        $dbData = $stmt->fetchAll();
-        $hasDbData = count($dbData) > 0;
+        $stmt = $pdo->query("SELECT COUNT(*) as total FROM teamviewer_sessions");  
+        $count = $stmt->fetchColumn();
+        error_log("TeamViewer records count: " . $count);
+        
+        if ($count > 0) {
+            // Sample data for debugging
+            $stmt = $pdo->query("SELECT * FROM teamviewer_sessions LIMIT 2");
+            $sampleData = $stmt->fetchAll();
+            error_log("Sample TeamViewer data: " . print_r($sampleData, true));
+        }
+        
+        // Prima controlla se ci sono dati nella tabella
+        if ($count > 0) {
+            $stmt = $pdo->query("
+                SELECT 
+                    ts.session_id,
+                    COALESCE(t.nome_completo, 'Sconosciuto') as tecnico_nome,
+                    COALESCE(c.ragione_sociale, ts.computer_remoto, 'Cliente sconosciuto') as cliente_nome,
+                    ts.data_sessione,
+                    ts.ora_inizio,
+                    ts.ora_fine,
+                    ts.durata_minuti,
+                    ts.tipo_sessione,
+                    ts.descrizione,
+                    ts.computer_remoto
+                FROM teamviewer_sessions ts
+                LEFT JOIN tecnici t ON ts.tecnico_id = t.id
+                LEFT JOIN clienti c ON ts.cliente_id = c.id
+                ORDER BY ts.data_sessione DESC, ts.ora_inizio DESC
+            ");
+            
+            $dbData = $stmt->fetchAll();
+            $hasDbData = true; // Se ci sono record nella tabella, abbiamo dati DB
+            
+            error_log("Query executed successfully. Records found: " . count($dbData));
+        } else {
+            $hasDbData = false;
+            error_log("No records in teamviewer_sessions table");
+        }
+        
     } catch (Exception $e) {
         // Database error, will fall back to CSV
         $dbError = $e->getMessage();
+        error_log("TeamViewer query error: " . $e->getMessage());
     }
 }
 
@@ -119,6 +147,16 @@ $users = [];
 $sessionTypes = [];
 $combinedData = [];
 $combinedHeaders = ['Fonte', 'Tecnico', 'Cliente/Computer', 'Session ID', 'Tipo Sessione', 'Data', 'Ora Inizio', 'Durata', 'Note'];
+
+// Initialize debug information for file status
+$debugInfo = [
+    'bait_exists' => file_exists($csvBaitPath),
+    'bait_path' => $csvBaitPath,
+    'gruppo_exists' => file_exists($csvGruppoPath),
+    'gruppo_path' => $csvGruppoPath,
+    'input_dir_exists' => is_dir(__DIR__ . '/upload_csv'),
+    'input_dir_readable' => is_readable(__DIR__ . '/upload_csv')
+];
 
 if ($hasDbData) {
     // Use database data
@@ -356,9 +394,7 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                     <p class="mb-0">Gestione sessioni remote TeamViewer (BAIT + Gruppo)</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <a href="laravel_bait/public/index_standalone.php" class="btn btn-light btn-lg">
-                        <i class="fas fa-dashboard me-2"></i>Dashboard
-                    </a>
+                    <!-- Dashboard button removed for cleaner UI -->
                 </div>
             </div>
         </div>
@@ -564,14 +600,7 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                         </ul>
                     </div>
                     
-                    <div class="mt-4">
-                        <a href="laravel_bait/public/index_standalone.php" class="btn btn-primary me-2">
-                            <i class="fas fa-arrow-left me-2"></i>Torna alla Dashboard
-                        </a>
-                        <a href="audit_monthly_manager.php" class="btn btn-success">
-                            <i class="fas fa-upload me-2"></i>Carica File CSV
-                        </a>
-                    </div>
+                    <!-- Navigation buttons removed for cleaner debug interface -->
                 </div>
                 <?php endif; ?>
             </div>
