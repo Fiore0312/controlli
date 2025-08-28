@@ -81,17 +81,21 @@ foreach ($csvData['data'] as $row) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📝 Richieste Permessi - BAIT Service</title>
+    <title>Richieste Permessi - BAIT Service</title>
     
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- DataTables CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- BAIT Unified Design System -->
+    <link href="/controlli/assets/css/bait-unified-system.css" rel="stylesheet">
+    <style>
+    body { font-size: 0.875rem !important; }
+    h1 { font-size: 1.25rem !important; font-weight: 400 !important; }
+    .table, .table th, .table td { font-size: 0.75rem !important; padding: 0.25rem 0.5rem !important; }
+    .btn-dashboard, .dashboard-button, .btn[href*="dashboard"] { display: none !important; }
+    </style>
     
     <style>
         body {

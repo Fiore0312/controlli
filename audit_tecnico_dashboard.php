@@ -126,79 +126,35 @@ try {
     <title>Audit Tecnico - BAIT Service</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- BAIT Unified Design System -->
+    <link href="/controlli/assets/css/bait-unified-system.css" rel="stylesheet">
     <style>
-        body { background-color: #f8fafc; }
-        .main-header {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            padding: 2rem 0;
-        }
-        .analysis-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-            border: none;
-        }
-        .metric-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
-        }
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .metric-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #2563eb;
-        }
-        .metric-label {
-            color: #64748b;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
         .quality-score {
-            font-size: 3rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--bait-primary, #3b82f6);
         }
     </style>
 </head>
 <body>
-    <div class="main-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1><i class="bi bi-person-check me-2"></i>Audit Tecnico</h1>
-                    <p class="mb-0">Analisi attività tecnico per giornata specifica</p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <a href="laravel_bait/public/index_standalone.php" class="btn btn-light">
-                        <i class="bi bi-arrow-left me-2"></i>Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- BAIT Navigation System -->
+    <?php
+    require_once 'includes/bait_navigation.php';
+    renderBaitNavigation(basename(__FILE__, '.php'), 'database');
+    ?>
 
     <div class="container py-4">
         <!-- Form Selection -->
-        <div class="card analysis-card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-search me-2"></i>Selezione Tecnico e Data</h5>
+        <div class="bait-card">
+            <div class="bait-card-header">
+                <h5><i class="bi bi-search me-2"></i>Selezione Tecnico e Data</h5>
             </div>
-            <div class="card-body">
+            <div>
                 <form method="post" class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Tecnico</label>
-                        <select class="form-select" name="tecnico_id" required>
+                        <label class="form-label bait-text-sm">Tecnico</label>
+                        <select class="form-select bait-form-control" name="tecnico_id" required>
                             <option value="">Seleziona tecnico...</option>
                             <?php foreach ($technicians as $tech): ?>
                                 <option value="<?= $tech['id'] ?>" <?= $selectedTechnician == $tech['id'] ? 'selected' : '' ?>>
@@ -208,8 +164,8 @@ try {
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Data Analisi</label>
-                        <input type="date" class="form-control" name="analysis_date" value="<?= $selectedDate ?>" required>
+                        <label class="form-label bait-text-sm">Data Analisi</label>
+                        <input type="date" class="form-control bait-form-control" name="analysis_date" value="<?= $selectedDate ?>" required>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" name="analyze" class="btn btn-primary w-100">
@@ -228,14 +184,14 @@ try {
 
         <?php if ($analysisData): ?>
             <!-- Analysis Results -->
-            <div class="card analysis-card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
+            <div class="bait-card">
+                <div class="bait-card-header">
+                    <h5>
                         <i class="bi bi-clipboard-data me-2"></i>
                         Analisi per <?= htmlspecialchars($analysisData['tecnico_nome']) ?> - <?= date('d/m/Y', strtotime($selectedDate)) ?>
                     </h5>
                 </div>
-                <div class="card-body">
+                <div>
                     <div class="row mb-4">
                         <div class="col-md-3 text-center">
                             <div class="quality-score"><?= $analysisData['quality_score'] ?>%</div>
@@ -245,44 +201,44 @@ try {
                             <div class="row g-3">
                                 <!-- Auto -->
                                 <div class="col-md-3">
-                                    <div class="metric-card">
-                                        <div class="metric-number"><?= $analysisData['auto']['utilizzi'] ?></div>
-                                        <div class="metric-label">Utilizzi Auto</div>
+                                    <div class="bait-stat-card">
+                                        <div class="bait-stat-value"><?= $analysisData['auto']['utilizzi'] ?></div>
+                                        <div class="bait-stat-label">Utilizzi Auto</div>
                                         <?php if ($analysisData['auto']['ore_totali']): ?>
-                                            <small class="text-muted"><?= number_format($analysisData['auto']['ore_totali'], 1) ?>h</small>
+                                            <small class="bait-text-xs text-muted"><?= number_format($analysisData['auto']['ore_totali'], 1) ?>h</small>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 
                                 <!-- Timbrature -->
                                 <div class="col-md-3">
-                                    <div class="metric-card">
-                                        <div class="metric-number"><?= $analysisData['timbrature']['timbrature'] ?></div>
-                                        <div class="metric-label">Timbrature</div>
+                                    <div class="bait-stat-card">
+                                        <div class="bait-stat-value"><?= $analysisData['timbrature']['timbrature'] ?></div>
+                                        <div class="bait-stat-label">Timbrature</div>
                                         <?php if ($analysisData['timbrature']['prima_entrata']): ?>
-                                            <small class="text-muted"><?= date('H:i', strtotime($analysisData['timbrature']['prima_entrata'])) ?> - <?= date('H:i', strtotime($analysisData['timbrature']['ultima_uscita'])) ?></small>
+                                            <small class="bait-text-xs text-muted"><?= date('H:i', strtotime($analysisData['timbrature']['prima_entrata'])) ?> - <?= date('H:i', strtotime($analysisData['timbrature']['ultima_uscita'])) ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 
                                 <!-- Deepser -->
                                 <div class="col-md-3">
-                                    <div class="metric-card">
-                                        <div class="metric-number"><?= $analysisData['deepser']['attivita'] ?></div>
-                                        <div class="metric-label">Attività Deepser</div>
+                                    <div class="bait-stat-card">
+                                        <div class="bait-stat-value"><?= $analysisData['deepser']['attivita'] ?></div>
+                                        <div class="bait-stat-label">Attività Deepser</div>
                                         <?php if ($analysisData['deepser']['ore_deepser']): ?>
-                                            <small class="text-muted"><?= number_format($analysisData['deepser']['ore_deepser'], 1) ?>h</small>
+                                            <small class="bait-text-xs text-muted"><?= number_format($analysisData['deepser']['ore_deepser'], 1) ?>h</small>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 
                                 <!-- TeamViewer -->
                                 <div class="col-md-3">
-                                    <div class="metric-card">
-                                        <div class="metric-number"><?= $analysisData['teamviewer']['sessioni'] ?></div>
-                                        <div class="metric-label">Sessioni TeamViewer</div>
+                                    <div class="bait-stat-card">
+                                        <div class="bait-stat-value"><?= $analysisData['teamviewer']['sessioni'] ?></div>
+                                        <div class="bait-stat-label">Sessioni TeamViewer</div>
                                         <?php if ($analysisData['teamviewer']['minuti_totali']): ?>
-                                            <small class="text-muted"><?= round($analysisData['teamviewer']['minuti_totali']/60, 1) ?>h</small>
+                                            <small class="bait-text-xs text-muted"><?= round($analysisData['teamviewer']['minuti_totali']/60, 1) ?>h</small>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -292,8 +248,8 @@ try {
                     
                     <?php if ($analysisData['auto']['clienti_visitati']): ?>
                         <div class="alert alert-info">
-                            <strong><i class="bi bi-geo-alt me-2"></i>Clienti Visitati:</strong> 
-                            <?= htmlspecialchars($analysisData['auto']['clienti_visitati']) ?>
+                            <strong class="bait-text-sm"><i class="bi bi-geo-alt me-2"></i>Clienti Visitati:</strong> 
+                            <span class="bait-text-sm"><?= htmlspecialchars($analysisData['auto']['clienti_visitati']) ?></span>
                         </div>
                     <?php endif; ?>
                 </div>

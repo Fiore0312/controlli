@@ -228,15 +228,15 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚗 Utilizzo Auto - Vista Excel</title>
+    <title>Utilizzo Auto - BAIT Service</title>
     
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- DataTables CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css" rel="stylesheet">
+    
+    <!-- BAIT Unified Design System -->
+    <link href="/controlli/assets/css/bait-unified-system.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -564,6 +564,16 @@ try {
             border-color: #374151 transparent transparent transparent;
         }
         
+        /* BAIT Unified System Override */
+        body { font-size: 0.875rem !important; }
+        h1, h2, h3, h4, h5 { font-size: 1.25rem !important; font-weight: 400 !important; }
+        .table, .table th, .table td { font-size: 0.75rem !important; padding: 0.25rem 0.5rem !important; }
+        .btn-dashboard, .dashboard-button, .btn[href*="dashboard"] { display: none !important; }
+        .main-header h1 { font-size: 1.5rem !important; }
+        .main-header p { font-size: 0.875rem !important; }
+        .stats-number { font-size: 1.8rem !important; }
+        .stats-label { font-size: 0.8rem !important; }
+        
         @media (max-width: 768px) {
             .stats-row .col-md-3 {
                 margin-bottom: 1rem;
@@ -594,9 +604,7 @@ try {
                     <p class="mb-0">Gestione utilizzo vetture aziendali con inserimento manuale</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <a href="laravel_bait/public/index_standalone.php" class="btn btn-light btn-lg">
-                        <i class="fas fa-dashboard me-2"></i>Dashboard
-                    </a>
+                    <!-- Dashboard button removed -->
                 </div>
             </div>
         </div>
@@ -608,7 +616,7 @@ try {
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item">
                     <a href="laravel_bait/public/index_standalone.php">
-                        <i class="fas fa-home"></i> Dashboard
+                        <i class="fas fa-home"></i> Home
                     </a>
                 </li>
                 <li class="breadcrumb-item active">Utilizzo Auto</li>

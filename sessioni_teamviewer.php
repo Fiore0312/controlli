@@ -281,209 +281,113 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖥️ Sessioni TeamViewer - BAIT Service</title>
+    <title>Sessioni TeamViewer - BAIT Service</title>
     
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- DataTables CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- BAIT Unified Design System -->
+    <link href="/controlli/assets/css/bait-unified-system.css" rel="stylesheet">
     
     <style>
-        body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .main-header {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        .bait-status-active {
+            background: #10b981;
             color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .stats-card {
-            background: white;
+            padding: 0.25rem 0.5rem;
             border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
         
-        .stats-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        }
-        
-        .stats-card.sessions { border-left-color: #17a2b8; }
-        .stats-card.duration { border-left-color: #28a745; }
-        .stats-card.users { border-left-color: #6f42c1; }
-        .stats-card.average { border-left-color: #fd7e14; }
-        
-        .table-container {
-            background: white;
+        .bait-status-inactive {
+            background: #ef4444;
+            color: white;
+            padding: 0.25rem 0.5rem;
             border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin-top: 2rem;
-        }
-        
-        .table-header {
-            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .breadcrumb-nav {
-            background: white;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-        
-        .badge-source {
             font-size: 0.75rem;
-            padding: 0.4rem 0.6rem;
+            font-weight: 500;
         }
         
-        .badge-bait { background-color: #17a2b8; }
-        .badge-gruppo { background-color: #6f42c1; }
+        .badge-bait { background-color: #3b82f6; }
+        .badge-gruppo { background-color: #8b5cf6; }
         
-        .badge-user {
-            background-color: #28a745;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+        .badge-user, .badge-session, .badge-duration {
+            font-size: var(--bait-font-xs);
+            padding: var(--bait-spacing-xs) var(--bait-spacing-sm);
+            border-radius: 12px;
+            font-weight: 500;
         }
         
-        .badge-session {
-            background-color: #fd7e14;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-        
-        .badge-duration {
-            background-color: #6c757d;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
+        .badge-user { background-color: #10b981; }
+        .badge-session { background-color: #f59e0b; }
+        .badge-duration { background-color: #6b7280; }
     </style>
 </head>
 <body>
-    <div class="main-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-2">
-                        <i class="fas fa-desktop me-3"></i>Sessioni TeamViewer
-                    </h1>
-                    <p class="mb-0">Gestione sessioni remote TeamViewer (BAIT + Gruppo)</p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <!-- Dashboard button removed for cleaner UI -->
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- BAIT Navigation System -->
+    <?php
+    require_once 'includes/bait_navigation.php';
+    renderBaitNavigation(basename(__FILE__, '.php'), 'database');
+    ?>
 
-    <div class="container-fluid">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb-nav">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item">
-                    <a href="laravel_bait/public/index_standalone.php">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li class="breadcrumb-item active">Sessioni TeamViewer</li>
-            </ol>
-        </nav>
+    <div class="container py-4">
+        <h1 class="bait-page-title"><i class="bi bi-display me-2"></i>Sessioni TeamViewer</h1>
 
         <!-- Statistics Cards -->
-        <div class="row stats-row mb-4">
-            <div class="col-md-3">
-                <div class="stats-card sessions">
-                    <h3 class="stats-number text-info"><?= number_format($totalSessions) ?></h3>
-                    <p class="stats-label">Sessioni Totali</p>
-                </div>
+        <div class="bait-stats-grid">
+            <div class="bait-stat-card">
+                <div class="bait-stat-value"><?= number_format($totalSessions) ?></div>
+                <div class="bait-stat-label">Sessioni Totali</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card duration">
-                    <h3 class="stats-number text-success"><?= round($totalDuration / 60, 1) ?>h</h3>
-                    <p class="stats-label">Durata Totale</p>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value"><?= round($totalDuration / 60, 1) ?>h</div>
+                <div class="bait-stat-label">Durata Totale</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card users">
-                    <h3 class="stats-number text-primary"><?= $uniqueUsers ?></h3>
-                    <p class="stats-label">Utenti Unici</p>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value"><?= $uniqueUsers ?></div>
+                <div class="bait-stat-label">Utenti Unici</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card average">
-                    <h3 class="stats-number text-warning"><?= $averageDuration ?>min</h3>
-                    <p class="stats-label">Durata Media</p>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value"><?= $averageDuration ?>min</div>
+                <div class="bait-stat-label">Durata Media</div>
             </div>
         </div>
 
         <!-- Main Table -->
-        <div class="table-container">
-            <div class="table-header">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h4 class="mb-0">
-                            <i class="fas fa-list-alt me-2"></i>Sessioni TeamViewer
-                        </h4>
-                        <small>
-                            Fonte dati: 
-                            <?php if ($hasDbData): ?>
-                                <span class="badge bg-success me-1">DATABASE ✓</span>
-                                <span class="text-muted">(<?= count($dbData) ?> sessioni dal DB)</span>
-                            <?php else: ?>
-                                <?php if ($hasBaitCSV): ?>
-                                    <span class="badge badge-source badge-bait me-1">BAIT CSV ✓</span>
-                                <?php endif; ?>
-                                <?php if ($hasGruppoCSV): ?>
-                                    <span class="badge badge-source badge-gruppo">GRUPPO CSV ✓</span>
-                                <?php endif; ?>
-                                <?php if (!$hasBaitCSV && !$hasGruppoCSV): ?>
-                                    <span class="text-danger">Nessun dato disponibile</span>
-                                <?php endif; ?>
-                            <?php endif; ?>
-                        </small>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <?php if ($hasDbData || $hasBaitCSV || $hasGruppoCSV): ?>
-                        <span class="badge bg-success">
-                            <i class="fas fa-check-circle me-1"></i>Dati Disponibili
-                        </span>
+        <div class="bait-table-container">
+            <div class="bait-card-header d-flex justify-content-between align-items-center">
+                <h5>
+                    <i class="bi bi-display"></i>
+                    Sessioni TeamViewer
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <small class="bait-text-xs">
+                        Fonte: 
+                        <?php if ($hasDbData): ?>
+                            <span class="bait-status-active">DATABASE</span>
                         <?php else: ?>
-                        <span class="badge bg-danger">
-                            <i class="fas fa-exclamation-circle me-1"></i>Nessun Dato
-                        </span>
+                            <?php if ($hasBaitCSV): ?>
+                                <span class="badge badge-bait me-1">BAIT</span>
+                            <?php endif; ?>
+                            <?php if ($hasGruppoCSV): ?>
+                                <span class="badge badge-gruppo">GRUPPO</span>
+                            <?php endif; ?>
                         <?php endif; ?>
-                    </div>
+                    </small>
+                    
+                    <?php if ($hasDbData || $hasBaitCSV || $hasGruppoCSV): ?>
+                    <span class="bait-status-active">Dati OK</span>
+                    <?php else: ?>
+                    <span class="bait-status-inactive">No Data</span>
+                    <?php endif; ?>
                 </div>
             </div>
 
-            <div class="table-responsive p-3">
+            <div>
                 <?php if (!empty($combinedData)): ?>
-                <table id="teamviewerTable" class="table table-striped table-hover" style="width:100%">
+                <table id="teamviewerTable" class="bait-table" style="width:100%">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -584,23 +488,19 @@ $averageDuration = $totalSessions > 0 ? round($totalDuration / $totalSessions, 1
                     </tbody>
                 </table>
                 <?php else: ?>
-                <div class="text-center p-5">
-                    <i class="fas fa-desktop fa-3x text-muted mb-3"></i>
-                    <h4>Nessun dato disponibile</h4>
-                    <p class="text-muted">I file teamviewer_bait.csv e teamviewer_gruppo.csv non sono stati trovati o sono vuoti.</p>
+                <div class="text-center py-5">
+                    <i class="bi bi-display" style="font-size: 3rem; color: var(--bait-contrast-muted);"></i>
+                    <h4 class="mt-3 mb-2">Nessun dato disponibile</h4>
+                    <p class="bait-text-sm text-muted mb-4">File TeamViewer non trovati o vuoti</p>
                     
-                    <!-- Debug Panel -->
-                    <div class="alert alert-info text-start mt-4">
-                        <h6><i class="fas fa-info-circle me-2"></i>Informazioni Debug:</h6>
-                        <ul class="mb-0">
-                            <li><strong>BAIT File:</strong> <?= $debugInfo['bait_exists'] ? '✅ Trovato' : '❌ Mancante' ?> (<?= basename($debugInfo['bait_path']) ?>)</li>
-                            <li><strong>Gruppo File:</strong> <?= $debugInfo['gruppo_exists'] ? '✅ Trovato' : '❌ Mancante' ?> (<?= basename($debugInfo['gruppo_path']) ?>)</li>
-                            <li><strong>Directory Input:</strong> <?= $debugInfo['input_dir_exists'] ? '✅ Esiste' : '❌ Mancante' ?></li>
-                            <li><strong>Directory Leggibile:</strong> <?= $debugInfo['input_dir_readable'] ? '✅ Sì' : '❌ No' ?></li>
+                    <div class="alert alert-info text-start">
+                        <h6 class="bait-text-sm"><i class="bi bi-info-circle me-2"></i>Info Debug:</h6>
+                        <ul class="bait-text-xs mb-0">
+                            <li><strong>BAIT:</strong> <?= $debugInfo['bait_exists'] ? '✅' : '❌' ?> <?= basename($debugInfo['bait_path']) ?></li>
+                            <li><strong>Gruppo:</strong> <?= $debugInfo['gruppo_exists'] ? '✅' : '❌' ?> <?= basename($debugInfo['gruppo_path']) ?></li>
+                            <li><strong>Directory:</strong> <?= $debugInfo['input_dir_exists'] ? '✅' : '❌' ?> upload_csv/</li>
                         </ul>
                     </div>
-                    
-                    <!-- Navigation buttons removed for cleaner debug interface -->
                 </div>
                 <?php endif; ?>
             </div>

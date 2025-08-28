@@ -613,34 +613,16 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BAIT Incongruenze Manager</title>
+    <title>Analisi Incongruenze - BAIT Service</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     
+    <!-- BAIT Unified Design System -->
+    <link href="/controlli/assets/css/bait-unified-system.css" rel="stylesheet">
+    
     <style>
-        :root {
-            --bait-blue: #2563eb;
-            --bait-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8fafc;
-        }
-        
-        .header-gradient {
-            background: var(--bait-gradient);
-            color: white;
-            padding: 2rem 0;
-        }
-        
-        .card-modern {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
+        /* Page-specific styles - minimal overrides only */
         .incongruence-card {
             border-left: 4px solid #dc2626;
             margin-bottom: 1rem;
@@ -677,48 +659,11 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
 </head>
 
 <body>
-    <div class="header-gradient">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="mb-0">
-                        <i class="bi bi-search me-3"></i>
-                        BAIT Incongruenze Manager
-                    </h1>
-                    <p class="mb-0 opacity-75">Sistema di Verifica Incongruenze per Qualsiasi Periodo</p>
-                </div>
-                <div>
-                    <a href="/controlli/laravel_bait/public/index_standalone.php" class="btn btn-light btn-lg">
-                        <i class="bi bi-arrow-left me-2"></i>
-                        Dashboard Principale
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Breadcrumb Navigation -->
-    <div class="container-fluid bg-light py-2 border-bottom">
-        <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item">
-                        <a href="/controlli/laravel_bait/public/index_standalone.php" class="text-decoration-none">
-                            <i class="bi bi-house me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="/controlli/audit_monthly_manager.php" class="text-decoration-none">
-                            <i class="bi bi-calendar-month me-1"></i>Audit Mensile
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                        <i class="bi bi-search me-1"></i>Analisi Incongruenze
-                    </li>
-                </ol>
-            </nav>
-        </div>
-    </div>
+    <!-- BAIT Navigation System -->
+    <?php
+    require_once 'includes/bait_navigation.php';
+    renderBaitNavigation(basename(__FILE__, '.php'), 'database');
+    ?>
 
     <div class="container-fluid py-4">
         
@@ -732,8 +677,8 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
         <!-- Quick Actions -->
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-body py-3">
+                <div class="bait-card">
+                    <div class="bait-card-body">
                         <div class="d-flex align-items-center justify-content-between flex-wrap">
                             <div class="mb-2 mb-md-0">
                                 <h6 class="mb-1">
@@ -742,14 +687,14 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
                                 <small class="text-muted">Strumenti di analisi e navigazione</small>
                             </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <a href="/controlli/laravel_bait/public/index_standalone.php" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-speedometer2 me-1"></i>Dashboard Live
+                                <a href="/controlli/laravel_bait/public/index_standalone.php" class="bait-btn bait-btn-primary">
+                                    <i class="bi bi-speedometer2"></i>Dashboard Live
                                 </a>
-                                <a href="/controlli/audit_monthly_manager.php" class="btn btn-outline-success btn-sm">
-                                    <i class="bi bi-calendar-month me-1"></i>Audit Mensile
+                                <a href="/controlli/audit_monthly_manager.php" class="bait-btn bait-btn-primary">
+                                    <i class="bi bi-calendar-month"></i>Audit Mensile
                                 </a>
-                                <a href="/controlli/audit_tecnico_dashboard.php" class="btn btn-outline-info btn-sm">
-                                    <i class="bi bi-person-gear me-1"></i>Analisi Tecnico
+                                <a href="/controlli/audit_tecnico_dashboard.php" class="bait-btn bait-btn-primary">
+                                    <i class="bi bi-person-gear"></i>Analisi Tecnico
                                 </a>
                                 <button type="button" class="btn btn-outline-warning btn-sm" onclick="setQuickDateRange('today')">
                                     <i class="bi bi-calendar-day me-1"></i>Oggi
@@ -768,14 +713,14 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
         </div>
         
         <!-- Analysis Form -->
-        <div class="card card-modern mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-gear me-2"></i>
+        <div class="bait-card">
+            <div class="bait-card-header">
+                <h5>
+                    <i class="bi bi-gear"></i>
                     Configurazione Analisi
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="bait-card-body">
                 <form method="post" class="row g-3">
                     <div class="col-md-3">
                         <label for="date_start" class="form-label">Data Inizio</label>
@@ -799,8 +744,8 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
                     </div>
                     
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" name="analyze_period" class="btn btn-primary w-100">
-                            <i class="bi bi-play-fill me-2"></i>Analizza
+                        <button type="submit" name="analyze_period" class="bait-btn bait-btn-primary w-100">
+                            <i class="bi bi-play-fill"></i>Analizza
                         </button>
                     </div>
                 </form>
@@ -823,77 +768,35 @@ function calculatePeriodStatistics($pdo, $dateStart, $dateEnd, $incongruences) {
         <?php if ($analysisResult): ?>
         
         <!-- Analysis Summary -->
-        <div class="row mb-4">
-            <div class="col-md-2">
-                <div class="card card-modern text-center">
-                    <div class="card-body">
-                        <div class="text-primary mb-2">
-                            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem;"></i>
-                        </div>
-                        <h4 class="text-primary"><?= $analysisResult['summary']['total_incongruences'] ?? 0 ?></h4>
-                        <small class="text-muted">Incongruenze Totali</small>
-                    </div>
-                </div>
+        <div class="bait-stats-grid">
+            <div class="bait-stat-card">
+                <div class="bait-stat-value text-primary"><?= $analysisResult['summary']['total_incongruenze'] ?? 0 ?></div>
+                <div class="bait-stat-label">Incongruenze Totali</div>
             </div>
             
-            <div class="col-md-2">
-                <div class="card card-modern text-center">
-                    <div class="card-body">
-                        <div class="text-danger mb-2">
-                            <i class="bi bi-fire" style="font-size: 2rem;"></i>
-                        </div>
-                        <h4 class="text-danger"><?= $analysisResult['summary']['critical_count'] ?? 0 ?></h4>
-                        <small class="text-muted">Critiche</small>
-                    </div>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value text-danger"><?= $analysisResult['summary']['critical_count'] ?? 0 ?></div>
+                <div class="bait-stat-label">Critiche</div>
             </div>
             
-            <div class="col-md-2">
-                <div class="card card-modern text-center">
-                    <div class="card-body">
-                        <div class="text-warning mb-2">
-                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
-                        </div>
-                        <h4 class="text-warning"><?= $analysisResult['summary']['high_count'] ?? 0 ?></h4>
-                        <small class="text-muted">Alte</small>
-                    </div>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value text-warning"><?= $analysisResult['summary']['high_count'] ?? 0 ?></div>
+                <div class="bait-stat-label">Alte</div>
             </div>
             
-            <div class="col-md-2">
-                <div class="card card-modern text-center">
-                    <div class="card-body">
-                        <div class="text-info mb-2">
-                            <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
-                        </div>
-                        <h4 class="text-info"><?= $analysisResult['summary']['medium_count'] ?? 0 ?></h4>
-                        <small class="text-muted">Medie</small>
-                    </div>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value text-info"><?= $analysisResult['summary']['medium_count'] ?? 0 ?></div>
+                <div class="bait-stat-label">Medie</div>
             </div>
             
-            <div class="col-md-2">
-                <div class="card card-modern text-center">
-                    <div class="card-body">
-                        <div class="text-success mb-2">
-                            <i class="bi bi-speedometer2" style="font-size: 2rem;"></i>
-                        </div>
-                        <h4 class="text-success"><?= $analysisResult['summary']['avg_confidence'] ?? 0 ?>%</h4>
-                        <small class="text-muted">Confidence Media</small>
-                    </div>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value text-success"><?= $analysisResult['summary']['avg_confidence'] ?? 0 ?>%</div>
+                <div class="bait-stat-label">Confidence Media</div>
             </div>
             
-            <div class="col-md-2">
-                <div class="card card-modern text-center">
-                    <div class="card-body">
-                        <div class="text-secondary mb-2">
-                            <i class="bi bi-calendar-range" style="font-size: 2rem;"></i>
-                        </div>
-                        <h4 class="text-secondary"><?= $analysisResult['summary']['period_days'] ?? 0 ?></h4>
-                        <small class="text-muted">Giorni Analizzati</small>
-                    </div>
-                </div>
+            <div class="bait-stat-card">
+                <div class="bait-stat-value text-secondary"><?= $analysisResult['summary']['period_days'] ?? 0 ?></div>
+                <div class="bait-stat-label">Giorni Analizzati</div>
             </div>
         </div>
         
