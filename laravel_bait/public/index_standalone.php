@@ -1215,7 +1215,7 @@ $isConnected = getDatabase() !== null;
                             </div>
 
                             <!-- Attività -->
-                            <div class="vscode-module-icon" data-module="attivita" data-category="activities" title="Attività - Gestione attività Deepser" onclick="loadModule('attivita', '/controlli/attivita_deepser.php')" draggable="true">
+                            <div class="vscode-module-icon" data-module="attivita" data-category="activities" title="Attività - Gestione attività Deepser" onclick="loadModule('attivita', '/controlli/attivita_deepser_fixed.php')" draggable="true">
                                 <i class="bi bi-briefcase-fill"></i>
                             </div>
 
@@ -1260,7 +1260,7 @@ $isConnected = getDatabase() !== null;
                             </div>
 
                             <!-- Carica File -->
-                            <div class="vscode-module-icon" data-module="carica-file" data-category="upload" title="Carica File - Upload CSV e dati" onclick="loadModule('carica-file', '/controlli/upload_csv_simple.php')" draggable="true">
+                            <div class="vscode-module-icon" data-module="carica-file" data-category="upload" title="Carica File - Enterprise Upload System" onclick="loadModule('carica-file', '/controlli/upload_csv_enterprise_iframe.php')" draggable="true">
                                 <i class="bi bi-cloud-upload-fill"></i>
                             </div>
 
@@ -1382,7 +1382,7 @@ $isConnected = getDatabase() !== null;
             },
             'attivita': { 
                 title: 'Attività Deepser', 
-                url: '/controlli/attivita_deepser.php',
+                url: '/controlli/attivita_deepser_fixed.php',
                 icon: 'bi-briefcase-fill',
                 category: 'activities'
             },
@@ -1435,8 +1435,8 @@ $isConnected = getDatabase() !== null;
                 category: 'ai'
             },
             'carica-file': { 
-                title: 'Carica File', 
-                url: '/controlli/upload_csv_simple.php',
+                title: 'Enterprise Upload', 
+                url: '/controlli/upload_csv_enterprise_iframe.php',
                 icon: 'bi-cloud-upload-fill',
                 category: 'upload'
             }
