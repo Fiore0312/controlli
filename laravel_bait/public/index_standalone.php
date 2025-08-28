@@ -1215,7 +1215,7 @@ $isConnected = getDatabase() !== null;
                             </div>
 
                             <!-- Attività -->
-                            <div class="vscode-module-icon" data-module="attivita" data-category="activities" title="Attività - Gestione attività Deepser" onclick="loadModule('attivita', '/controlli/attivita_deepser_fixed.php')" draggable="true">
+                            <div class="vscode-module-icon" data-module="attivita" data-category="activities" title="Attività - Gestione attività Deepser" onclick="loadModule('attivita', '/controlli/attivita_deepser_unified.php')" draggable="true">
                                 <i class="bi bi-briefcase-fill"></i>
                             </div>
 
@@ -1260,7 +1260,7 @@ $isConnected = getDatabase() !== null;
                             </div>
 
                             <!-- Carica File -->
-                            <div class="vscode-module-icon" data-module="carica-file" data-category="upload" title="Carica File - Enterprise Upload System" onclick="loadModule('carica-file', '/controlli/upload_csv_enterprise_iframe.php')" draggable="true">
+                            <div class="vscode-module-icon" data-module="carica-file" data-category="upload" title="Carica File - Upload CSV Incrementale" onclick="loadModule('carica-file', '/controlli/upload_csv_incremental_iframe.php?iframe=1')" draggable="true">
                                 <i class="bi bi-cloud-upload-fill"></i>
                             </div>
 
@@ -1382,7 +1382,7 @@ $isConnected = getDatabase() !== null;
             },
             'attivita': { 
                 title: 'Attività Deepser', 
-                url: '/controlli/attivita_deepser_fixed.php',
+                url: '/controlli/attivita_deepser_unified.php',
                 icon: 'bi-briefcase-fill',
                 category: 'activities'
             },
@@ -1435,8 +1435,8 @@ $isConnected = getDatabase() !== null;
                 category: 'ai'
             },
             'carica-file': { 
-                title: 'Enterprise Upload', 
-                url: '/controlli/upload_csv_enterprise_iframe.php',
+                title: 'Carica File', 
+                url: '/controlli/upload_csv_incremental_iframe.php?iframe=1',
                 icon: 'bi-cloud-upload-fill',
                 category: 'upload'
             }
@@ -2430,7 +2430,152 @@ $isConnected = getDatabase() !== null;
             
             // Initialize mobile optimizations
             initializeMobileOptimizations();
+            
+            // Initialize iframe communication
+            initializeIframeCommunication();
         });
+        
+        // Iframe communication system for upload reports
+        function initializeIframeCommunication() {
+            window.addEventListener('message', function(event) {
+                if (event.data.type === 'upload_success') {
+                    const data = event.data.data;
+                    showUploadSuccessNotification(data);
+                } else if (event.data.type === 'upload_started') {
+                    showUploadProgressNotification();
+                }
+            });
+        }
+        
+        function showUploadSuccessNotification(data) {
+            // Create success notification
+            const notification = document.createElement('div');
+            notification.className = 'upload-success-notification';
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <strong>Upload Completato!</strong>
+                        <button class="btn-close" onclick="this.closest('.upload-success-notification').remove()"></button>
+                    </div>
+                    <div class="notification-body">
+                        📁 ${data.files} file processati • 
+                        ✅ ${data.newRecords} nuovi record • 
+                        📦 ${data.backups} backup creati
+                    </div>
+                </div>
+            `;
+            
+            // Add notification styles if not already present
+            if (!document.getElementById('upload-notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'upload-notification-styles';
+                style.textContent = `
+                    .upload-success-notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+                        border: 1px solid #c3e6cb;
+                        border-radius: 10px;
+                        padding: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        z-index: 9999;
+                        max-width: 400px;
+                        animation: slideInFromRight 0.5s ease-out;
+                    }
+                    
+                    .notification-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        margin-bottom: 8px;
+                        font-weight: 600;
+                    }
+                    
+                    .notification-body {
+                        font-size: 0.9rem;
+                        color: #155724;
+                    }
+                    
+                    .btn-close {
+                        background: none;
+                        border: none;
+                        font-size: 1.2rem;
+                        cursor: pointer;
+                        color: #155724;
+                        opacity: 0.6;
+                    }
+                    
+                    .btn-close:hover {
+                        opacity: 1;
+                    }
+                    
+                    @keyframes slideInFromRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 8 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideInFromRight 0.5s ease-out reverse';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 500);
+                }
+            }, 8000);
+        }
+        
+        function showUploadProgressNotification() {
+            // Show a simple progress indicator
+            const existing = document.querySelector('.upload-progress-notification');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = 'upload-progress-notification';
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm text-primary me-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div>
+                            <strong>Upload in corso...</strong><br>
+                            <small>Elaborazione file CSV in corso</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 10px;
+                padding: 15px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 9999;
+                max-width: 300px;
+            `;
+            
+            document.body.appendChild(notification);
+        }
         
         // Mobile-specific optimizations and features
         function initializeMobileOptimizations() {

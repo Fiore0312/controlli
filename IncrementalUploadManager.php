@@ -424,19 +424,130 @@ class IncrementalUploadManager {
         $existingRecords = 0;
         $fileType = strpos($fileName, 'bait') !== false ? 'bait' : 'gruppo';
 
+        // csvData già ha l'header rimosso dal chiamante
         foreach ($csvData as $row) {
             if (count($row) < 6) continue;
 
-            // Basic duplicate check - for now just count as new
-            // TODO: Implement proper TeamViewer duplicate detection
-            $newRecords++;
+            try {
+                if ($fileType === 'bait') {
+                    // teamviewer_bait.csv format - CORRETTO
+                    // Header: Assegnatario,Nome,Codice,Tipo di sessione,Gruppo,Inizio,Fine,Durata,Note,Classificazione,Commenti del cliente
+                    $assegnatario = trim($row[0]); // Assegnatario = tecnico
+                    $nome_cliente = trim($row[1]); // Nome = cliente  
+                    $codice = trim($row[2]); // Codice sessione
+                    $inizio = isset($row[5]) ? trim($row[5]) : ''; // Inizio
+                    $fine = isset($row[6]) ? trim($row[6]) : ''; // Fine
+                    $durata_str = isset($row[7]) ? trim($row[7]) : ''; // Durata es. "12m", "1h 23m"
+                    
+                    // Converte durata in minuti
+                    $durata_minuti = 0;
+                    if (preg_match('/(\d+)h/', $durata_str, $matches)) {
+                        $durata_minuti += intval($matches[1]) * 60;
+                    }
+                    if (preg_match('/(\d+)m/', $durata_str, $matches)) {
+                        $durata_minuti += intval($matches[1]);
+                    }
+                    
+                    // Check for duplicates based on session_id (codice)
+                    $stmt = $this->pdo->prepare("SELECT id FROM teamviewer_sessions WHERE session_id = ?");
+                    $stmt->execute([$codice]);
+                    
+                    if ($stmt->fetch()) {
+                        $existingRecords++;
+                        continue;
+                    }
+                    
+                    // Parse date/time - formato corretto d/m/Y H:i
+                    $data_inizio = DateTime::createFromFormat('d/m/Y H:i', $inizio);
+                    if ($data_inizio) {
+                        $data_sessione = $data_inizio->format('Y-m-d');
+                        $ora_inizio = $data_inizio->format('H:i:s');
+                        
+                        // Calcola ora fine
+                        $data_fine = clone $data_inizio;
+                        $data_fine->add(new DateInterval('PT' . $durata_minuti . 'M'));
+                        $ora_fine = $data_fine->format('H:i:s');
+                        
+                        // Insert nel database
+                        $stmt = $this->pdo->prepare("
+                            INSERT INTO teamviewer_sessions 
+                            (session_id, tecnico_id, cliente_id, data_sessione, ora_inizio, ora_fine, durata_minuti, tipo_sessione, computer_remoto, descrizione, created_at)
+                            VALUES (?, 1, 1, ?, ?, ?, ?, 'user', ?, ?, NOW())
+                        ");
+                        
+                        $stmt->execute([
+                            $codice,
+                            $data_sessione,
+                            $ora_inizio,
+                            $ora_fine,
+                            $durata_minuti,
+                            $nome_cliente,
+                            "Tecnico: $assegnatario"
+                        ]);
+                        
+                        $newRecords++;
+                    }
+                    
+                } else {
+                    // teamviewer_gruppo.csv format  
+                    // Header: Utente,Computer,ID,Tipo di sessione,Gruppo,Inizio,Fine,Durata,Valuta,Tariffa,Calcolo,Note
+                    $utente = trim($row[0]); // Utente = tecnico
+                    $computer = trim($row[1]); // Computer
+                    $session_id = trim($row[2]); // ID sessione
+                    $inizio = isset($row[5]) ? trim($row[5]) : ''; // Inizio
+                    $fine = isset($row[6]) ? trim($row[6]) : ''; // Fine
+                    $durata_minuti = isset($row[7]) ? intval(trim($row[7])) : 0; // Durata in minuti
+                    
+                    // Check for duplicates based on session_id
+                    $stmt = $this->pdo->prepare("SELECT id FROM teamviewer_sessions WHERE session_id = ?");
+                    $stmt->execute([$session_id]);
+                    
+                    if ($stmt->fetch()) {
+                        $existingRecords++;
+                        continue;
+                    }
+                    
+                    // Parse date/time - formato corretto d/m/Y H:i
+                    $data_inizio = DateTime::createFromFormat('d/m/Y H:i', $inizio);
+                    if ($data_inizio) {
+                        $data_sessione = $data_inizio->format('Y-m-d');
+                        $ora_inizio = $data_inizio->format('H:i:s');
+                        
+                        $data_fine = DateTime::createFromFormat('Y-m-d H:i', $fine);
+                        $ora_fine = $data_fine ? $data_fine->format('H:i:s') : $ora_inizio;
+                        
+                        // Insert nel database
+                        $stmt = $this->pdo->prepare("
+                            INSERT INTO teamviewer_sessions 
+                            (session_id, tecnico_id, cliente_id, data_sessione, ora_inizio, ora_fine, durata_minuti, tipo_sessione, computer_remoto, descrizione, created_at)
+                            VALUES (?, 1, 1, ?, ?, ?, ?, 'server', ?, ?, NOW())
+                        ");
+                        
+                        $stmt->execute([
+                            $session_id,
+                            $data_sessione,
+                            $ora_inizio,
+                            $ora_fine,
+                            $durata_minuti,
+                            $computer,
+                            "Gruppo: $utente"
+                        ]);
+                        
+                        $newRecords++;
+                    }
+                }
+                
+            } catch (Exception $e) {
+                $this->log('ERROR', "ERRORE TeamViewer import: " . $e->getMessage());
+                continue;
+            }
         }
 
         return ['new' => $newRecords, 'existing' => $existingRecords];
     }
 
     /**
-     * Read CSV with semicolon delimiter and proper encoding
+     * Read CSV with proper delimiter and encoding (detects ; or , based on filename)
      */
     private function readCSVWithSemicolon($filePath) {
         if (!file_exists($filePath)) {
@@ -455,12 +566,15 @@ class IncrementalUploadManager {
             $content = mb_convert_encoding($content, 'UTF-8', ['Windows-1252', 'ISO-8859-1']);
         }
         
-        // Split by lines and parse with semicolon
+        // Detect delimiter - teamviewer_gruppo uses comma, others use semicolon
+        $delimiter = (strpos($filePath, 'teamviewer_gruppo') !== false) ? ',' : ';';
+        
+        // Split by lines and parse with detected delimiter
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
             $line = trim($line);
             if (!empty($line)) {
-                $row = str_getcsv($line, ';');
+                $row = str_getcsv($line, $delimiter);
                 $data[] = $row;
             }
         }
