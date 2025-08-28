@@ -325,7 +325,72 @@ $isConnected = getDatabase() !== null;
             color: var(--bait-secondary);
         }
 
-        /* Modern Enterprise Card Grid Styles */
+        /* VS Code Style Sidebar */
+        .vscode-sidebar {
+            background: var(--bait-bg-sidebar);
+            position: fixed;
+            top: 56px; /* Height of navbar */
+            left: 0;
+            width: 64px;
+            height: calc(100vh - 56px);
+            z-index: 1000;
+            padding: 0.5rem 0.25rem;
+            border-right: 1px solid var(--bait-border-primary);
+        }
+        
+        .vscode-module-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .vscode-module-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: transparent;
+            border: none;
+        }
+        
+        .vscode-module-icon:hover {
+            background: var(--bait-bg-tertiary);
+            transform: translateX(2px);
+        }
+        
+        .vscode-module-icon.active {
+            background: var(--bait-primary);
+            color: white;
+        }
+        
+        /* Drag & Drop Styles */
+        .vscode-module-icon.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        
+        .vscode-module-icon.drag-over {
+            background: var(--bait-bg-tertiary);
+            transform: translateY(-2px);
+        }
+        
+        .vscode-module-icon i {
+            font-size: 1.2rem;
+            color: var(--bait-text-secondary);
+        }
+        
+        .vscode-module-icon:hover i,
+        .vscode-module-icon.active i {
+            color: white;
+        }
+        
+
+        /* Modern Enterprise Card Grid Styles - Legacy */
         .bait-module-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -429,9 +494,6 @@ $isConnected = getDatabase() !== null;
         }
 
         /* SPA Content Area Styles */
-        #welcomeScreen {
-            min-height: 400px;
-        }
         
         .breadcrumb-item .bi {
             font-size: 0.9rem;
@@ -628,6 +690,33 @@ $isConnected = getDatabase() !== null;
             75% { transform: translateX(5px); }
         }
         
+        /* VS Code Sidebar Responsive */
+        @media (max-width: 992px) {
+            .vscode-sidebar {
+                padding: 0.25rem;
+            }
+            
+            .vscode-module-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .vscode-module-icon i {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .vscode-module-icon {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .vscode-module-icon i {
+                font-size: 0.9rem;
+            }
+        }
+
         /* Advanced Mobile Optimizations */
         @media (max-width: 1200px) {
             .container-fluid {
@@ -732,18 +821,6 @@ $isConnected = getDatabase() !== null;
             }
             
             /* Mobile content area */
-            #welcomeScreen {
-                padding: 2rem 1rem !important;
-                min-height: 300px;
-            }
-            
-            #welcomeScreen h3 {
-                font-size: 1.5rem;
-            }
-            
-            #welcomeScreen p {
-                font-size: 1rem;
-            }
             
             /* Mobile quick actions */
             .bait-module-quick-actions {
@@ -850,34 +927,7 @@ $isConnected = getDatabase() !== null;
                 display: none !important;
             }
             
-            /* Mobile welcome screen ultra-compact */
-            #welcomeScreen {
-                padding: 1.5rem 0.75rem !important;
-                min-height: 250px;
-            }
-            
-            #welcomeScreen h3 {
-                font-size: 1.3rem;
-                margin-bottom: 1rem;
-            }
-            
-            #welcomeScreen p {
-                font-size: 0.9rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            #welcomeScreen .row {
-                margin: 0;
-            }
-            
-            #welcomeScreen .col-auto {
-                padding: 0.25rem;
-            }
-            
-            #welcomeScreen .badge {
-                font-size: 0.75rem;
-                padding: 0.5rem 0.75rem;
-            }
+            /* Mobile welcome screen removed */
             
             /* Stack buttons vertically on very small screens */
             .bait-module-quick-actions .btn-group,
@@ -1097,10 +1147,6 @@ $isConnected = getDatabase() !== null;
                 display: none;
             }
             
-            #welcomeScreen {
-                padding: 1rem !important;
-                min-height: 200px;
-            }
             
             .navbar {
                 padding: 0.25rem 1rem;
@@ -1144,232 +1190,103 @@ $isConnected = getDatabase() !== null;
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light border-bottom shadow-sm" style="background-color: var(--bait-bg-primary); border-color: var(--bait-border-primary) !important;">
         <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="#" style="font-weight: 400;">
                 <i class="bi bi-shield-check me-2"></i>
-                BAIT Service Enterprise
+                BAIT Service
             </a>
             
-            <div class="d-flex align-items-center">
-                <!-- Theme Toggle -->
-                <button type="button" class="btn btn-outline-secondary btn-sm me-3" id="themeToggle" onclick="toggleTheme()">
-                    <i class="bi bi-sun-fill" id="themeIcon"></i>
-                    <span class="ms-1 d-none d-md-inline" id="themeText">Chiaro</span>
-                </button>
-                
+            <div class="d-flex align-items-center">                
                 <span class="badge <?= $isConnected ? 'bg-success' : 'bg-warning' ?> me-3">
                     <i class="bi bi-database me-1"></i>
                     <?= $isConnected ? 'Database Online' : 'Database Offline' ?>
                 </span>
-                
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid py-4">
-        <!-- Status Alert -->
-        <?php if (!$isConnected): ?>
-        <div class="alert alert-warning mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Attenzione:</strong> Impossibile connettersi al database. Verificare che il database 'bait_service_real' sia disponibile.
-        </div>
-        <?php endif; ?>
-        
-        
-        <!-- Main SPA Layout -->
-        <div class="row">
-            <!-- Sidebar Navigation -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="card section-card h-100">
-                    <div class="card-header bg-white border-bottom-0 py-3">
-                        <h5 class="mb-0">
-                            <i class="bi bi-grid-3x3-gap text-primary me-2"></i>
-                            Moduli BAIT
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Modern Enterprise Card Grid -->
-                        <div class="bait-module-grid" id="moduleGrid">
+    <!-- VS Code Style Fixed Sidebar -->
+    <div class="vscode-sidebar">
+        <div class="vscode-sidebar-content">
+            <!-- Compact Icon Grid -->
+            <div class="vscode-module-grid" id="moduleGrid">
                             <!-- Auto -->
-                            <div class="bait-module-card" data-module="auto" data-category="transport">
-                                <div class="module-link" onclick="loadModule('auto', '/controlli/utilizzo_auto.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-car-front-fill"></i>
-                                    </div>
-                                    <div class="module-title">Auto</div>
-                                    <div class="module-description">Gestione utilizzi auto</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="auto" data-category="transport" title="Auto - Gestione utilizzi auto" onclick="loadModule('auto', '/controlli/utilizzo_auto.php')" draggable="true">
+                                <i class="bi bi-car-front-fill"></i>
                             </div>
 
                             <!-- Attività -->
-                            <div class="bait-module-card" data-module="attivita" data-category="activities">
-                                <div class="module-link" onclick="loadModule('attivita', '/controlli/attivita_deepser.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-briefcase-fill"></i>
-                                    </div>
-                                    <div class="module-title">Attività</div>
-                                    <div class="module-description">Gestione attività Deepser</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="attivita" data-category="activities" title="Attività - Gestione attività Deepser" onclick="loadModule('attivita', '/controlli/attivita_deepser.php')" draggable="true">
+                                <i class="bi bi-briefcase-fill"></i>
                             </div>
 
                             <!-- Permessi -->
-                            <div class="bait-module-card" data-module="permessi" data-category="permissions">
-                                <div class="module-link" onclick="loadModule('permessi', '/controlli/richieste_permessi.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-calendar-check-fill"></i>
-                                    </div>
-                                    <div class="module-title">Permessi</div>
-                                    <div class="module-description">Richieste permessi</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="permessi" data-category="permissions" title="Permessi - Richieste permessi" onclick="loadModule('permessi', '/controlli/richieste_permessi.php')" draggable="true">
+                                <i class="bi bi-calendar-check-fill"></i>
                             </div>
 
                             <!-- Timbrature -->
-                            <div class="bait-module-card" data-module="timbrature" data-category="time">
-                                <div class="module-link" onclick="loadModule('timbrature', '/controlli/timbrature.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-clock-fill"></i>
-                                    </div>
-                                    <div class="module-title">Timbrature</div>
-                                    <div class="module-description">Ore lavorate e presenze</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="timbrature" data-category="time" title="Timbrature - Ore lavorate e presenze" onclick="loadModule('timbrature', '/controlli/timbrature.php')" draggable="true">
+                                <i class="bi bi-clock-fill"></i>
                             </div>
 
                             <!-- TeamViewer -->
-                            <div class="bait-module-card" data-module="teamviewer" data-category="remote">
-                                <div class="module-link" onclick="loadModule('teamviewer', '/controlli/teamviewer_dashboard_fixed.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-display-fill"></i>
-                                    </div>
-                                    <div class="module-title">TeamViewer</div>
-                                    <div class="module-description">Sessioni remote</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="teamviewer" data-category="remote" title="TeamViewer - Sessioni remote" onclick="loadModule('teamviewer', '/controlli/teamviewer_dashboard_fixed.php')" draggable="true">
+                                <i class="bi bi-display-fill"></i>
                             </div>
 
                             <!-- Calendario -->
-                            <div class="bait-module-card" data-module="calendario" data-category="calendar">
-                                <div class="module-link" onclick="loadModule('calendario', '/controlli/calendario.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-calendar-fill"></i>
-                                    </div>
-                                    <div class="module-title">Calendario</div>
-                                    <div class="module-description">Eventi e pianificazione</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="calendario" data-category="calendar" title="Calendario - Eventi e pianificazione" onclick="loadModule('calendario', '/controlli/calendario.php')" draggable="true">
+                                <i class="bi bi-calendar-fill"></i>
                             </div>
 
                             <!-- Audit Tecnico -->
-                            <div class="bait-module-card" data-module="audit-tecnico" data-category="audit">
-                                <div class="module-link" onclick="loadModule('audit-tecnico', '/controlli/audit_tecnico_dashboard.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-person-check-fill"></i>
-                                    </div>
-                                    <div class="module-title">Audit Tecnico</div>
-                                    <div class="module-description">Controlli tecnici</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="audit-tecnico" data-category="audit" title="Audit Tecnico - Controlli tecnici" onclick="loadModule('audit-tecnico', '/controlli/audit_tecnico_dashboard.php')" draggable="true">
+                                <i class="bi bi-person-check-fill"></i>
                             </div>
 
                             <!-- Audit Mensile -->
-                            <div class="bait-module-card" data-module="audit-mensile" data-category="audit">
-                                <div class="module-link" onclick="loadModule('audit-mensile', '/controlli/audit_monthly_manager.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-calendar3-fill"></i>
-                                    </div>
-                                    <div class="module-title">Audit Mensile</div>
-                                    <div class="module-description">Report mensili</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="audit-mensile" data-category="audit" title="Audit Mensile - Report mensili" onclick="loadModule('audit-mensile', '/controlli/audit_monthly_manager.php')" draggable="true">
+                                <i class="bi bi-calendar3-fill"></i>
                             </div>
 
                             <!-- Incongruenze -->
-                            <div class="bait-module-card" data-module="incongruenze" data-category="audit">
-                                <div class="module-link" onclick="loadModule('incongruenze', '/controlli/bait_incongruenze_manager.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-exclamation-triangle-fill"></i>
-                                    </div>
-                                    <div class="module-title">Incongruenze</div>
-                                    <div class="module-description">Rilevamento anomalie</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="incongruenze" data-category="audit" title="Incongruenze - Rilevamento anomalie" onclick="loadModule('incongruenze', '/controlli/bait_incongruenze_manager.php')" draggable="true">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
                             </div>
 
                             <!-- AI Chat -->
-                            <div class="bait-module-card" data-module="ai-chat" data-category="ai">
-                                <div class="module-link" onclick="loadModule('ai-chat', '/controlli/bait_ai_chat.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-robot"></i>
-                                    </div>
-                                    <div class="module-title">AI Chat</div>
-                                    <div class="module-description">Assistente intelligente</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="ai-chat" data-category="ai" title="AI Chat - Assistente intelligente" onclick="loadModule('ai-chat', '/controlli/bait_ai_chat.php')" draggable="true">
+                                <i class="bi bi-robot"></i>
                             </div>
 
                             <!-- Carica File -->
-                            <div class="bait-module-card" data-module="carica-file" data-category="upload">
-                                <div class="module-link" onclick="loadModule('carica-file', '/controlli/upload_csv_simple.php')" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-cloud-upload-fill"></i>
-                                    </div>
-                                    <div class="module-title">Carica File</div>
-                                    <div class="module-description">Upload CSV e dati</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="carica-file" data-category="upload" title="Carica File - Upload CSV e dati" onclick="loadModule('carica-file', '/controlli/upload_csv_simple.php')" draggable="true">
+                                <i class="bi bi-cloud-upload-fill"></i>
                             </div>
 
                             <!-- Filtro Date -->
-                            <div class="bait-module-card" data-module="filtro-date" data-category="filter">
-                                <div class="module-link" onclick="toggleDateFilter()" style="cursor: pointer;">
-                                    <div class="module-icon">
-                                        <i class="bi bi-calendar-range-fill"></i>
-                                    </div>
-                                    <div class="module-title">Filtro Date</div>
-                                    <div class="module-description">Filtra per periodo</div>
-                                </div>
+                            <div class="vscode-module-icon" data-module="filtro-date" data-category="filter" title="Filtro Date - Filtra per periodo" onclick="toggleDateFilter()" draggable="true">
+                                <i class="bi bi-calendar-range-fill"></i>
                             </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-            
+        </div>
+    </div>
+
+    <!-- Main Content with Sidebar Offset -->
+    <div style="margin-left: 64px; margin-top: 56px;">
+        <div class="container-fluid py-4">
+            <!-- Status Alert -->
+            <?php if (!$isConnected): ?>
+            <div class="alert alert-warning mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Attenzione:</strong> Impossibile connettersi al database. Verificare che il database 'bait_service_real' sia disponibile.
+            </div>
+            <?php endif; ?>
+
             <!-- Main Content Area -->
-            <div class="col-lg-9 col-md-8">
-                <div class="card section-card h-100">
-                    <!-- Breadcrumb Navigation -->
-                    <div class="card-header bg-white border-bottom py-3">
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0" id="breadcrumbNav">
-                                <li class="breadcrumb-item">
-                                    <i class="bi bi-house-door text-primary me-1"></i>
-                                    <span class="text-primary fw-semibold">Dashboard</span>
-                                </li>
-                            </ol>
-                        </nav>
-                    </div>
-                    
-                    <!-- Dynamic Content Container -->
-                    <div class="card-body position-relative" id="mainContent">
-                        <!-- Welcome Screen -->
-                        <div class="text-center py-5" id="welcomeScreen">
-                            <div class="mb-4">
-                                <i class="bi bi-grid-3x3-gap text-primary" style="font-size: 4rem;"></i>
-                            </div>
-                            <h3 class="text-dark mb-3">Benvenuto in BAIT Service Enterprise</h3>
-                            <p class="text-muted fs-5 mb-4">Seleziona un modulo dalla barra laterale per iniziare</p>
-                            <div class="row g-3 justify-content-center">
-                                <div class="col-auto">
-                                    <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
-                                        <i class="bi bi-car-front me-1"></i>
-                                        Gestione Auto
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="badge bg-success bg-opacity-10 text-success px-3 py-2">
-                                        <i class="bi bi-briefcase me-1"></i>
-                                        Attività Deepser
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="badge bg-warning bg-opacity-10 text-warning px-3 py-2">
-                                        <i class="bi bi-calendar-check me-1"></i>
-                                        Richieste Permessi
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <div>
+                <!-- Dynamic Content Container -->
+                <div class="position-relative" id="mainContent">
                         
                         <!-- Loading Spinner -->
                         <div class="text-center py-5 d-none" id="loadingSpinner">
@@ -1444,8 +1361,8 @@ $isConnected = getDatabase() !== null;
                     </div>
                 </div>
             </div>
+            </div>
         </div>
-        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1538,8 +1455,7 @@ $isConnected = getDatabase() !== null;
             // Show loading spinner
             showLoading();
             
-            // Update breadcrumb
-            updateBreadcrumb(modules[moduleId].title, modules[moduleId].icon);
+            // Module title update (breadcrumb removed)
             
             // Stop auto-refresh while in module
             stopAutoRefresh();
@@ -1928,48 +1844,39 @@ $isConnected = getDatabase() !== null;
         
         // Set active module visual state
         function setActiveModule(moduleId) {
-            // Remove active class from all cards
-            document.querySelectorAll('.bait-module-card').forEach(card => {
-                card.classList.remove('active');
+            // Remove active class from all icons
+            document.querySelectorAll('.vscode-module-icon').forEach(icon => {
+                icon.classList.remove('active');
             });
             
-            // Add active class to selected card
-            const activeCard = document.querySelector(`[data-module="${moduleId}"]`);
-            if (activeCard) {
-                activeCard.classList.add('active');
+            // Add active class to selected icon
+            const activeIcon = document.querySelector(`[data-module="${moduleId}"]`);
+            if (activeIcon) {
+                activeIcon.classList.add('active');
             }
         }
         
-        // Update breadcrumb navigation
-        function updateBreadcrumb(title, icon) {
-            const breadcrumb = document.getElementById('breadcrumbNav');
-            breadcrumb.innerHTML = `
-                <li class="breadcrumb-item">
-                    <span onclick="showWelcome()" style="cursor: pointer;" class="text-primary fw-semibold">
-                        <i class="bi bi-house-door me-1"></i>
-                        Dashboard
-                    </span>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">
-                    <i class="${icon} me-1"></i>
-                    ${title}
-                </li>
-            `;
-        }
+        // Breadcrumb removed - clean interface
         
         // Show loading state
         function showLoading() {
-            document.getElementById('welcomeScreen').classList.add('d-none');
-            document.getElementById('moduleContent').classList.add('d-none');
-            document.getElementById('loadingSpinner').classList.remove('d-none');
+            const moduleContent = document.getElementById('moduleContent');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            if (moduleContent) moduleContent.classList.add('d-none');
+            if (loadingSpinner) loadingSpinner.classList.remove('d-none');
         }
         
         // Show module content
         function showModuleContent(html) {
-            document.getElementById('welcomeScreen').classList.add('d-none');
-            document.getElementById('loadingSpinner').classList.add('d-none');
-            document.getElementById('moduleContent').innerHTML = html;
-            document.getElementById('moduleContent').classList.remove('d-none');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const moduleContent = document.getElementById('moduleContent');
+            
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
+            if (moduleContent) {
+                moduleContent.innerHTML = html;
+                moduleContent.classList.remove('d-none');
+            }
         }
         
         // Enhanced error message display
@@ -2006,16 +1913,6 @@ $isConnected = getDatabase() !== null;
         function showWelcome() {
             document.getElementById('loadingSpinner').classList.add('d-none');
             document.getElementById('moduleContent').classList.add('d-none');
-            document.getElementById('welcomeScreen').classList.remove('d-none');
-            
-            // Reset breadcrumb
-            const breadcrumb = document.getElementById('breadcrumbNav');
-            breadcrumb.innerHTML = `
-                <li class="breadcrumb-item">
-                    <i class="bi bi-house-door text-primary me-1"></i>
-                    <span class="text-primary fw-semibold">Dashboard</span>
-                </li>
-            `;
             
             // Clear active module
             setActiveModule(null);
@@ -2199,16 +2096,20 @@ $isConnected = getDatabase() !== null;
         }
         
         function updateThemeToggle(theme) {
+            // Update old theme button (if exists)
             const themeIcon = document.getElementById('themeIcon');
             const themeText = document.getElementById('themeText');
             
-            if (theme === 'dark') {
-                themeIcon.className = 'bi bi-moon-fill';
-                themeText.textContent = 'Scuro';
-            } else {
-                themeIcon.className = 'bi bi-sun-fill';
-                themeText.textContent = 'Chiaro';
+            if (themeIcon && themeText) {
+                if (theme === 'dark') {
+                    themeIcon.className = 'bi bi-moon-fill';
+                    themeText.textContent = 'Scuro';
+                } else {
+                    themeIcon.className = 'bi bi-sun-fill';
+                    themeText.textContent = 'Chiaro';
+                }
             }
+            
         }
         
         function applyThemeToModules() {
@@ -2384,12 +2285,136 @@ $isConnected = getDatabase() !== null;
         
         
         // Event listeners per aggiornamento automatico display date
+        // VS Code Style Drag & Drop for Module Icons
+        function initializeDragAndDrop() {
+            const moduleGrid = document.getElementById('moduleGrid');
+            const icons = moduleGrid.querySelectorAll('.vscode-module-icon');
+            
+            icons.forEach(icon => {
+                icon.addEventListener('dragstart', handleDragStart);
+                icon.addEventListener('dragend', handleDragEnd);
+                icon.addEventListener('dragover', handleDragOver);
+                icon.addEventListener('drop', handleDrop);
+                icon.addEventListener('dragenter', handleDragEnter);
+                icon.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+        
+        let draggedElement = null;
+        
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.outerHTML);
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            
+            // Remove drag-over class from all icons
+            document.querySelectorAll('.vscode-module-icon').forEach(icon => {
+                icon.classList.remove('drag-over');
+            });
+            
+            draggedElement = null;
+        }
+        
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+        
+        function handleDragEnter(e) {
+            if (this !== draggedElement) {
+                this.classList.add('drag-over');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            if (draggedElement !== this) {
+                // Get the parent container
+                const container = this.parentNode;
+                
+                // Insert dragged element before or after this element
+                const rect = this.getBoundingClientRect();
+                const midpoint = rect.top + (rect.height / 2);
+                
+                if (e.clientY < midpoint) {
+                    container.insertBefore(draggedElement, this);
+                } else {
+                    container.insertBefore(draggedElement, this.nextSibling);
+                }
+                
+                // Save new order to localStorage
+                saveModuleOrder();
+            }
+            
+            this.classList.remove('drag-over');
+            return false;
+        }
+        
+        function saveModuleOrder() {
+            const moduleGrid = document.getElementById('moduleGrid');
+            const order = Array.from(moduleGrid.querySelectorAll('.vscode-module-icon')).map(icon => 
+                icon.getAttribute('data-module')
+            );
+            localStorage.setItem('bait-module-order', JSON.stringify(order));
+        }
+        
+        function loadModuleOrder() {
+            const savedOrder = localStorage.getItem('bait-module-order');
+            if (savedOrder) {
+                try {
+                    const order = JSON.parse(savedOrder);
+                    const moduleGrid = document.getElementById('moduleGrid');
+                    const icons = Array.from(moduleGrid.querySelectorAll('.vscode-module-icon'));
+                    
+                    // Sort icons according to saved order
+                    const sortedIcons = order.map(moduleId => 
+                        icons.find(icon => icon.getAttribute('data-module') === moduleId)
+                    ).filter(Boolean);
+                    
+                    // Add any icons not in the saved order
+                    icons.forEach(icon => {
+                        if (!sortedIcons.includes(icon)) {
+                            sortedIcons.push(icon);
+                        }
+                    });
+                    
+                    // Reorder DOM elements
+                    sortedIcons.forEach(icon => {
+                        moduleGrid.appendChild(icon);
+                    });
+                } catch (e) {
+                    console.warn('Could not load module order:', e);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
             console.log('Dashboard caricata alle:', now.toLocaleString('it-IT'));
             
             // Initialize theme system
             initializeTheme();
+            
+            // Initialize drag & drop
+            initializeDragAndDrop();
+            
+            // Load saved module order
+            loadModuleOrder();
             
             // Preload popular modules for better performance
             setTimeout(() => {
@@ -2605,8 +2630,8 @@ $isConnected = getDatabase() !== null;
                     </div>
                 `;
                 
-                document.getElementById('welcomeScreen').classList.add('d-none');
-                document.getElementById('moduleContent').classList.add('d-none');
+                const moduleContent = document.getElementById('moduleContent');
+                if (moduleContent) moduleContent.classList.add('d-none');
                 document.getElementById('loadingSpinner').innerHTML = loadingHtml;
                 document.getElementById('loadingSpinner').classList.remove('d-none');
             } else {
